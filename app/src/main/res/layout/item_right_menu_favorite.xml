@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.aitsuki.swipe.SwipeItemLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipe_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    >
+
+    <TextView
+        android:id="@+id/right_menu_favorite"
+        android:layout_width="80dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:background="@color/colorAccent"
+        android:drawableTop="@drawable/favorite"
+        android:gravity="center"
+        android:padding="12dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="6dp"
+        android:text="收藏"
+        android:textColor="@color/white" />
+
+    <include layout="@layout/item_unlimit_91porn" />
+
+</com.aitsuki.swipe.SwipeItemLayout>
