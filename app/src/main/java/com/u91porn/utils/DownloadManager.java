@@ -153,7 +153,7 @@ public class DownloadManager {
             int p = (int) (((float) soFarBytes / totalBytes) * 100);
             unLimit91PornItem.setProgress(p);
         }
-        if (task.getStatus()== FileDownloadStatus.connected){
+        if (task.getStatus()== FileDownloadStatus.completed){
             unLimit91PornItem.setFinshedDownloadDate(new Date());
         }
         unLimit91PornItem.setSpeed(task.getSpeed());

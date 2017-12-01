@@ -8,6 +8,7 @@ import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.utils.BoxQureyHelper;
+import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.ParseUtils;
 import com.u91porn.utils.RandomIPAdderssUtils;
 
@@ -63,16 +64,16 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 return ParseUtils.parseVideoPlayUrl(s);
             }
         }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<String>() {
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new CallBackWrapper<String>() {
             @Override
-            public void onSubscribe(Disposable d) {
+            public void onBegin(Disposable d) {
                 if (isViewAttached()) {
                     getView().showParsingDialog();
                 }
             }
 
             @Override
-            public void onNext(String s) {
+            public void onSuccess(String s) {
                 MyApplication.getInstace().cleanCookies();
                 if (isViewAttached()) {
                     getView().playVideo(s);
@@ -80,15 +81,10 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
             }
 
             @Override
-            public void onError(Throwable e) {
+            public void onError(String msg, int code) {
                 if (isViewAttached()) {
-                    getView().errorParseVideoUrl("解析视频链接失败");
+                    getView().errorParseVideoUrl(msg+" code:"+code);
                 }
-            }
-
-            @Override
-            public void onComplete() {
-
             }
         });
     }

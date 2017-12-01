@@ -10,6 +10,7 @@ import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.utils.BoxQureyHelper;
+import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.ParseUtils;
 
 import java.util.List;
@@ -85,9 +86,9 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<UnLimit91PornItem>>() {
+                .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
+                    public void onBegin(Disposable d) {
                         //首次加载显示加载页
                         if (isViewAttached() && page == 1 && !pullToRefresh) {
                             getView().showLoading(pullToRefresh);
@@ -95,14 +96,14 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                     }
 
                     @Override
-                    public void onNext(List<UnLimit91PornItem> itemList) {
+                    public void onSuccess(List<UnLimit91PornItem> unLimit91PornItems) {
                         if (isViewAttached()) {
                             if (page == 1) {
-                                getView().setData(itemList);
+                                getView().setData(unLimit91PornItems);
                                 getView().showContent();
                             } else {
                                 getView().loadMoreDataComplete();
-                                getView().setMoreData(itemList);
+                                getView().setMoreData(unLimit91PornItems);
                             }
                             //已经最后一页了
                             if (page == totalPage) {
@@ -115,19 +116,14 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                     }
 
                     @Override
-                    public void onError(Throwable e) {
+                    public void onError(String msg, int code) {
                         //首次加载失败，显示重试页
                         if (isViewAttached() && page == 1) {
-                            getView().showError(e, false);
+                            getView().showError(new Throwable(msg), false);
                             //否则就是加载更多失败
                         } else if (isViewAttached()) {
                             getView().loadMoreFailed();
                         }
-                    }
-
-                    @Override
-                    public void onComplete() {
-
                     }
                 });
     }

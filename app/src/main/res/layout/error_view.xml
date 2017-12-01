@@ -12,7 +12,7 @@
         android:drawableTop="@drawable/ic_cloud_off"
         android:gravity="center"
         android:padding="16dp"
-        android:text="发生了一个错误，点击重试！"
+        android:text="请确认当前地址可访问，点击重试！"
         android:textColor="#656565"
         android:textSize="20sp" />
 

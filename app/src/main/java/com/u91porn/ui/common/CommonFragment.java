@@ -202,7 +202,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     public void showError(Throwable e, boolean pullToRefresh) {
         contentView.setRefreshing(false);
         helper.showError();
-        showMessage("无法解析");
+        showMessage(e.getMessage());
         e.printStackTrace();
     }
 

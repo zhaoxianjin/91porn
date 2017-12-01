@@ -7,6 +7,7 @@ import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.favorite.FavoritePresenter;
+import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.ParseUtils;
 
 import java.util.List;
@@ -69,32 +70,27 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<UnLimit91PornItem>>() {
+                .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
+                    public void onBegin(Disposable d) {
                         if (isViewAttached() && !pullToRefresh) {
                             getView().showLoading(pullToRefresh);
                         }
                     }
 
                     @Override
-                    public void onNext(List<UnLimit91PornItem> itemList) {
+                    public void onSuccess(List<UnLimit91PornItem> unLimit91PornItems) {
                         if (isViewAttached()) {
-                            getView().setData(itemList);
+                            getView().setData(unLimit91PornItems);
                             getView().showContent();
                         }
                     }
 
                     @Override
-                    public void onError(Throwable e) {
+                    public void onError(String msg, int code) {
                         if (isViewAttached()) {
-                            getView().showError(e, false);
+                            getView().showError(new Throwable(msg), false);
                         }
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        getView().showContent();
                     }
                 });
     }
