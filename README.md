@@ -25,7 +25,7 @@ rxjava+retrofit+rxcache+mvp+jsoup
 3. 新增板块：最近更新，即按最新上传时间排序浏览视频
 
 ### 下载APK(当然你也可以下载源码自己编译)
-[release页面会上传最新版本APK](https://github.com/techGay/91Porn/releases)
+[在apk目录下会上传最新版本，选择下载即可](https://github.com/techGay/91porn/tree/master/apk)
 
 
 ### 声明
