@@ -175,7 +175,7 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
 
     @Override
     public String getTitle() {
-        return "完成下载";
+        return "下载完成";
     }
 
     @Override

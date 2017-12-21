@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.u91porn.ui.user.UserLoginActivity">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="50dp">
+
+        <EditText
+            android:id="@+id/et_account"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="帐号"
+            android:inputType="textEmailAddress"
+            android:text="flymegoc" />
+
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="密码"
+            android:inputType="textPassword"
+            android:text="ngl3100757105" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/et_captcha"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1000"
+                android:hint="验证码"
+                android:inputType="number" />
+
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/wb_captcha"
+                android:layout_width="110dp"
+                android:layout_height="match_parent"
+                fresco:progressBarAutoRotateInterval="5000"
+                fresco:progressBarImage="@drawable/icon_progress_bar"
+                fresco:progressBarImageScaleType="centerInside"
+                fresco:retryImage="@drawable/retry"
+                fresco:retryImageScaleType="centerCrop" />
+        </LinearLayout>
+
+
+        <Button
+            android:id="@+id/bt_user_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="登录" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="Tips：验证码是非必须的，如果加载不出来，请填写任意4位数字即可" />
+    </LinearLayout>
+
+</LinearLayout>

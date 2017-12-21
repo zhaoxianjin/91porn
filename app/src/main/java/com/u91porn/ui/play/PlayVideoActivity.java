@@ -1,41 +1,40 @@
 package com.u91porn.ui.play;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import com.danikula.videocache.HttpProxyCacheServer;
-import com.danikula.videocache.file.FileNameGenerator;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
-import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloadLargeFileListener;
-import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.cookie.SetCookieCache;
+import com.u91porn.cookie.SharedPrefsCookiePersistor;
+import com.u91porn.data.NoLimit91PornServiceApi;
+import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.UnLimit91PornItem_;
+import com.u91porn.data.model.User;
+import com.u91porn.data.model.VideoResult;
 import com.u91porn.ui.MvpActivity;
+import com.u91porn.ui.download.DownloadPresenter;
+import com.u91porn.ui.favorite.FavoritePresenter;
+import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.BoxQureyHelper;
-import com.u91porn.utils.Constants;
-import com.u91porn.utils.DownloadManager;
+import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.Keys;
-import com.u91porn.utils.MyFileNameGenerator;
 
-import org.greenrobot.essentials.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -55,18 +54,31 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
     JZVideoPlayerStandard jzVideoPlayerStandard;
     @BindView(R.id.fl_comment)
     FrameLayout flComment;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
 
     private AlertDialog mAlertDialog;
+    private AlertDialog favoriteDialog;
     HttpProxyCacheServer proxy = MyApplication.getInstace().getProxy();
     private LoadViewHelper helper;
 
     private UnLimit91PornItem unLimit91PornItem;
+    private NoLimit91PornServiceApi mNoLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+    private Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+    private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+    private FavoritePresenter favoritePresenter = new FavoritePresenter(unLimit91PornItemBox, mNoLimit91PornServiceApi, cacheProviders, MyApplication.getInstace().getUser());
+    private DownloadPresenter downloadPresenter = new DownloadPresenter();
+    private SharedPrefsCookiePersistor sharedPrefsCookiePersistor = MyApplication.getInstace().getSharedPrefsCookiePersistor();
+    private SetCookieCache setCookieCache = MyApplication.getInstace().getSetCookieCache();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_video);
         ButterKnife.bind(this);
+
+        setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -76,8 +88,17 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
             showMessage("参数错误，无法解析");
             return;
         }
-        setTitle(unLimit91PornItem.getTitle());
-        initProgressDialog();
+        setTitle("91Porn - 正在播放");
+        toolbar.setSubtitle(unLimit91PornItem.getTitle());
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+        toolbar.setContentInsetStartWithNavigation(0);
+        mAlertDialog = DialogUtils.initLodingDialog(this, "视频地址解析中...");
 
         helper = new LoadViewHelper(flComment);
         helper.setListener(new OnLoadViewListener() {
@@ -87,26 +108,25 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
             }
         });
 
-        String videoUrl = BoxQureyHelper.getVideoUrlByViewKey(unLimit91PornItem.getViewKey());
-        if (TextUtils.isEmpty(videoUrl)) {
+        UnLimit91PornItem tmp = BoxQureyHelper.findByViewKey(unLimit91PornItem.getViewKey());
+        if (tmp == null || tmp.getVideoResult().getTarget() == null) {
             presenter.loadVideoUrl(unLimit91PornItem.getViewKey());
         } else {
             Logger.t(TAG).d("使用已有播放地址");
-            showMessage("使用已有播放地址,点击播放");
-            playVideo(unLimit91PornItem.getTitle(), videoUrl, "", "");
+            showMessage("使用已有播放地址");
+            unLimit91PornItem.setVideoResult(tmp.getVideoResult());
+            playVideo(unLimit91PornItem.getTitle(), unLimit91PornItem.getVideoResult().getTarget().getVideoUrl(), "", "");
         }
+
+        favoriteDialog = DialogUtils.initLodingDialog(this, "收藏中,请稍后...");
     }
 
-    private void initProgressDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.LoadingDialogStyle);
-        builder.setView(R.layout.loading_layout);
-        mAlertDialog = builder.create();
-        mAlertDialog.setCanceledOnTouchOutside(false);
-    }
 
     private void playVideo(String title, String videoUrl, String name, String thumImgUrl) {
         String proxyUrl = proxy.getProxyUrl(videoUrl);
         jzVideoPlayerStandard.setUp(proxyUrl, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, title);
+        //自动播放
+        jzVideoPlayerStandard.startButton.performClick();
         if (!TextUtils.isEmpty(thumImgUrl)) {
             jzVideoPlayerStandard.thumbImageView.setImageURI(Uri.parse(thumImgUrl));
         }
@@ -130,24 +150,25 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
     @NonNull
     @Override
     public PlayVideoPresenter createPresenter() {
-        return new PlayVideoPresenter();
+        return new PlayVideoPresenter(mNoLimit91PornServiceApi, favoritePresenter, downloadPresenter, sharedPrefsCookiePersistor, setCookieCache, cacheProviders);
     }
 
     @Override
     public void showParsingDialog() {
         if (mAlertDialog == null) {
-            initProgressDialog();
+            return;
         }
         mAlertDialog.show();
     }
 
     @Override
-    public void playVideo(String videoUrl) {
+    public void playVideo(VideoResult videoResult) {
         dismissDialog();
-        showMessage("解析成功，点击播放");
-        presenter.saveVideoUrl(videoUrl, unLimit91PornItem);
+        showMessage("解析成功，开始播放");
+        presenter.saveVideoUrl(videoResult, unLimit91PornItem);
         helper.showContent();
-        playVideo(unLimit91PornItem.getTitle(), videoUrl, "", "");
+        unLimit91PornItem.videoResult.setTarget(videoResult);
+        playVideo(unLimit91PornItem.getTitle(), videoResult.getVideoUrl(), "", videoResult.getThumbImgUrl());
     }
 
     @Override
@@ -164,7 +185,8 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
 
     @Override
     public void showError(Throwable e, boolean pullToRefresh) {
-
+        showMessage(e.getMessage());
+        dismissDialog();
     }
 
     @Override
@@ -174,7 +196,7 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
 
     @Override
     public void showContent() {
-
+        dismissDialog();
     }
 
     @Override
@@ -185,6 +207,7 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
     @Override
     public void showMessage(String msg) {
         super.showMessage(msg);
+        dismissDialog();
     }
 
     /**
@@ -194,12 +217,9 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
         if (mAlertDialog != null && mAlertDialog.isShowing() && !isFinishing()) {
             mAlertDialog.dismiss();
         }
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
+        if (favoriteDialog != null && favoriteDialog.isShowing() && !isFinishing()) {
+            favoriteDialog.dismiss();
+        }
     }
 
     @Override
@@ -218,7 +238,24 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.menu_play_collect) {
-            presenter.favorite(unLimit91PornItem);
+            //presenter.favorite(unLimit91PornItem);
+            VideoResult videoResult = unLimit91PornItem.getVideoResult().getTarget();
+            if (videoResult == null) {
+                showMessage("还未成功解析视频链接，不能收藏！");
+                return true;
+            }
+            User user = MyApplication.getInstace().getUser();
+            if (user == null) {
+                goToLogin();
+                showMessage("请先登录");
+                return true;
+            }
+            if (Integer.parseInt(videoResult.getOwnnerId()) == user.getUserId()) {
+                showMessage("不能收藏自己的视频");
+                return true;
+            }
+            favoriteDialog.show();
+            presenter.favorite("addToFavorites", String.valueOf(user.getUserId()), videoResult.getVideoId(), videoResult.getOwnnerId(), "json");
             return true;
         } else if (id == R.id.menu_play_download) {
             presenter.downloadVideo(unLimit91PornItem);
@@ -226,5 +263,10 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void goToLogin() {
+        Intent intent = new Intent(this, UserLoginActivity.class);
+        startActivity(intent);
     }
 }

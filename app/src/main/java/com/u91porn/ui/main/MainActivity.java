@@ -11,7 +11,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -19,18 +18,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.orhanobut.logger.Logger;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.model.User;
 import com.u91porn.ui.BaseAppCompatActivity;
 import com.u91porn.ui.common.CommonFragment;
 import com.u91porn.ui.download.DownloadActivity;
 import com.u91porn.ui.favorite.FavoriteActivity;
 import com.u91porn.ui.index.IndexFragment;
+import com.u91porn.ui.recentupdates.RecentUpdatesFragment;
+import com.u91porn.ui.user.UserLoginActivity;
+import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
@@ -40,6 +44,9 @@ import java.io.File;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * @author flymegoc
@@ -52,7 +59,7 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
     DrawerLayout drawerLayout;
     @BindView(R.id.nav_view)
     NavigationView navView;
-
+    private ImageView userHeadImageView;
     private Fragment mCurrentFragment;
     private IndexFragment indexFragment;
     private CommonFragment commonFragment;
@@ -65,6 +72,7 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
     private CommonFragment thisMonthHotFragment;
     private CommonFragment lastMonthHotFragment;
     private CommonFragment hdVideoFragment;
+    private RecentUpdatesFragment recentUpdatesFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,18 +91,57 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
                 )
                 .start();
         setSupportActionBar(toolbar);
-
+        toolbar.setContentInsetStartWithNavigation(0);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
         navView.setNavigationItemSelectedListener(this);
-
+        userHeadImageView = navView.getHeaderView(0).findViewById(R.id.imageView);
+        userHeadImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                User user = MyApplication.getInstace().getUser();
+                if (user != null) {
+                    return;
+                }
+                Intent intent = new Intent(MainActivity.this, UserLoginActivity.class);
+                startActivityForResultWithAnimotion(intent, Constants.USER_LOGIN_REQUEST_CODE);
+            }
+        });
         mCurrentFragment = new Fragment();
         indexFragment = IndexFragment.getInstance();
         getSupportFragmentManager().beginTransaction().add(R.id.content, indexFragment).commit();
         mCurrentFragment = indexFragment;
+
+        setUpUserInfo(MyApplication.getInstace().getUser());
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == Constants.USER_LOGIN_REQUEST_CODE && resultCode == RESULT_OK) {
+            setUpUserInfo(MyApplication.getInstace().getUser());
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+
+    }
+
+    private void setUpUserInfo(User user) {
+        if (user == null) {
+            return;
+        }
+
+        View headerView = navView.getHeaderView(0);
+        TextView userNameTextView = headerView.findViewById(R.id.tv_nav_username);
+        TextView lastLoginTime = headerView.findViewById(R.id.tv_nav_last_login_time);
+        TextView lastLoginIP = headerView.findViewById(R.id.tv_nav_last_login_ip);
+
+        String status = user.getStatus().contains("正常") ? "正常" : "异常";
+        userNameTextView.setText(user.getUserName() + "(" + status + ")");
+        lastLoginTime.setText(user.getLastLoginTime().replace("(如果你觉得时间不对,可能帐号被盗)", ""));
+        lastLoginIP.setText(user.getLastLoginIP());
     }
 
     @Override
@@ -279,6 +326,14 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
                 switchContent(mCurrentFragment, thisMonthHotFragment);
                 setTitle(R.string.this_month_hot);
             }
+        } else if (id == R.id.nav_recent_updates) {
+            if (mCurrentFragment != recentUpdatesFragment) {
+                if (recentUpdatesFragment == null) {
+                    recentUpdatesFragment = RecentUpdatesFragment.newInstance("watch");
+                }
+                switchContent(mCurrentFragment, recentUpdatesFragment);
+                setTitle(R.string.recent_updates);
+            }
         } else if (id == R.id.nav_last_months_hot) {
             if (mCurrentFragment != lastMonthHotFragment) {
                 if (lastMonthHotFragment == null) {
@@ -300,10 +355,16 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
             startActivityWithAnimotion(intent);
             needCloseMenu = false;
         } else if (id == R.id.nav_my_collect) {
+            User user = MyApplication.getInstace().getUser();
+            if (user == null) {
+                Intent intent = new Intent(MainActivity.this, UserLoginActivity.class);
+                startActivityForResultWithAnimotion(intent, Constants.USER_LOGIN_REQUEST_CODE);
+                return true;
+            }
             Intent intent = new Intent(MainActivity.this, FavoriteActivity.class);
             startActivityWithAnimotion(intent);
             needCloseMenu = false;
-        } else if (id == R.id.nav_about){
+        } else if (id == R.id.nav_about) {
             showAboutMeDialog();
         }
         if (needCloseMenu) {
@@ -313,9 +374,34 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
     }
 
     private void showAboutMeDialog() {
-        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.about_me);
-        builder.setView(R.layout.about_me);
+        View view = View.inflate(this, R.layout.about_me, null);
+        view.findViewById(R.id.bt_check_update).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyApplication.getInstace().getNoLimit91PornService().checkUpdate("https://github.com/techGay/91porn/blob/master/README.md")
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new CallBackWrapper<String>() {
+                            @Override
+                            public void onBegin(Disposable d) {
+
+                            }
+
+                            @Override
+                            public void onSuccess(String s) {
+                                Logger.d(s);
+                            }
+
+                            @Override
+                            public void onError(String msg, int code) {
+
+                            }
+                        });
+            }
+        });
+        builder.setView(view);
         builder.show();
     }
 

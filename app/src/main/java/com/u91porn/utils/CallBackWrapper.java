@@ -47,10 +47,10 @@ public abstract class CallBackWrapper<T> implements Observer<T> {
 
     @Override
     public void onError(Throwable e) {
-        CompositeException compositeException = (CompositeException) e;
-        if (compositeException.size() > 0) {
-            e = compositeException.getExceptions().get(0);
-        }
+//        CompositeException compositeException = (CompositeException) e;
+//        if (compositeException.size() > 0) {
+//            e = compositeException.getExceptions().get(0);
+//        }
         //HTTP错误
         if (e instanceof HttpException) {
             HttpException httpException = (HttpException) e;

@@ -59,4 +59,28 @@ public interface CacheProviders {
     @ProviderKey("categoryPage")
     @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
     Observable<Reply<String>> getCategoryPage(Observable<String> getCategoryPage, DynamicKeyGroup filterPageCategory, EvictDynamicKey evictFilter);
+
+    /**
+     * 获取最近更新数据
+     *
+     * @param stringObservable   ob
+     * @param filterPageCategory 页码
+     * @param evictFilter        缓存控制
+     * @return oab对象
+     */
+    @ProviderKey("recentUpdate")
+    @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
+    Observable<Reply<String>> getRecentUpdates(Observable<String> stringObservable, DynamicKeyGroup filterPageCategory, EvictDynamicKey evictFilter);
+
+    /**
+     * 获取最近更新数据
+     *
+     * @param stringObservable   ob
+     * @param filterPageCategory 页码
+     * @param evictFilter        缓存控制
+     * @return oab对象
+     */
+    @ProviderKey("favorite")
+    @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
+    Observable<Reply<String>> getFavorite(Observable<String> stringObservable, DynamicKeyGroup filterPageCategory, EvictDynamicKey evictFilter);
 }

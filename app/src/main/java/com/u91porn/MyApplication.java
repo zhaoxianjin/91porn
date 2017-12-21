@@ -7,8 +7,7 @@ import android.text.TextUtils;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
-import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
-import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
+
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -17,11 +16,14 @@ import com.orhanobut.logger.FormatStrategy;
 import com.orhanobut.logger.Logger;
 import com.orhanobut.logger.PrettyFormatStrategy;
 import com.squareup.leakcanary.LeakCanary;
+import com.u91porn.cookie.SetCookieCache;
+import com.u91porn.cookie.SharedPrefsCookiePersistor;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.MyObjectBox;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.UnLimit91PornItem_;
+import com.u91porn.data.model.User;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.MyFileNameGenerator;
@@ -67,20 +69,21 @@ public class MyApplication extends Application {
     private HttpProxyCacheServer proxy;
     private CacheProviders cacheProviders;
     private BoxStore boxStore;
+    private SharedPrefsCookiePersistor sharedPrefsCookiePersistor;
+    private SetCookieCache setCookieCache;
+    private User user;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mMyApplication = this;
         host = (String) SPUtils.get(this, Keys.KEY_SP_NOW_ADDRESS, "");
+        initLogger();
         initBoxStore();
         initLeakCanry();
         initRetrofit();
         initCache();
-        //每次启动清除cookies
-        cleanCookies();
         Fresco.initialize(this);
-        initLogger();
         initLoadingHelper();
         initFileDownload();
     }
@@ -135,6 +138,23 @@ public class MyApplication extends Application {
         SPUtils.put(this, Keys.KEY_SP_NOW_ADDRESS, host);
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    /**
+     * 获取当前可访问的地址
+     *
+     * @return 地址
+     */
+    public String getHost() {
+        return host;
+    }
+
     /**
      * 获取视频缓存代理
      *
@@ -180,7 +200,9 @@ public class MyApplication extends Application {
      */
     private void initRetrofit() {
 
-        cookieJar = new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(this));
+        sharedPrefsCookiePersistor = new SharedPrefsCookiePersistor(this);
+        setCookieCache = new SetCookieCache();
+        cookieJar = new PersistentCookieJar(setCookieCache, sharedPrefsCookiePersistor);
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.addInterceptor(new Interceptor() {
@@ -190,8 +212,8 @@ public class MyApplication extends Application {
                 Request original = chain.request();
 
                 Request.Builder requestBuilder = original.newBuilder();
-                requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.89 Safari/537.36");
-                requestBuilder.header("Accept-Language", "zh-CN,zh;q=0.9,zh-TW;q=0.8");
+                requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0");
+                requestBuilder.header("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5");
                 // requestBuilder.header("X-Forwarded-For","114.114.114.117")
                 requestBuilder.method(original.method(), original.body());
                 String host = MyApplication.this.host;
@@ -235,6 +257,10 @@ public class MyApplication extends Application {
         mNoLimit91PornServiceApi = retrofit.create(NoLimit91PornServiceApi.class);
     }
 
+    public SharedPrefsCookiePersistor getSharedPrefsCookiePersistor() {
+        return sharedPrefsCookiePersistor;
+    }
+
     /**
      * 初始化缓存
      */
@@ -258,7 +284,10 @@ public class MyApplication extends Application {
             return;
         }
         cookieJar.clear();
-        cookieJar.clearSession();
+    }
+
+    public SetCookieCache getSetCookieCache() {
+        return setCookieCache;
     }
 
     public static MyApplication getInstace() {

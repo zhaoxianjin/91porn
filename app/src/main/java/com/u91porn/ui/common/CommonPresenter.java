@@ -35,17 +35,21 @@ import okhttp3.ResponseBody;
  * @describe
  */
 
-public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICommon{
-    private NoLimit91PornServiceApi mNoLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-    private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICommon {
+    private NoLimit91PornServiceApi mNoLimit91PornServiceApi;
+    private CacheProviders cacheProviders;
     private String category;
     private String viewType = "basic";
     private Integer totalPage = 1;
     private int page = 1;
     private FavoritePresenter favoritePresenter;
 
-    public CommonPresenter(String category) {
+
+    public CommonPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, CacheProviders cacheProviders, String category, FavoritePresenter favoritePresenter) {
+        this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
+        this.cacheProviders = cacheProviders;
         this.category = category;
+        this.favoritePresenter = favoritePresenter;
     }
 
     @Override
@@ -126,27 +130,5 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                         }
                     }
                 });
-    }
-
-    @Override
-    public void favorite(UnLimit91PornItem unLimit91PornItem) {
-        if (favoritePresenter == null) {
-            favoritePresenter = new FavoritePresenter();
-        }
-        favoritePresenter.favorite(unLimit91PornItem, new FavoritePresenter.FavoriteListener() {
-            @Override
-            public void onSuccess(String message) {
-                if (isViewAttached()) {
-                    getView().showMessage(message);
-                }
-            }
-
-            @Override
-            public void onError(String message) {
-                if (isViewAttached()) {
-                    getView().showMessage(message);
-                }
-            }
-        });
     }
 }

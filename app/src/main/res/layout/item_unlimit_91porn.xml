@@ -37,7 +37,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/fl_img"
-            android:maxLines="2"
             android:paddingLeft="5dp"
             android:textColor="#053769"
             android:textSize="16sp"

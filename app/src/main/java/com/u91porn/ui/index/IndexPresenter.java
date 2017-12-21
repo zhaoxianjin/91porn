@@ -13,7 +13,6 @@ import com.u91porn.utils.ParseUtils;
 import java.util.List;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
@@ -31,6 +30,10 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
     private NoLimit91PornServiceApi mNoLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
     private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
     private FavoritePresenter favoritePresenter;
+
+    public IndexPresenter(FavoritePresenter favoritePresenter) {
+        this.favoritePresenter = favoritePresenter;
+    }
 
     /**
      * 加载首页视频数据
@@ -93,27 +96,5 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                         }
                     }
                 });
-    }
-
-    @Override
-    public void favorite(UnLimit91PornItem unLimit91PornItem) {
-        if (favoritePresenter == null) {
-            favoritePresenter = new FavoritePresenter();
-        }
-        favoritePresenter.favorite(unLimit91PornItem, new FavoritePresenter.FavoriteListener() {
-            @Override
-            public void onSuccess(String message) {
-                if (isViewAttached()) {
-                    getView().showMessage(message);
-                }
-            }
-
-            @Override
-            public void onError(String message) {
-                if (isViewAttached()) {
-                    getView().showMessage(message);
-                }
-            }
-        });
     }
 }

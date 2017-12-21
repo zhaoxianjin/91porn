@@ -1,14 +1,12 @@
 package com.u91porn.ui.favorite;
 
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,23 +14,17 @@ import android.view.View;
 import com.aitsuki.swipe.SwipeItemLayout;
 import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
-import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.FavoriteAdapter;
-import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.NoLimit91PornServiceApi;
+import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.UnLimit91PornItem_;
-import com.u91porn.ui.BaseAppCompatActivity;
+import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
-import com.u91porn.ui.main.MainActivity;
-import com.u91porn.ui.play.PlayVideoActivity;
-import com.u91porn.utils.BoxQureyHelper;
-import com.u91porn.utils.Keys;
-
-import org.reactivestreams.Subscription;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,27 +32,25 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.objectbox.Box;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
  */
-public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresenter> implements FavoriteView {
+public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresenter> implements FavoriteView, SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.recyclerView)
     SwipeMenuRecyclerView recyclerView;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    @BindView(R.id.contentView)
+    SwipeRefreshLayout contentView;
 
     private FavoriteAdapter mUnLimit91Adapter;
     private List<UnLimit91PornItem> mUnLimit91PornItemList;
+    private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
 
-    private int pageSize = 10;
+    private LoadViewHelper helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +58,21 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
         setContentView(R.layout.activity_favorite);
         ButterKnife.bind(this);
         setTitle(R.string.my_collect);
+
+        setSupportActionBar(toolbar);
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+        toolbar.setContentInsetStartWithNavigation(0);
+
+        // Setup contentView == SwipeRefreshView
+        contentView.setOnRefreshListener(this);
 
         mUnLimit91PornItemList = new ArrayList<>();
         mUnLimit91Adapter = new FavoriteAdapter(R.layout.item_right_menu_delete, mUnLimit91PornItemList);
@@ -99,24 +103,31 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadFavoriteData(mUnLimit91PornItemList.size(), pageSize);
+                //presenter.loadFavoriteData(mUnLimit91PornItemList.size(), pageSize);
+                presenter.loadRemoteFavoriteData(false);
             }
         }, recyclerView);
-        presenter.loadFavoriteData(mUnLimit91PornItemList.size(), pageSize);
+        //presenter.loadFavoriteData(mUnLimit91PornItemList.size(), pageSize);
+
+        helper = new LoadViewHelper(recyclerView);
+        helper.setListener(new OnLoadViewListener() {
+            @Override
+            public void onRetryClick() {
+                presenter.loadRemoteFavoriteData(false);
+            }
+        });
+        presenter.loadRemoteFavoriteData(false);
     }
 
     @NonNull
     @Override
     public FavoritePresenter createPresenter() {
-        return new FavoritePresenter();
+        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        User user = MyApplication.getInstace().getUser();
+        return new FavoritePresenter(unLimit91PornItemBox, noLimit91PornServiceApi, cacheProviders, user);
     }
 
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return super.onSupportNavigateUp();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -174,9 +185,25 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     }
 
     @Override
-    public void noLoadMoreData() {
+    public void loadMoreDataComplete() {
+        mUnLimit91Adapter.loadMoreComplete();
+    }
+
+    @Override
+    public void loadMoreFailed() {
+        showMessage("加载更多失败");
+        mUnLimit91Adapter.loadMoreFail();
+    }
+
+    @Override
+    public void noMoreData() {
         mUnLimit91Adapter.loadMoreEnd(true);
         showMessage("没有更多数据了");
+    }
+
+    @Override
+    public void setMoreData(List<UnLimit91PornItem> unLimit91PornItemList) {
+        mUnLimit91Adapter.addData(unLimit91PornItemList);
     }
 
     @Override
@@ -186,17 +213,21 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
 
     @Override
     public void showError(Throwable e, boolean pullToRefresh) {
-
+        contentView.setRefreshing(false);
+        helper.showError();
+        showMessage(e.getMessage());
+        e.printStackTrace();
     }
 
     @Override
     public void showLoading(boolean pullToRefresh) {
-
+        helper.showLoading();
     }
 
     @Override
     public void showContent() {
-
+        helper.showContent();
+        contentView.setRefreshing(false);
     }
 
     @Override
@@ -207,5 +238,10 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     @Override
     public LifecycleTransformer<Reply<String>> bindView() {
         return bindToLifecycle();
+    }
+
+    @Override
+    public void onRefresh() {
+        presenter.loadRemoteFavoriteData(true);
     }
 }

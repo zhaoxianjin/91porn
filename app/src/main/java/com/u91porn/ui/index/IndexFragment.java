@@ -20,8 +20,12 @@ import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.NoLimit91PornServiceApi;
+import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpFragment;
+import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.play.PlayVideoActivity;
 import com.u91porn.utils.BoxQureyHelper;
@@ -66,7 +70,11 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
 
     @Override
     public IndexPresenter createPresenter() {
-        return new IndexPresenter();
+        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+        User user = MyApplication.getInstace().getUser();
+        return new IndexPresenter(new FavoritePresenter(unLimit91PornItemBox, noLimit91PornServiceApi, cacheProviders, user));
     }
 
     @Override
@@ -89,7 +97,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         contentView.setOnRefreshListener(this);
 
         mUnLimit91PornItemList = new ArrayList<>();
-        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_right_menu_favorite, mUnLimit91PornItemList);
+        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(mUnLimit91Adapter);
 
@@ -100,16 +108,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
                 goToPlayVideo(unLimit91PornItems);
             }
         });
-        mUnLimit91Adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                SwipeItemLayout swipeItemLayout = (SwipeItemLayout) view.getParent();
-                swipeItemLayout.close();
-                if (view.getId() == R.id.right_menu_favorite) {
-                    presenter.favorite((UnLimit91PornItem) adapter.getItem(position));
-                }
-            }
-        });
+
         helper = new LoadViewHelper(recyclerView);
         helper.setListener(new OnLoadViewListener() {
             @Override

@@ -6,9 +6,10 @@ android {
         applicationId "com.u91porn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 3
+        versionName "1.0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -44,7 +45,7 @@ dependencies {
     compile 'com.facebook.fresco:fresco:1.5.0'
     compile 'com.orhanobut:logger:2.1.1'
     compile 'com.squareup.okhttp3:logging-interceptor:3.9.0'
-    compile 'cn.jzvd:jiaozivideoplayer:6.1.2'
+    compile 'cn.jzvd:jiaozivideoplayer:6.2.2'
     compile 'com.hannesdorfmann.mosby3:mvp:3.0.4'
     // Plain MVP'
     compile 'com.trello.rxlifecycle2:rxlifecycle:2.2.1'

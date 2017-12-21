@@ -7,6 +7,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="hot">当前最热</string>
+    <string name="recent_updates">最近更新</string>
     <string name="index">主页</string>
     <string name="near_rp">最近得分</string>
     <string name="ten_minutes">10分钟以上</string>
@@ -22,7 +23,7 @@
     <string name="my_collect">我的收藏</string>
     <string name="my_download">我的下载</string>
     <string name="about_me">关于</string>
-    <string name="lala_lu">啦啦噜</string>
+    <string name="lala_lu">请登录</string>
     <string name="nav_tip">小撸怡情，大撸伤身，强撸灰飞烟灭</string>
     <string name="no_data">暂无数据</string>
     <string name="collect">收藏</string>

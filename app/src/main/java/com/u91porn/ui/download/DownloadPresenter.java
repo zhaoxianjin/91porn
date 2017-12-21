@@ -10,6 +10,7 @@ import com.orhanobut.logger.Logger;
 import com.u91porn.MyApplication;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.UnLimit91PornItem_;
+import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.utils.BoxQureyHelper;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DownloadManager;
@@ -42,8 +43,9 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
 
     private Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
 
+
     @Override
-    public void favorite(UnLimit91PornItem unLimit91PornItem) {
+    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType) {
 
     }
 
@@ -68,8 +70,8 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
             }
             return;
         }
-        String videoUrl = tmp.getVideoUrl();
-        if (TextUtils.isEmpty(tmp.getVideoUrl())) {
+        String videoUrl = tmp.getVideoResult().getTarget().getVideoUrl();
+        if (TextUtils.isEmpty(tmp.getVideoResult().getTarget().getVideoUrl())) {
             if (isViewAttached() && downloadListener == null) {
                 getView().showMessage("还未解析成功视频地址");
             }
@@ -81,8 +83,11 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
             if (isViewAttached() && downloadListener == null) {
                 getView().showMessage("已经下载过了，请查看下载目录");
             } else {
-                downloadListener.onError("已经下载过了，请查看下载目录");
+                if (downloadListener != null) {
+                    downloadListener.onError("已经下载过了，请查看下载目录");
+                }
             }
+            return;
         }
         //如果已经缓存完成，直接使用缓存代理完成
         if (proxy.isCached(videoUrl)) {
@@ -101,7 +106,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
             return;
         }
         //检查当前状态
-        if (tmp.getStatus() == FileDownloadStatus.progress) {
+        if (tmp.getStatus() != FileDownloadStatus.INVALID_STATUS) {
             if (isViewAttached() && downloadListener == null) {
                 getView().showMessage("已经在下载了");
             } else {
@@ -224,7 +229,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
                 unLimit91PornItem.setStatus(FileDownloadStatus.completed);
                 unLimit91PornItem.setProgress(100);
                 unLimit91PornItem.setFinshedDownloadDate(new Date());
-                unLimit91PornItem.setDownloadId(FileDownloadUtils.generateId(unLimit91PornItem.getVideoUrl(), unLimit91PornItem.getDownLoadPath()));
+                unLimit91PornItem.setDownloadId(FileDownloadUtils.generateId(unLimit91PornItem.getVideoResult().getTarget().getVideoUrl(), unLimit91PornItem.getDownLoadPath()));
                 MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class).put(unLimit91PornItem);
                 return "下载完成";
             }

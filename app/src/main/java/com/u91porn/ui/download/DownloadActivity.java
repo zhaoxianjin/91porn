@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import com.liulishuo.filedownloader.FileDownloadConnectListener;
 import com.liulishuo.filedownloader.FileDownloader;
@@ -30,10 +32,12 @@ public class DownloadActivity extends BaseAppCompatActivity {
     ViewPager downloadViewpager;
     @BindView(R.id.download_tab)
     TabLayout downloadTab;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
 
     private DownloadFragmentAdapter downloadAdapter;
     private List<Fragment> fragmentList;
-    FileDownloadConnectListener fileDownloadConnectListener=new FileDownloadConnectListener() {
+    FileDownloadConnectListener fileDownloadConnectListener = new FileDownloadConnectListener() {
         @Override
         public void connected() {
             Logger.t(TAG).d("connected连接上");
@@ -44,15 +48,23 @@ public class DownloadActivity extends BaseAppCompatActivity {
             Logger.t(TAG).d("disconnected断开连接？？？");
         }
     };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
         ButterKnife.bind(this);
         setTitle(R.string.my_download);
+        setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+        toolbar.setContentInsetStartWithNavigation(0);
         fragmentList = new ArrayList<>();
         fragmentList.add(new DownloadingFragment());
         fragmentList.add(new FinishedFragment());
@@ -65,7 +77,7 @@ public class DownloadActivity extends BaseAppCompatActivity {
         if (!FileDownloader.getImpl().isServiceConnected()) {
             FileDownloader.getImpl().bindService();
             Logger.t(TAG).d("启动连接");
-        }else {
+        } else {
             Logger.t(TAG).d("已经连接");
         }
 

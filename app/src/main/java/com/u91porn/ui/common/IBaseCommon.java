@@ -8,5 +8,5 @@ import com.u91porn.ui.favorite.IBaseFavorite;
  * @describe
  */
 
-public interface IBaseCommon extends IBaseFavorite{
+public interface IBaseCommon {
 }

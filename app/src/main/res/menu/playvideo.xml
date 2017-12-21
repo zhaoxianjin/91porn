@@ -4,14 +4,12 @@
 
     <item
         android:id="@+id/menu_play_collect"
-        android:title="@string/collect"
         android:orderInCategory="100"
-        app:showAsAction="never"
-        />
+        android:title="@string/collect"
+        app:showAsAction="never" />
     <item
         android:id="@+id/menu_play_download"
-        android:title="@string/download"
         android:orderInCategory="100"
-        app:showAsAction="never"
-        />
+        android:title="@string/download"
+        app:showAsAction="never" />
 </menu>

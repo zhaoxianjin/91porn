@@ -96,7 +96,7 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
                         FileDownloader.getImpl().pause(unLimit91PornItem.getDownloadId());
                         ((ImageView) view).setImageResource(R.drawable.start_download);
                     } else {
-                        DownloadManager.getImpl().startDownload(unLimit91PornItem.getVideoUrl(), unLimit91PornItem.getDownLoadPath());
+                        DownloadManager.getImpl().startDownload(unLimit91PornItem.getVideoResult().getTarget().getVideoUrl(), unLimit91PornItem.getDownLoadPath());
                         ((ImageView) view).setImageResource(R.drawable.pause_download);
                     }
                 }

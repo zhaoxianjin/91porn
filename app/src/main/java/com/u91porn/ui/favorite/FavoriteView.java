@@ -16,5 +16,11 @@ public interface FavoriteView extends BaseView {
 
     void deleteFavoriteSucc(int position);
 
-    void noLoadMoreData();
+    void loadMoreDataComplete();
+
+    void loadMoreFailed();
+
+    void noMoreData();
+
+    void setMoreData(List<UnLimit91PornItem> unLimit91PornItemList);
 }

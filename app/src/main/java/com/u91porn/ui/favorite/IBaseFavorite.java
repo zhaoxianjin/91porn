@@ -1,7 +1,5 @@
 package com.u91porn.ui.favorite;
 
-import com.u91porn.data.model.UnLimit91PornItem;
-
 /**
  * @author flymegoc
  * @date 2017/11/27
@@ -9,5 +7,5 @@ import com.u91porn.data.model.UnLimit91PornItem;
  */
 
 public interface IBaseFavorite {
-    void favorite(UnLimit91PornItem unLimit91PornItem);
+    void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType);
 }

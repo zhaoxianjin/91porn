@@ -2,15 +2,18 @@ package com.u91porn.data.model;
 
 import android.text.format.DateFormat;
 
+import com.u91porn.MyApplication;
 import com.u91porn.utils.Constants;
 
 import java.io.Serializable;
 import java.util.Date;
 
+import io.objectbox.Box;
 import io.objectbox.annotation.Entity;
 import io.objectbox.annotation.Id;
 import io.objectbox.annotation.Index;
 import io.objectbox.annotation.Transient;
+import io.objectbox.relation.ToOne;
 
 /**
  * @author flymegoc
@@ -26,14 +29,14 @@ public class UnLimit91PornItem implements Serializable {
     public final static int FAVORITE_NO = 0;
 
     @Id
-    private Long id;
+    public Long id;
     @Index
     private String viewKey;
     private String title;
     private String imgUrl;
     private String duration;
     private String info;
-    private String videoUrl;
+    public ToOne<VideoResult> videoResult;
     private int downloadId;
     private int favorite;
 
@@ -94,12 +97,12 @@ public class UnLimit91PornItem implements Serializable {
         this.info = info;
     }
 
-    public String getVideoUrl() {
-        return videoUrl;
+    public ToOne<VideoResult> getVideoResult() {
+        return videoResult;
     }
 
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
+    public void setVideoResult(ToOne<VideoResult> videoResult) {
+        this.videoResult = videoResult;
     }
 
     public int getDownloadId() {
@@ -169,7 +172,7 @@ public class UnLimit91PornItem implements Serializable {
 
         UnLimit91PornItem that = (UnLimit91PornItem) o;
 
-        return videoUrl.equals(that.videoUrl);
+        return videoResult != null ? videoResult.equals(that.videoResult) : that.videoResult == null;
     }
 
     @Override
@@ -215,7 +218,7 @@ public class UnLimit91PornItem implements Serializable {
                 ", imgUrl='" + imgUrl + '\'' +
                 ", duration='" + duration + '\'' +
                 ", info='" + info + '\'' +
-                ", videoUrl='" + videoUrl + '\'' +
+                ", videoResult='" + videoResult.toString() + '\'' +
                 ", downloadId=" + downloadId +
                 ", favorite=" + favorite +
                 ", progress=" + progress +
@@ -223,9 +226,9 @@ public class UnLimit91PornItem implements Serializable {
                 ", soFarBytes=" + soFarBytes +
                 ", totalFarBytes=" + totalFarBytes +
                 ", status=" + status +
-                ", favoriteDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, favoriteDate==null?new Date():favoriteDate) +
-                ", addDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, addDownloadDate==null?new Date():addDownloadDate) +
-                ", finshedDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, finshedDownloadDate==null?new Date():finshedDownloadDate) +
+                ", favoriteDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, favoriteDate == null ? new Date() : favoriteDate) +
+                ", addDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, addDownloadDate == null ? new Date() : addDownloadDate) +
+                ", finshedDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, finshedDownloadDate == null ? new Date() : finshedDownloadDate) +
                 '}';
     }
 }

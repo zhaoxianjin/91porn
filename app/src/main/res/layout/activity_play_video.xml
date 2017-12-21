@@ -6,6 +6,8 @@
     android:orientation="vertical"
     tools:context="com.u91porn.ui.play.PlayVideoActivity">
 
+    <include layout="@layout/toolbar_layout" />
+
     <cn.jzvd.JZVideoPlayerStandard
         android:id="@+id/videoplayer"
         android:layout_width="match_parent"
@@ -15,8 +17,7 @@
         android:id="@+id/fl_comment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="5dp"
-        >
+        android:padding="5dp">
 
         <TextView
             android:layout_width="match_parent"

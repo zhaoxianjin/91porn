@@ -10,6 +10,10 @@
             android:icon="@drawable/ic_slow_motion_video_black_24dp"
             android:title="@string/index" />
         <item
+            android:id="@+id/nav_recent_updates"
+            android:icon="@drawable/ic_slow_motion_video_black_24dp"
+            android:title="@string/recent_updates" />
+        <item
             android:id="@+id/nav_hot"
             android:icon="@drawable/ic_slow_motion_video_black_24dp"
             android:title="@string/hot" />
