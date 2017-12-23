@@ -1,6 +1,9 @@
 {
 "apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta_v1.0.2.apk",
-"updateMessage": "新增用户注册功能",
+"updateMessage": "1，修复验证码错误\n
+                  2，新增登录功能\n
+                  3，新增自动更新\n
+                  4，新增浏览记录（本地功能）",
 "versionCode": 4,
 "versionName": "1.0.3"
 }

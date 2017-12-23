@@ -492,6 +492,27 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         ImmersionBar.with(this).destroy();
     }
 
+    private void showUpdateDialog(final UpdateVersion updateVersion) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("发现新版本");
+        builder.setMessage(updateVersion.getUpdateMessage());
+        builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(MainActivity.this, DownloadService.class);
+                intent.putExtra("updateVersion", updateVersion);
+                startService(intent);
+            }
+        });
+        builder.setNegativeButton("稍后更新", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        builder.show();
+    }
+
     @NonNull
     @Override
     public MainPresenter createPresenter() {
@@ -501,17 +522,17 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
     @Override
     public void needUpdate(UpdateVersion updateVersion) {
-
+        showUpdateDialog(updateVersion);
     }
 
     @Override
     public void noNeedUpdate() {
-
+        Logger.t(TAG).d("当前已是最新版本");
     }
 
     @Override
     public void checkUpdateError(String message) {
-
+        Logger.t(TAG).d("检查更新错误：" + message);
     }
 
     @Override

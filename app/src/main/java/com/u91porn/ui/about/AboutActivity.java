@@ -80,7 +80,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
         return new AboutPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson()));
     }
 
-    private void showUpdateDialog(UpdateVersion updateVersion) {
+    private void showUpdateDialog(final UpdateVersion updateVersion) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("发现新版本");
         builder.setMessage(updateVersion.getUpdateMessage());
@@ -88,6 +88,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Intent intent = new Intent(AboutActivity.this, DownloadService.class);
+                intent.putExtra("updateVersion", updateVersion);
                 startService(intent);
             }
         });
@@ -97,6 +98,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
 
             }
         });
+        builder.show();
     }
 
     @Override
