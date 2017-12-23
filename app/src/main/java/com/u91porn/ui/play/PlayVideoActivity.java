@@ -33,7 +33,9 @@ import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.BoxQureyHelper;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.Keys;
+import com.u91porn.utils.SPUtils;
 
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -114,6 +116,11 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
         } else {
             Logger.t(TAG).d("使用已有播放地址");
             showMessage("使用已有播放地址");
+            //浏览历史
+            if (tmp.getViewHistoryDate() == null) {
+                tmp.setViewHistoryDate(new Date());
+                unLimit91PornItemBox.put(tmp);
+            }
             unLimit91PornItem.setVideoResult(tmp.getVideoResult());
             playVideo(unLimit91PornItem.getTitle(), unLimit91PornItem.getVideoResult().getTarget().getVideoUrl(), "", "");
         }
@@ -176,6 +183,12 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
         dismissDialog();
         helper.showError();
         showMessage(errorMessage);
+    }
+
+    @Override
+    public void favoriteSuccess() {
+        SPUtils.put(this, Keys.KEY_SP_USER_FAVORITE_NEED_REFRESH, true);
+        showMessage("收藏成功");
     }
 
     @Override

@@ -1,12 +1,15 @@
 package com.u91porn.ui;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
 import com.u91porn.R;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.play.PlayVideoActivity;
+import com.u91porn.utils.AppManager;
 import com.u91porn.utils.Keys;
 
 /**
@@ -16,6 +19,20 @@ import com.u91porn.utils.Keys;
  */
 
 public abstract class BaseAppCompatActivity extends RxAppCompatActivity {
+    private AppManager appManager = AppManager.getAppManager();
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        appManager.addActivity(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        appManager.finishActivity(this);
+    }
+
     /**
      * 带动画的启动activity
      */

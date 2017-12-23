@@ -6,6 +6,8 @@
         android:id="@+id/menu_play_collect"
         android:orderInCategory="100"
         android:title="@string/collect"
+        app:iconTint="@color/white"
+        android:icon="@drawable/ic_favorite_black_24dp"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_play_download"

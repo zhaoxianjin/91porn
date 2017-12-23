@@ -25,6 +25,8 @@ import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
+import com.u91porn.utils.Keys;
+import com.u91porn.utils.SPUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +97,8 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
                 SwipeItemLayout swipeItemLayout = (SwipeItemLayout) view.getParent();
                 swipeItemLayout.close();
                 if (view.getId() == R.id.right_menu_delete) {
-                    presenter.deleteFavorite(position, (UnLimit91PornItem) adapter.getItem(position));
+                    showMessage("暂不支持删除");
+                    //presenter.deleteFavorite(position, (UnLimit91PornItem) adapter.getItem(position));
                 }
             }
         });
@@ -116,7 +119,8 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
                 presenter.loadRemoteFavoriteData(false);
             }
         });
-        presenter.loadRemoteFavoriteData(false);
+        boolean needRefresh = (boolean) SPUtils.get(this, Keys.KEY_SP_USER_FAVORITE_NEED_REFRESH, false);
+        presenter.loadRemoteFavoriteData(needRefresh);
     }
 
     @NonNull
@@ -174,8 +178,9 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
 
     @Override
     public void setFavoriteData(List<UnLimit91PornItem> unLimit91PornItemList) {
+        SPUtils.put(this, Keys.KEY_SP_USER_FAVORITE_NEED_REFRESH, false);
         mUnLimit91Adapter.loadMoreComplete();
-        mUnLimit91Adapter.addData(unLimit91PornItemList);
+        mUnLimit91Adapter.setNewData(unLimit91PornItemList);
         mUnLimit91Adapter.disableLoadMoreIfNotFullPage(recyclerView);
     }
 

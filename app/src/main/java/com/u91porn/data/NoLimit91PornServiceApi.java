@@ -74,6 +74,25 @@ public interface NoLimit91PornServiceApi {
     Observable<String> login(@Field("username") String username, @Field("password") String password, @Field("fingerprint") String fingerprint, @Field("fingerprint2") String fingerprint2, @Field("captcha_input") String captcha, @Field("action_login") String actionlogin, @Field("x") String x, @Field("y") String y);
 
     /**
+     * 用户注册
+     * @param next 空
+     * @param username 用户名
+     * @param password1 密码1
+     * @param password2 密码2
+     * @param email 邮箱
+     * @param captchaInput 验证码
+     * @param fingerprint 人机校验 -空
+     * @param vip vip -空
+     * @param actionSignup 动作 value：Sign Up
+     * @param submitX 人机x坐标 45
+     * @param submitY 人机y坐标 13
+     * @param ipAddress 随机ip
+     * @return ob
+     */
+    @FormUrlEncoded
+    @POST("/signup.php")
+    Observable<String> register(@Query("next") String next,@Field("username") String username,@Field("password1") String password1,@Field("password2") String password2,@Field("email") String email,@Field("captcha_input") String captchaInput,@Field("fingerprint") String fingerprint,@Field("vip") String vip,@Field("action_signup") String actionSignup,@Field("submit.x") String submitX,@Field("submit.y") String submitY,@Header("X-Forwarded-For") String ipAddress);
+    /**
      * 我的收藏
      *
      * @return ob

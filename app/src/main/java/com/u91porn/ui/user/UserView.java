@@ -11,5 +11,9 @@ public interface UserView extends BaseView {
 
     void loginSuccess();
 
-    void loginError();
+    void loginError(String message);
+
+    void registerSuccess();
+
+    void registerFailure(String message);
 }

@@ -28,4 +28,7 @@
     <string name="no_data">暂无数据</string>
     <string name="collect">收藏</string>
     <string name="download">下载</string>
+    <string name="history_views">浏览历史</string>
+    <string name="register">注册</string>
+    <string name="exit_app">退出程序</string>
 </resources>

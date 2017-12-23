@@ -11,6 +11,7 @@ import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
+import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.user.UserPresenter;
@@ -23,20 +24,35 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
 
     private static final String TAG = SplashActivity.class.getSimpleName();
     private int retryTime = 3;
+    private String password;
+    private String username;
+    private String captcha = "3124";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
 
-        String username = (String) SPUtils.get(this, Keys.KEY_SP_USER_LOGIN_USERNAME, "");
+        //防止重复开启程序造成多次登录
+        if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0) {
+            //结束你的activity
+            Logger.t(TAG).d("重复打开了....");
+            finish();
+            return;
+        }
+        User user = MyApplication.getInstace().getUser();
+        if (user != null) {
+            startMain();
+        }
+        setContentView(R.layout.activity_splash);
+        username = (String) SPUtils.get(this, Keys.KEY_SP_USER_LOGIN_USERNAME, "");
         String ep = (String) SPUtils.get(this, Keys.KEY_SP_USER_LOGIN_PASSWORD, "");
-        String password = null;
         if (!TextUtils.isEmpty(ep)) {
             password = new String(Base64.decode(ep.getBytes(), Base64.DEFAULT));
         }
-        String captcha = "3124";
-        if (!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password)) {
+
+        boolean isAutoLogin = (boolean) SPUtils.get(this, Keys.KEY_SP_USER_AUTO_LOGIN, false);
+
+        if (!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password) && isAutoLogin) {
             login(username, password, captcha);
         } else {
             startMain();
@@ -73,9 +89,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
 
     @Override
     public void loginError(String message) {
-        String username = "flymegoc";
-        String password = "ngl3100757105";
-        String captcha = "5345";
+        //访问很容易超时，失败后重试
         if (retryTime <= 3) {
             retryTime++;
             login(username, password, captcha);

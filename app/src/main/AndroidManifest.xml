@@ -52,6 +52,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.user.UserRegisterActivity" />
+        <activity android:name=".ui.upload.UploadVideoActivity" />
+        <activity android:name=".ui.history.HistoryActivity" />
+        <activity android:name=".ui.about.AboutActivity"/>
+        <service android:name=".service.DownloadService"/>
     </application>
 
 </manifest>

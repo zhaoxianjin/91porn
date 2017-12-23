@@ -55,10 +55,11 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                                 loginListener.loginSuccess();
                             }
                         } else {
+                            String errorinfo = ParseUtils.parseErrorLoginInfo(s);
                             if (isViewAttached()) {
-                                getView().loginError();
+                                getView().loginError(errorinfo);
                             } else if (loginListener != null) {
-                                loginListener.loginFailure("登录失败");
+                                loginListener.loginFailure(errorinfo);
                             }
                         }
                         if (isViewAttached()) {
@@ -69,9 +70,59 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                     @Override
                     public void onError(Throwable e) {
                         if (isViewAttached()) {
-                            getView().loginError();
+                            getView().loginError(e.getMessage());
                         } else if (loginListener != null) {
                             loginListener.loginFailure(e.getMessage());
+                        }
+                        if (isViewAttached()) {
+                            getView().showContent();
+                        }
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    @Override
+    public void register(String next, String username, String password1, String password2, String email, String captchaInput, String fingerprint, String vip, String actionSignup, String submitX, String submitY, String ipAddress) {
+        noLimit91PornServiceApi.register(next, username, password1, password2, email, captchaInput, fingerprint, vip, actionSignup, submitX, submitY, ipAddress)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        if (isViewAttached()) {
+                            getView().showLoading(true);
+                        }
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        Logger.d(s);
+                        if (!s.contains("登录") || !s.contains("注册") || s.contains("退出")) {
+                            User user = ParseUtils.parseUserInfo(s);
+                            MyApplication.getInstace().setUser(user);
+                            if (isViewAttached()) {
+                                getView().registerSuccess();
+                            }
+                        } else {
+                            String errorinfo = ParseUtils.parseErrorLoginInfo(s);
+                            if (isViewAttached()) {
+                                getView().registerFailure(errorinfo);
+                            }
+                        }
+                        if (isViewAttached()) {
+                            getView().showContent();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        if (isViewAttached()) {
+                            getView().registerFailure(e.getMessage());
                         }
                         if (isViewAttached()) {
                             getView().showContent();

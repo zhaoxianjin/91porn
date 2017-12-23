@@ -19,4 +19,6 @@ public interface PlayVideoView extends BaseView {
     void playVideo(VideoResult videoResult);
 
     void errorParseVideoUrl(String errorMessage);
+
+    void favoriteSuccess();
 }

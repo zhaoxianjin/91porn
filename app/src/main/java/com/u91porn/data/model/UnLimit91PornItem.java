@@ -48,7 +48,7 @@ public class UnLimit91PornItem implements Serializable {
     private Date favoriteDate;
     private Date addDownloadDate;
     private Date finshedDownloadDate;
-
+    private Date viewHistoryDate;
     public Long getId() {
         return id;
     }
@@ -209,6 +209,14 @@ public class UnLimit91PornItem implements Serializable {
         this.finshedDownloadDate = finshedDownloadDate;
     }
 
+    public Date getViewHistoryDate() {
+        return viewHistoryDate;
+    }
+
+    public void setViewHistoryDate(Date viewHistoryDate) {
+        this.viewHistoryDate = viewHistoryDate;
+    }
+
     @Override
     public String toString() {
         return "UnLimit91PornItem{" +
@@ -229,6 +237,7 @@ public class UnLimit91PornItem implements Serializable {
                 ", favoriteDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, favoriteDate == null ? new Date() : favoriteDate) +
                 ", addDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, addDownloadDate == null ? new Date() : addDownloadDate) +
                 ", finshedDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, finshedDownloadDate == null ? new Date() : finshedDownloadDate) +
+                ", viewHistoryDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, viewHistoryDate == null ? new Date() : viewHistoryDate) +
                 '}';
     }
 }

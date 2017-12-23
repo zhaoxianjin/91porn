@@ -245,8 +245,10 @@ public class MyApplication extends Application {
         });
         logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
         builder.addInterceptor(logging);
-        builder.readTimeout(5, TimeUnit.SECONDS);
-        builder.writeTimeout(5, TimeUnit.SECONDS);
+        builder.readTimeout(10, TimeUnit.SECONDS);
+        builder.writeTimeout(10, TimeUnit.SECONDS);
+        builder.connectTimeout(10, TimeUnit.SECONDS);
+        builder.retryOnConnectionFailure(true);
         Retrofit retrofit = new Retrofit.Builder()
                 .client(builder.build())
                 .baseUrl(Constants.BASE_URL)

@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -23,22 +25,37 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.gyf.barlibrary.ImmersionBar;
 import com.orhanobut.logger.Logger;
+import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.NoLimit91PornServiceApi;
+import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.data.model.User;
+import com.u91porn.service.DownloadService;
 import com.u91porn.ui.BaseAppCompatActivity;
+import com.u91porn.ui.MvpActivity;
+import com.u91porn.ui.about.AboutActivity;
 import com.u91porn.ui.common.CommonFragment;
 import com.u91porn.ui.download.DownloadActivity;
 import com.u91porn.ui.favorite.FavoriteActivity;
+import com.u91porn.ui.history.HistoryActivity;
 import com.u91porn.ui.index.IndexFragment;
 import com.u91porn.ui.recentupdates.RecentUpdatesFragment;
+import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.ui.user.UserLoginActivity;
+import com.u91porn.utils.ApkVersionUtils;
+import com.u91porn.utils.AppManager;
 import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
 import com.yanzhenjie.permission.AndPermission;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.io.File;
 
@@ -47,12 +64,14 @@ import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
  */
-public class MainActivity extends BaseAppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends MvpActivity<MainView, MainPresenter> implements NavigationView.OnNavigationItemSelectedListener, MainView {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.drawer_layout)
@@ -78,6 +97,7 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ImmersionBar.with(this).init();
         ButterKnife.bind(this);
         File file = new File(Constants.DOWNLOAD_PATH);
         if (!file.exists()) {
@@ -104,6 +124,7 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
             public void onClick(View v) {
                 User user = MyApplication.getInstace().getUser();
                 if (user != null) {
+                    showExitDialog();
                     return;
                 }
                 Intent intent = new Intent(MainActivity.this, UserLoginActivity.class);
@@ -116,6 +137,56 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
         mCurrentFragment = indexFragment;
 
         setUpUserInfo(MyApplication.getInstace().getUser());
+
+        checkUpdate();
+    }
+
+    private void checkUpdate() {
+        int versionCode = ApkVersionUtils.getVersionCode(this);
+        if (versionCode == 0) {
+            Logger.t(TAG).d("获取应用本版失败");
+            return;
+        }
+        presenter.checkUpdate(versionCode);
+    }
+
+    private void testVersionUpdate() {
+        UpdateVersion updateVersion = new UpdateVersion();
+        updateVersion.setVersionCode(4);
+        updateVersion.setVersionName("1.0.4");
+        updateVersion.setApkDownloadUrl("https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta_v1.0.2.apk");
+        updateVersion.setUpdateMessage("新增用户注册功能");
+
+        Logger.t(TAG).d(new Gson().toJson(updateVersion));
+
+        Intent intent = new Intent(this, DownloadService.class);
+        intent.putExtra("updateVersion", updateVersion);
+        startService(intent);
+    }
+
+    private void showExitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("切换帐号");
+        builder.setMessage("切换帐号登录还是退出当前帐号？");
+        builder.setPositiveButton("退出当前帐号", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                MyApplication.getInstace().cleanCookies();
+                MyApplication.getInstace().setUser(null);
+                setUpUserInfo(null);
+                SPUtils.put(MainActivity.this, Keys.KEY_SP_USER_LOGIN_USERNAME, "");
+                SPUtils.put(MainActivity.this, Keys.KEY_SP_USER_LOGIN_PASSWORD, "");
+                SPUtils.put(MainActivity.this, Keys.KEY_SP_USER_AUTO_LOGIN, false);
+            }
+        });
+        builder.setNegativeButton("切换帐号", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(MainActivity.this, UserLoginActivity.class);
+                startActivityForResultWithAnimotion(intent, Constants.USER_LOGIN_REQUEST_CODE);
+            }
+        });
+        builder.show();
     }
 
     @Override
@@ -129,14 +200,18 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
     }
 
     private void setUpUserInfo(User user) {
-        if (user == null) {
-            return;
-        }
 
         View headerView = navView.getHeaderView(0);
         TextView userNameTextView = headerView.findViewById(R.id.tv_nav_username);
         TextView lastLoginTime = headerView.findViewById(R.id.tv_nav_last_login_time);
         TextView lastLoginIP = headerView.findViewById(R.id.tv_nav_last_login_ip);
+
+        if (user == null) {
+            userNameTextView.setText("请登录");
+            lastLoginTime.setText("---");
+            lastLoginIP.setText("---");
+            return;
+        }
 
         String status = user.getStatus().contains("正常") ? "正常" : "异常";
         userNameTextView.setText(user.getUserName() + "(" + status + ")");
@@ -149,7 +224,11 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            Intent setIntent = new Intent(Intent.ACTION_MAIN);
+            setIntent.addCategory(Intent.CATEGORY_HOME);
+            setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(setIntent);
+            // super.onBackPressed();
         }
     }
 
@@ -171,6 +250,21 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
         if (id == R.id.action_settings) {
             showSettingDialog();
             return true;
+        } else if (id == R.id.action_exit_app) {
+            Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+            homeIntent.addCategory(Intent.CATEGORY_HOME);
+            homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(homeIntent);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    AppManager.getAppManager().AppExit();
+                }
+            }, 100);
+
+        } else if (id == R.id.action_history) {
+            Intent intent = new Intent(this, HistoryActivity.class);
+            startActivityWithAnimotion(intent);
         }
 
         return super.onOptionsItemSelected(item);
@@ -365,44 +459,14 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
             startActivityWithAnimotion(intent);
             needCloseMenu = false;
         } else if (id == R.id.nav_about) {
-            showAboutMeDialog();
+            needCloseMenu = false;
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivityWithAnimotion(intent);
         }
         if (needCloseMenu) {
             drawerLayout.closeDrawer(GravityCompat.START);
         }
         return true;
-    }
-
-    private void showAboutMeDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.about_me);
-        View view = View.inflate(this, R.layout.about_me, null);
-        view.findViewById(R.id.bt_check_update).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyApplication.getInstace().getNoLimit91PornService().checkUpdate("https://github.com/techGay/91porn/blob/master/README.md")
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new CallBackWrapper<String>() {
-                            @Override
-                            public void onBegin(Disposable d) {
-
-                            }
-
-                            @Override
-                            public void onSuccess(String s) {
-                                Logger.d(s);
-                            }
-
-                            @Override
-                            public void onError(String msg, int code) {
-
-                            }
-                        });
-            }
-        });
-        builder.setView(view);
-        builder.show();
     }
 
     //切换类型
@@ -420,5 +484,63 @@ public class MainActivity extends BaseAppCompatActivity implements NavigationVie
                 transaction.hide(toHide).show(toShow).commit();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ImmersionBar.with(this).destroy();
+    }
+
+    @NonNull
+    @Override
+    public MainPresenter createPresenter() {
+        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        return new MainPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson()));
+    }
+
+    @Override
+    public void needUpdate(UpdateVersion updateVersion) {
+
+    }
+
+    @Override
+    public void noNeedUpdate() {
+
+    }
+
+    @Override
+    public void checkUpdateError(String message) {
+
+    }
+
+    @Override
+    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
+        return null;
+    }
+
+    @Override
+    public void showError(Throwable e, boolean pullToRefresh) {
+
+    }
+
+    @Override
+    public void showLoading(boolean pullToRefresh) {
+
+    }
+
+    @Override
+    public void showContent() {
+
+    }
+
+    @Override
+    public void showMessage(String msg) {
+        super.showMessage(msg);
+    }
+
+    @Override
+    public LifecycleTransformer<Reply<String>> bindView() {
+        return bindToLifecycle();
     }
 }

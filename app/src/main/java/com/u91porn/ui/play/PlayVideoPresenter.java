@@ -13,10 +13,13 @@ import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.utils.BoxQureyHelper;
 import com.u91porn.utils.CallBackWrapper;
+import com.u91porn.utils.Keys;
 import com.u91porn.utils.ParseUtils;
 import com.u91porn.utils.RandomIPAdderssUtils;
+import com.u91porn.utils.SPUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.objectbox.Box;
@@ -138,9 +141,13 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
         if (tmp == null) {
             unLimit91PornItem.setFavorite(UnLimit91PornItem.FAVORITE_NO);
             unLimit91PornItem.videoResult.setTarget(videoResult);
+            unLimit91PornItem.setViewHistoryDate(new Date());
             unLimit91PornItemBox.put(unLimit91PornItem);
         } else {
             videoResult.setId(tmp.getId());
+            if (tmp.getViewHistoryDate() == null) {
+                tmp.setViewHistoryDate(new Date());
+            }
             tmp.videoResult.setTarget(videoResult);
             unLimit91PornItemBox.put(tmp);
         }
@@ -171,7 +178,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
             @Override
             public void onSuccess(String message) {
                 if (isViewAttached()) {
-                    getView().showMessage(message);
+                    getView().favoriteSuccess();
                 }
             }
 

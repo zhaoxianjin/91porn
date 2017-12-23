@@ -171,7 +171,12 @@ public class ParseUtils {
     public static User parseUserInfo(String html) {
         User user = new User();
         Document doc = Jsoup.parse(html);
-        String userLinks = doc.getElementById("userinfo-title").select("a").first().attr("href");
+        //新帐号注册成功登录后信息不一样，导致无法解析
+        Element element = doc.getElementById("userinfo-title");
+        if (element == null) {
+            return null;
+        }
+        String userLinks = element.select("a").first().attr("href");
         String userAccountStatus = doc.getElementById("userinfo-title").select("font").first().text();
         String userName = doc.getElementById("userinfo-title").select("a").first().text();
         Logger.t(TAG).d(userLinks);
@@ -261,5 +266,16 @@ public class ParseUtils {
         baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
 
         return baseResult;
+    }
+
+    public static String parseErrorLoginInfo(String html) {
+        String errorInfo = "未知";
+        Document doc = Jsoup.parse(html);
+        Elements ee = doc.getElementsByClass("errorbox");
+        Elements e = doc.select("div.errorbox");
+
+        errorInfo = e.text();
+
+        return errorInfo;
     }
 }
