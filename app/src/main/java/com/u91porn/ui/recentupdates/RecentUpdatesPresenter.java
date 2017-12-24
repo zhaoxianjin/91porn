@@ -1,6 +1,8 @@
 package com.u91porn.ui.recentupdates;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.BaseResult;
@@ -33,11 +35,16 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
     private String next;
     private Integer totalPage = 1;
     private int page = 1;
-
-    public RecentUpdatesPresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, String next) {
+    private LifecycleProvider<FragmentEvent> provider;
+    /**
+     * 本次强制刷新过那下面的请求也一起刷新
+     */
+    private boolean cleanCache = false;
+    public RecentUpdatesPresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, String next, LifecycleProvider<FragmentEvent> provider) {
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
         this.next = next;
+        this.provider = provider;
     }
 
     @Override
@@ -45,13 +52,13 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
+            cleanCache=true;
         }
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(next, page);
-        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(pullToRefresh);
+        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
 
         Observable<String> categoryPage = noLimit91PornServiceApi.recentUpdates(next, page);
         cacheProviders.getRecentUpdates(categoryPage, dynamicKeyGroup, evictDynamicKey)
-                .compose(getView().bindView())
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBody) throws Exception {
@@ -70,6 +77,7 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {

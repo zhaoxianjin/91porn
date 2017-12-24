@@ -68,8 +68,8 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
     private NoLimit91PornServiceApi mNoLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
     private Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
     private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-    private FavoritePresenter favoritePresenter = new FavoritePresenter(unLimit91PornItemBox, mNoLimit91PornServiceApi, cacheProviders, MyApplication.getInstace().getUser());
-    private DownloadPresenter downloadPresenter = new DownloadPresenter();
+    private FavoritePresenter favoritePresenter = new FavoritePresenter(unLimit91PornItemBox, mNoLimit91PornServiceApi, cacheProviders, MyApplication.getInstace().getUser(),provider);
+    private DownloadPresenter downloadPresenter = new DownloadPresenter(unLimit91PornItemBox,provider);
     private SharedPrefsCookiePersistor sharedPrefsCookiePersistor = MyApplication.getInstace().getSharedPrefsCookiePersistor();
     private SetCookieCache setCookieCache = MyApplication.getInstace().getSetCookieCache();
 
@@ -157,7 +157,7 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
     @NonNull
     @Override
     public PlayVideoPresenter createPresenter() {
-        return new PlayVideoPresenter(mNoLimit91PornServiceApi, favoritePresenter, downloadPresenter, sharedPrefsCookiePersistor, setCookieCache, cacheProviders);
+        return new PlayVideoPresenter(mNoLimit91PornServiceApi, favoritePresenter, downloadPresenter, sharedPrefsCookiePersistor, setCookieCache, cacheProviders,provider);
     }
 
     @Override
@@ -212,10 +212,6 @@ public class PlayVideoActivity extends MvpActivity<PlayVideoView, PlayVideoPrese
         dismissDialog();
     }
 
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
-    }
 
     @Override
     public void showMessage(String msg) {

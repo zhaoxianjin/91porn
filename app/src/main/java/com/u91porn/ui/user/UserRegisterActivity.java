@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,7 +26,9 @@ import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.AppManager;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
+import com.u91porn.utils.Keys;
 import com.u91porn.utils.RandomIPAdderssUtils;
+import com.u91porn.utils.SPUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +36,11 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.rx_cache2.Reply;
+import okhttp3.Cookie;
 
+/**
+ * @author flymegoc
+ */
 public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> implements UserView {
     private static final String TAG = UserRegisterActivity.class.getSimpleName();
     @BindView(R.id.toolbar)
@@ -54,6 +61,8 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     Button btUserSignup;
     private NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
     private AlertDialog alertDialog;
+    private String username;
+    private String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,11 +84,12 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         btUserSignup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username = etAccount.getText().toString().trim();
+                username = etAccount.getText().toString().trim();
                 String email = etEmail.getText().toString().trim();
                 String passwordOne = etPasswordOne.getText().toString().trim();
                 String passwordTwo = etPasswordTwo.getText().toString().trim();
                 String captcha = etCaptcha.getText().toString().trim();
+                password = passwordOne;
                 register(username, email, passwordOne, passwordTwo, captcha);
             }
         });
@@ -90,6 +100,13 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
             }
         });
         alertDialog = DialogUtils.initLodingDialog(this, "注册中，请稍后...");
+
+        MyApplication.getInstace().cleanCookies();
+        List<Cookie> cookieList = MyApplication.getInstace().getSharedPrefsCookiePersistor().loadAll();
+        for (Cookie cookie : cookieList) {
+            Logger.t(TAG).d(cookie.toString());
+        }
+        Logger.t(TAG).d(randomFingerprint());
     }
 
     /**
@@ -110,6 +127,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
             showMessage("用户名不能为空");
             return;
         }
+        //服务器根本不会验证邮箱格式，貌似只要有@符号和.就可以通过注册了,不过如果后期验证邮箱....
         if (TextUtils.isEmpty(email)) {
             showMessage("邮箱不能为空");
             return;
@@ -131,7 +149,8 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
             return;
         }
         String next = "";
-        String fingerprint = "";
+//        String fingerprint = "2192328486";
+        String fingerprint = randomFingerprint();
         String vip = "";
         String actionSignup = "Sign Up";
         String submitX = "45";
@@ -140,11 +159,27 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignup, submitX, submitY, ipAddress);
     }
 
+    /**
+     * 随机生成10位机器指纹
+     *
+     * @return 指纹码
+     */
+    private String randomFingerprint() {
+        String keys = "0123456789";
+        StringBuilder key = new StringBuilder();
+        for (int i = 0; i < keys.length(); i++) {
+            int pos = (int) (Math.random() * keys.length());
+            pos = (int) Math.floor(pos);
+            key.append(keys.charAt(pos));
+        }
+        return key.toString();
+    }
+
     @NonNull
     @Override
     public UserPresenter createPresenter() {
 
-        return new UserPresenter(noLimit91PornServiceApi);
+        return new UserPresenter(noLimit91PornServiceApi,provider);
     }
 
     /**
@@ -192,8 +227,18 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
 
     @Override
     public void registerSuccess() {
+        saveUserInfoPrf(username, password);
         startMain();
         showMessage("注册成功");
+    }
+
+    /**
+     * 注册成功，默认保存用户名和密码
+     */
+    private void saveUserInfoPrf(String username, String password) {
+        SPUtils.put(this, Keys.KEY_SP_USER_LOGIN_USERNAME, username);
+        //记住密码
+        SPUtils.put(this, Keys.KEY_SP_USER_LOGIN_PASSWORD, Base64.encodeToString(password.getBytes(), Base64.DEFAULT));
     }
 
     @Override
@@ -231,8 +276,4 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         super.showMessage(msg);
     }
 
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
-    }
 }

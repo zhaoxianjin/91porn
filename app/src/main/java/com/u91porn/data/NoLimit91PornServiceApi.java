@@ -61,8 +61,8 @@ public interface NoLimit91PornServiceApi {
     /**
      * @param username     用户名
      * @param password     密码
-     * @param fingerprint  人机识别码
-     * @param fingerprint2 人机识别码
+     * @param fingerprint  机器指纹唯一识别码
+     * @param fingerprint2 机器指纹唯一识别码
      * @param captcha      验证码
      * @param actionlogin  登录
      * @param x            x坐标
@@ -81,7 +81,7 @@ public interface NoLimit91PornServiceApi {
      * @param password2 密码2
      * @param email 邮箱
      * @param captchaInput 验证码
-     * @param fingerprint 人机校验 -空
+     * @param fingerprint 机器指纹校验
      * @param vip vip -空
      * @param actionSignup 动作 value：Sign Up
      * @param submitX 人机x坐标 45

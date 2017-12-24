@@ -5,6 +5,9 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.android.ActivityEvent;
+import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
@@ -54,12 +57,17 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
     private User user;
     private Integer totalPage = 1;
     private int page = 1;
-
-    public FavoritePresenter(Box<UnLimit91PornItem> unLimit91PornItemBox, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user) {
+    private LifecycleProvider<ActivityEvent> provider;
+    /**
+     * 本次强制刷新过那下面的请求也一起刷新
+     */
+    private boolean cleanCache = false;
+    public FavoritePresenter(Box<UnLimit91PornItem> unLimit91PornItemBox, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
         this.unLimit91PornItemBox = unLimit91PornItemBox;
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
         this.user = user;
+        this.provider = provider;
     }
 
     @Override
@@ -77,6 +85,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<Favorite>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<Favorite>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -127,6 +136,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
+            cleanCache=true;
         }
         //RxCache条件区别
         String condition = null;
@@ -134,12 +144,11 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
             condition = user.getUserName();
         }
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(condition, page);
-        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(pullToRefresh);
+        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
 
         Observable<String> favoriteObservable = noLimit91PornServiceApi.myFavorite(page);
 
         cacheProviders.getFavorite(favoriteObservable, dynamicKeyGroup, evictDynamicKey)
-                .compose(getView().bindView())
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBody) throws Exception {
@@ -158,6 +167,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -261,6 +271,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new Observer<String>() {
                     @Override
                     public void onSubscribe(Disposable d) {

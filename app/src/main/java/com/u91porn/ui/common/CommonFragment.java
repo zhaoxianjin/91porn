@@ -57,10 +57,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     private UnLimit91Adapter mUnLimit91Adapter;
     private String category;
     private String m;
-    /**
-     * 上次是否强制刷新，则加载更多也强制一起刷新
-     */
-    private boolean pullToRefresh = false;
+
     private LoadViewHelper helper;
 
     public CommonFragment() {
@@ -88,15 +85,14 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     public CommonPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
-        User user = MyApplication.getInstace().getUser();
-        return new CommonPresenter(noLimit91PornServiceApi, cacheProviders, category, new FavoritePresenter(unLimit91PornItemBox, noLimit91PornServiceApi, cacheProviders, user));
+        return new CommonPresenter(noLimit91PornServiceApi, cacheProviders, category, provider);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_common, container, false);
     }
 
@@ -127,7 +123,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadHotData(pullToRefresh, m);
+                presenter.loadHotData(false, m);
             }
         }, recyclerView);
         helper = new LoadViewHelper(recyclerView);
@@ -166,6 +162,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
+        contentView.setEnabled(false);
     }
 
     @Override
@@ -175,24 +172,19 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
 
     @Override
     public void onRefresh() {
-        pullToRefresh = true;
         loadData(true);
     }
 
     @Override
     public void showContent() {
         helper.showContent();
+        contentView.setEnabled(true);
         contentView.setRefreshing(false);
     }
 
     @Override
     public void showMessage(String msg) {
         super.showMessage(msg);
-    }
-
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
     }
 
     @Override

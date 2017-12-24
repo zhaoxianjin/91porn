@@ -3,6 +3,10 @@ package com.u91porn.ui.common;
 import android.text.TextUtils;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.RxLifecycle;
+import com.trello.rxlifecycle2.android.ActivityEvent;
+import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
@@ -42,14 +46,17 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
     private String viewType = "basic";
     private Integer totalPage = 1;
     private int page = 1;
-    private FavoritePresenter favoritePresenter;
+    private LifecycleProvider<FragmentEvent> provider;
+    /**
+     * 本次强制刷新过那下面的请求也一起刷新
+     */
+    private boolean cleanCache = false;
 
-
-    public CommonPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, CacheProviders cacheProviders, String category, FavoritePresenter favoritePresenter) {
+    public CommonPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, CacheProviders cacheProviders, String category, LifecycleProvider<FragmentEvent> provider) {
         this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
         this.category = category;
-        this.favoritePresenter = favoritePresenter;
+        this.provider = provider;
     }
 
     @Override
@@ -58,6 +65,7 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
+            cleanCache = true;
         }
         //RxCache条件区别
         String condition;
@@ -67,11 +75,10 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
             condition = category + m;
         }
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(condition, page);
-        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(pullToRefresh);
+        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
 
         Observable<String> categoryPage = mNoLimit91PornServiceApi.getCategoryPage(category, viewType, page, m);
         cacheProviders.getCategoryPage(categoryPage, dynamicKeyGroup, evictDynamicKey)
-                .compose(getView().bindView())
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBody) throws Exception {
@@ -90,6 +97,7 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {

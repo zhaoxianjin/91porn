@@ -70,11 +70,9 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
 
     @Override
     public IndexPresenter createPresenter() {
-        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        User user = MyApplication.getInstace().getUser();
-        return new IndexPresenter(new FavoritePresenter(unLimit91PornItemBox, noLimit91PornServiceApi, cacheProviders, user));
+        return new IndexPresenter(noLimit91PornServiceApi, cacheProviders, provider);
     }
 
     @Override
@@ -86,6 +84,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_index, container, false);
     }
 
@@ -140,6 +139,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
+        contentView.setEnabled(false);
     }
 
     @Override
@@ -150,6 +150,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     @Override
     public void showContent() {
         helper.showContent();
+        contentView.setEnabled(true);
         contentView.setRefreshing(false);
     }
 
@@ -158,10 +159,6 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         super.showMessage(msg);
     }
 
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
-    }
 
     @Override
     public void showError(Throwable e, boolean pullToRefresh) {

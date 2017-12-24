@@ -7,6 +7,9 @@ import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.orhanobut.logger.Logger;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.android.ActivityEvent;
+import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.MyApplication;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.UnLimit91PornItem_;
@@ -41,8 +44,14 @@ import io.reactivex.schedulers.Schedulers;
 
 public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements IDownload {
 
-    private Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+    private Box<UnLimit91PornItem> unLimit91PornItemBox;
 
+    private LifecycleProvider<ActivityEvent> provider;
+
+    public DownloadPresenter(Box<UnLimit91PornItem> unLimit91PornItemBox, LifecycleProvider<ActivityEvent> provider) {
+        this.unLimit91PornItemBox = unLimit91PornItemBox;
+        this.provider = provider;
+    }
 
     @Override
     public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType) {
@@ -236,6 +245,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new Observer<String>() {
                     @Override
                     public void onSubscribe(Disposable d) {

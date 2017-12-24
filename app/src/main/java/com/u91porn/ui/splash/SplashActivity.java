@@ -72,13 +72,14 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
         Intent intent = new Intent(this, MainActivity.class);
         startActivityWithAnimotion(intent);
         finish();
+        overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
     }
 
     @NonNull
     @Override
     public SplashPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-        UserPresenter userPresenter = new UserPresenter(noLimit91PornServiceApi);
+        UserPresenter userPresenter = new UserPresenter(noLimit91PornServiceApi,provider);
         return new SplashPresenter(userPresenter);
     }
 
@@ -122,10 +123,5 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
     @Override
     public void showMessage(String msg) {
 
-    }
-
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
     }
 }

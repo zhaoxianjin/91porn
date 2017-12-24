@@ -129,7 +129,7 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
         Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         User user = MyApplication.getInstace().getUser();
-        return new FavoritePresenter(unLimit91PornItemBox, noLimit91PornServiceApi, cacheProviders, user);
+        return new FavoritePresenter(unLimit91PornItemBox, noLimit91PornServiceApi, cacheProviders, user,provider);
     }
 
 
@@ -227,22 +227,19 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
+        contentView.setEnabled(false);
     }
 
     @Override
     public void showContent() {
         helper.showContent();
+        contentView.setEnabled(true);
         contentView.setRefreshing(false);
     }
 
     @Override
     public void showMessage(String msg) {
         super.showMessage(msg);
-    }
-
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
     }
 
     @Override

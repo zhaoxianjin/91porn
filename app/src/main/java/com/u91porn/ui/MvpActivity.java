@@ -29,7 +29,6 @@ import com.hannesdorfmann.mosby3.mvp.MvpPresenter;
 import com.hannesdorfmann.mosby3.mvp.MvpView;
 import com.hannesdorfmann.mosby3.mvp.delegate.ActivityMvpDelegate;
 import com.hannesdorfmann.mosby3.mvp.delegate.ActivityMvpDelegateImpl;
-import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
 
 /**
  * An Activity that uses a {@link MvpPresenter} to implement a Model-View-Presenter

@@ -2,6 +2,8 @@ package com.u91porn.ui.index;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
@@ -27,12 +29,14 @@ import io.rx_cache2.Reply;
  */
 
 public class IndexPresenter extends MvpBasePresenter<IndexView> implements IIndex {
-    private NoLimit91PornServiceApi mNoLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-    private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-    private FavoritePresenter favoritePresenter;
+    private NoLimit91PornServiceApi mNoLimit91PornServiceApi;
+    private CacheProviders cacheProviders;
+    private LifecycleProvider<FragmentEvent> provider;
 
-    public IndexPresenter(FavoritePresenter favoritePresenter) {
-        this.favoritePresenter = favoritePresenter;
+    public IndexPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, CacheProviders cacheProviders, LifecycleProvider<FragmentEvent> provider) {
+        this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
+        this.cacheProviders = cacheProviders;
+        this.provider = provider;
     }
 
     /**
@@ -44,7 +48,6 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
     public void loadIndexData(final boolean pullToRefresh) {
         Observable<String> indexPhpObservable = mNoLimit91PornServiceApi.indexPhp();
         cacheProviders.getIndexPhp(indexPhpObservable, new EvictProvider(pullToRefresh))
-                .compose(getView().bindView())
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBodyReply) throws Exception {
@@ -73,6 +76,7 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {

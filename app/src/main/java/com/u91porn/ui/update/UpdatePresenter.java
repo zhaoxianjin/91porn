@@ -3,6 +3,8 @@ package com.u91porn.ui.update;
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
@@ -26,10 +28,12 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
     private NoLimit91PornServiceApi noLimit91PornServiceApi;
     private final static String CHECK_UPDATE_URL = "https://github.com/techGay/91porn/blob/master/version.txt";
     private Gson gson;
+    private LifecycleProvider<ActivityEvent> provider;
 
-    public UpdatePresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, Gson gson) {
+    public UpdatePresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, Gson gson, LifecycleProvider<ActivityEvent> provider) {
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.gson = gson;
+        this.provider=provider;
     }
 
     @Override
@@ -50,6 +54,7 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<UpdateVersion>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<UpdateVersion>() {
                     @Override
                     public void onBegin(Disposable d) {

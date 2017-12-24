@@ -114,10 +114,6 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
         super.showMessage(msg);
     }
 
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
-    }
 
     @Override
     public void loadMoreDataComplete() {

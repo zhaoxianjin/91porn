@@ -193,7 +193,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     @NonNull
     @Override
     public UserPresenter createPresenter() {
-        return new UserPresenter(noLimit91PornServiceApi);
+        return new UserPresenter(noLimit91PornServiceApi,provider);
     }
 
     @Override
@@ -271,10 +271,6 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
         super.showMessage(msg);
     }
 
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

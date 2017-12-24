@@ -2,6 +2,9 @@ package com.u91porn.ui.play;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.android.ActivityEvent;
+import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.MyApplication;
 import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
@@ -50,14 +53,16 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     private SharedPrefsCookiePersistor sharedPrefsCookiePersistor;
     private SetCookieCache setCookieCache;
     private CacheProviders cacheProviders;
+    private LifecycleProvider<ActivityEvent> provider;
 
-    public PlayVideoPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, FavoritePresenter favoritePresenter, DownloadPresenter downloadPresenter, SharedPrefsCookiePersistor sharedPrefsCookiePersistor, SetCookieCache setCookieCache, CacheProviders cacheProviders) {
+    public PlayVideoPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, FavoritePresenter favoritePresenter, DownloadPresenter downloadPresenter, SharedPrefsCookiePersistor sharedPrefsCookiePersistor, SetCookieCache setCookieCache, CacheProviders cacheProviders, LifecycleProvider<ActivityEvent> provider) {
         this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
         this.favoritePresenter = favoritePresenter;
         this.downloadPresenter = downloadPresenter;
         this.sharedPrefsCookiePersistor = sharedPrefsCookiePersistor;
         this.setCookieCache = setCookieCache;
         this.cacheProviders = cacheProviders;
+        this.provider = provider;
     }
 
     @Override
@@ -65,7 +70,6 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
 
         String ip = RandomIPAdderssUtils.getRandomIPAdderss();
         cacheProviders.getVideoPlayPage(mNoLimit91PornServiceApi.getVideoPlayPage(viewKey, ip), new DynamicKey(viewKey), new EvictDynamicKey(false))
-                .compose(getView().bindView())
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBodyReply) throws Exception {
@@ -90,29 +94,31 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 return ParseUtils.parseVideoPlayUrl(s);
             }
         }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new CallBackWrapper<VideoResult>() {
-            @Override
-            public void onBegin(Disposable d) {
-                if (isViewAttached()) {
-                    getView().showParsingDialog();
-                }
-            }
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<VideoResult>bindUntilEvent(ActivityEvent.STOP))
+                .subscribe(new CallBackWrapper<VideoResult>() {
+                    @Override
+                    public void onBegin(Disposable d) {
+                        if (isViewAttached()) {
+                            getView().showParsingDialog();
+                        }
+                    }
 
-            @Override
-            public void onSuccess(VideoResult videoResult) {
-                resetWatchTime();
-                if (isViewAttached()) {
-                    getView().playVideo(videoResult);
-                }
-            }
+                    @Override
+                    public void onSuccess(VideoResult videoResult) {
+                        resetWatchTime();
+                        if (isViewAttached()) {
+                            getView().playVideo(videoResult);
+                        }
+                    }
 
-            @Override
-            public void onError(String msg, int code) {
-                if (isViewAttached()) {
-                    getView().errorParseVideoUrl(msg + " code:" + code);
-                }
-            }
-        });
+                    @Override
+                    public void onError(String msg, int code) {
+                        if (isViewAttached()) {
+                            getView().errorParseVideoUrl(msg + " code:" + code);
+                        }
+                    }
+                });
     }
 
     /**
@@ -145,9 +151,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
             unLimit91PornItemBox.put(unLimit91PornItem);
         } else {
             videoResult.setId(tmp.getId());
-            if (tmp.getViewHistoryDate() == null) {
-                tmp.setViewHistoryDate(new Date());
-            }
+            tmp.setViewHistoryDate(new Date());
             tmp.videoResult.setTarget(videoResult);
             unLimit91PornItemBox.put(tmp);
         }

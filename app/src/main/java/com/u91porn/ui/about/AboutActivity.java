@@ -77,7 +77,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     @Override
     public AboutPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-        return new AboutPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson()));
+        return new AboutPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson(),provider));
     }
 
     private void showUpdateDialog(final UpdateVersion updateVersion) {
@@ -141,10 +141,5 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     @Override
     public void showMessage(String msg) {
         super.showMessage(msg);
-    }
-
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
     }
 }

@@ -30,6 +30,7 @@ import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.UnLimit91PornItem_;
 import com.u91porn.ui.BaseFragment;
 import com.u91porn.ui.MvpFragment;
+import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.DownloadManager;
 
 import java.io.File;
@@ -68,7 +69,9 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     @NonNull
     @Override
     public DownloadPresenter createPresenter() {
-        return new DownloadPresenter();
+        MainActivity mainActivity = (MainActivity) getActivity();
+        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+        return new DownloadPresenter(unLimit91PornItemBox, mainActivity.provider);
     }
 
     @Override
@@ -170,6 +173,7 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_finish, container, false);
     }
 
@@ -235,10 +239,5 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     @Override
     public void showMessage(String msg) {
 
-    }
-
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return null;
     }
 }

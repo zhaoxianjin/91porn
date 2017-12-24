@@ -22,6 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="帐号"
+            android:singleLine="true"
             android:inputType="textEmailAddress" />
 
         <EditText
@@ -29,6 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="密码"
+            android:singleLine="true"
             android:inputType="textPassword" />
 
         <LinearLayout
@@ -43,6 +45,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1000"
                 android:hint="验证码"
+                android:singleLine="true"
                 android:inputType="number" />
 
             <com.facebook.drawee.view.SimpleDraweeView

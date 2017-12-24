@@ -48,7 +48,6 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     private String next;
     private UnLimit91Adapter mUnLimit91Adapter;
     private LoadViewHelper helper;
-    private boolean pullToRefresh;
 
     public RecentUpdatesFragment() {
         // Required empty public constructor
@@ -67,7 +66,7 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     public RecentUpdatesPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        return new RecentUpdatesPresenter(noLimit91PornServiceApi, cacheProviders, next);
+        return new RecentUpdatesPresenter(noLimit91PornServiceApi, cacheProviders, next,provider);
     }
 
     @Override
@@ -96,7 +95,7 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadRecentUpdatesData(pullToRefresh, next);
+                presenter.loadRecentUpdatesData(false, next);
             }
         }, recyclerViewRecentUpdates);
         helper = new LoadViewHelper(recyclerViewRecentUpdates);
@@ -120,6 +119,7 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_recent_updates, container, false);
     }
 
@@ -171,22 +171,19 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
+        contentView.setEnabled(false);
     }
 
     @Override
     public void showContent() {
         helper.showContent();
+        contentView.setEnabled(true);
         contentView.setRefreshing(false);
     }
 
     @Override
     public void showMessage(String msg) {
         super.showMessage(msg);
-    }
-
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
     }
 
     @Override
@@ -197,7 +194,6 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
 
     @Override
     public void onRefresh() {
-        pullToRefresh = true;
-        loadData(pullToRefresh);
+        loadData(false);
     }
 }

@@ -58,6 +58,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.File;
+import java.util.Calendar;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -219,16 +220,34 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         lastLoginIP.setText(user.getLastLoginIP());
     }
 
+    public static final int MIN_CLICK_DELAY_TIME = 2000;
+    private long lastClickTime = 0;
+
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
-            Intent setIntent = new Intent(Intent.ACTION_MAIN);
-            setIntent.addCategory(Intent.CATEGORY_HOME);
-            setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(setIntent);
-            // super.onBackPressed();
+//            Intent setIntent = new Intent(Intent.ACTION_MAIN);
+//            setIntent.addCategory(Intent.CATEGORY_HOME);
+//            setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            startActivity(setIntent);
+            showMessage("再次点击退出程序");
+            long currentTime = Calendar.getInstance().getTimeInMillis();
+            if (currentTime - lastClickTime > MIN_CLICK_DELAY_TIME) {
+                lastClickTime = currentTime;
+            }else {
+                Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+                homeIntent.addCategory(Intent.CATEGORY_HOME);
+                homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(homeIntent);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        AppManager.getAppManager().AppExit();
+                    }
+                }, 100);
+            }
         }
     }
 
@@ -517,7 +536,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     @Override
     public MainPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-        return new MainPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson()));
+        return new MainPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson(),provider));
     }
 
     @Override
@@ -560,8 +579,4 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         super.showMessage(msg);
     }
 
-    @Override
-    public LifecycleTransformer<Reply<String>> bindView() {
-        return bindToLifecycle();
-    }
 }

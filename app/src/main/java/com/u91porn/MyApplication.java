@@ -212,7 +212,7 @@ public class MyApplication extends Application {
                 Request original = chain.request();
 
                 Request.Builder requestBuilder = original.newBuilder();
-                requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0");
+                requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299");
                 requestBuilder.header("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5");
                 // requestBuilder.header("X-Forwarded-For","114.114.114.117")
                 requestBuilder.method(original.method(), original.body());
@@ -248,7 +248,7 @@ public class MyApplication extends Application {
         builder.readTimeout(10, TimeUnit.SECONDS);
         builder.writeTimeout(10, TimeUnit.SECONDS);
         builder.connectTimeout(10, TimeUnit.SECONDS);
-        builder.retryOnConnectionFailure(true);
+
         Retrofit retrofit = new Retrofit.Builder()
                 .client(builder.build())
                 .baseUrl(Constants.BASE_URL)

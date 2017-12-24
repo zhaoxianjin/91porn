@@ -5,7 +5,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
-import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
+import com.trello.navi2.component.support.NaviAppCompatActivity;
+import com.trello.rxlifecycle2.LifecycleProvider;
+import com.trello.rxlifecycle2.android.ActivityEvent;
+import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.R;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.play.PlayVideoActivity;
@@ -18,8 +21,9 @@ import com.u91porn.utils.Keys;
  * @describe
  */
 
-public abstract class BaseAppCompatActivity extends RxAppCompatActivity {
+public abstract class BaseAppCompatActivity extends NaviAppCompatActivity {
     private AppManager appManager = AppManager.getAppManager();
+    public final LifecycleProvider<ActivityEvent> provider = NaviLifecycle.createActivityLifecycleProvider(this);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

@@ -21,6 +21,4 @@ public interface BaseView extends MvpView {
     void showContent();
 
     void showMessage(String msg);
-
-    LifecycleTransformer<Reply<String>> bindView();
 }
