@@ -69,9 +69,9 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     @NonNull
     @Override
     public DownloadPresenter createPresenter() {
-        MainActivity mainActivity = (MainActivity) getActivity();
+        DownloadActivity downloadActivity = (DownloadActivity) getActivity();
         Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
-        return new DownloadPresenter(unLimit91PornItemBox, mainActivity.provider);
+        return new DownloadPresenter(unLimit91PornItemBox, downloadActivity.provider);
     }
 
     @Override

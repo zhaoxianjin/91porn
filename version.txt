@@ -1,8 +1,8 @@
 {
-"apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta-v1.0.4.apk",
+"apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta-v1.0.5.apk",
 "updateMessage": "1.修复注册重复问题\n
                   2.修复刷新之后加载更多重复的bug\n
                   3.优化代码",
-"versionCode": 5,
-"versionName": "1.0.4"
+"versionCode": 6,
+"versionName": "1.0.5"
 }
