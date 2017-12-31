@@ -16,6 +16,7 @@ import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -26,6 +27,7 @@ import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.utils.Keys;
+import com.u91porn.utils.LoadHelperUtils;
 import com.u91porn.utils.SPUtils;
 
 import java.util.ArrayList;
@@ -97,7 +99,7 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
                 SwipeItemLayout swipeItemLayout = (SwipeItemLayout) view.getParent();
                 swipeItemLayout.close();
                 if (view.getId() == R.id.right_menu_delete) {
-                    showMessage("暂不支持删除");
+                    showMessage("暂不支持删除",TastyToast.WARNING);
                     //presenter.deleteFavorite(position, (UnLimit91PornItem) adapter.getItem(position));
                 }
             }
@@ -196,14 +198,14 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
 
     @Override
     public void loadMoreFailed() {
-        showMessage("加载更多失败");
+        showMessage("加载更多失败",TastyToast.ERROR);
         mUnLimit91Adapter.loadMoreFail();
     }
 
     @Override
     public void noMoreData() {
         mUnLimit91Adapter.loadMoreEnd(true);
-        showMessage("没有更多数据了");
+        showMessage("没有更多数据了",TastyToast.INFO);
     }
 
     @Override
@@ -212,21 +214,16 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
         contentView.setRefreshing(false);
         helper.showError();
-        showMessage(e.getMessage());
-        e.printStackTrace();
+        showMessage(message, TastyToast.ERROR);
     }
 
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
+        LoadHelperUtils.setLoadingText(helper.getLoadIng(),R.id.tv_loading_text,"拼命加载中...");
         contentView.setEnabled(false);
     }
 
@@ -238,8 +235,8 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg,int type) {
+        super.showMessage(msg,type);
     }
 
     @Override

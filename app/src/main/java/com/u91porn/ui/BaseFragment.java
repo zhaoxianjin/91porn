@@ -2,6 +2,7 @@ package com.u91porn.ui;
 
 import android.widget.Toast;
 
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.navi2.component.support.NaviFragment;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.FragmentEvent;
@@ -16,8 +17,8 @@ import com.trello.rxlifecycle2.navi.NaviLifecycle;
 public abstract class BaseFragment extends NaviFragment {
     protected final LifecycleProvider<FragmentEvent> provider = NaviLifecycle.createFragmentLifecycleProvider(this);
 
-    protected void showMessage(String msg) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+    protected void showMessage(String msg,int type) {
+        TastyToast.makeText(getContext().getApplicationContext(), msg, TastyToast.LENGTH_SHORT,type).show();
     }
 
     public String getTitle() {

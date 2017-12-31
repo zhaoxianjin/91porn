@@ -20,6 +20,7 @@ import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipeline;
 import com.orhanobut.logger.Logger;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -29,6 +30,7 @@ import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.UserHelper;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -137,21 +139,23 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     }
 
     private void login(String username, String password, String captcha) {
-        String f = "2192328484";
-        String f2 = "2a0e17836fe7a3af469c00456b506eb9";
+        String f = UserHelper.randomFingerprint();
+        String f2 = UserHelper.randomFingerprint2();
+        Logger.t(TAG).d("F:" + f);
+        Logger.t(TAG).d("F2:" + f2);
         String acl = "Log In";
         String x = "47";
         String y = "12";
         if (TextUtils.isEmpty(username)) {
-            showMessage("请填写用户名");
+            showMessage("请填写用户名", TastyToast.INFO);
             return;
         }
         if (TextUtils.isEmpty(password)) {
-            showMessage("请填写密码");
+            showMessage("请填写密码", TastyToast.INFO);
             return;
         }
         if (TextUtils.isEmpty(captcha)) {
-            showMessage("请填写验证码");
+            showMessage("请填写验证码", TastyToast.INFO);
             return;
         }
         presenter.login(username, password, f, f2, captcha, acl, x, y);
@@ -193,7 +197,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     @NonNull
     @Override
     public UserPresenter createPresenter() {
-        return new UserPresenter(noLimit91PornServiceApi,provider);
+        return new UserPresenter(noLimit91PornServiceApi, provider);
     }
 
     @Override
@@ -205,7 +209,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     @Override
     public void loginSuccess() {
         saveUserInfoPrf(username, password);
-        showMessage("登录成功");
+        showMessage("登录成功", TastyToast.SUCCESS);
         setResult(RESULT_OK);
         onBackPressed();
     }
@@ -228,7 +232,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
 
     @Override
     public void loginError(String message) {
-        showMessage(message);
+        showMessage(message, TastyToast.ERROR);
     }
 
     @Override
@@ -242,12 +246,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
 
     }
 
@@ -267,8 +266,8 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 
 

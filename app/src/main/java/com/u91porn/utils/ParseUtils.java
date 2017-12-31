@@ -6,6 +6,7 @@ import com.orhanobut.logger.Logger;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
+import com.u91porn.data.model.VideoComment;
 import com.u91porn.data.model.VideoResult;
 
 import org.jsoup.Jsoup;
@@ -157,6 +158,19 @@ public class ParseUtils {
         videoResult.setOwnnerId(ownnerId);
         Logger.d("作者Id：" + ownnerId);
 
+        String ownnerName = doc.select("a[href*=UID]").first().text();
+        videoResult.setOwnnerName(ownnerName);
+        Logger.t(TAG).d("作者：" + ownnerName);
+
+        String allInfo = doc.getElementById("videodetails-content").text();
+        String addDate = allInfo.substring(allInfo.indexOf("添加时间"), allInfo.indexOf("作者"));
+        videoResult.setAddDate(addDate);
+        Logger.t(TAG).d("添加时间：" + addDate);
+
+        String otherInfo = allInfo.substring(allInfo.indexOf("注册"), allInfo.indexOf("简介"));
+        videoResult.setUserOtherInfo(otherInfo);
+        Logger.t(TAG).d(otherInfo);
+
         String thumImg = doc.getElementById("vid").attr("poster");
         videoResult.setThumbImgUrl(thumImg);
         Logger.d("缩略图：" + thumImg);
@@ -268,14 +282,90 @@ public class ParseUtils {
         return baseResult;
     }
 
+    /**
+     * 解析登录注册等错误提示
+     *
+     * @param html html
+     * @return 错误洗洗脑
+     */
     public static String parseErrorLoginInfo(String html) {
         String errorInfo = "未知";
         Document doc = Jsoup.parse(html);
-        Elements ee = doc.getElementsByClass("errorbox");
+        // Elements ee = doc.getElementsByClass("errorbox");
         Elements e = doc.select("div.errorbox");
 
         errorInfo = e.text();
 
         return errorInfo;
+    }
+
+    /**
+     * 解析视频评论
+     *
+     * @param html 评论html
+     * @return 评论列表
+     */
+    public static List<VideoComment> parseVideoComment(String html) {
+        List<VideoComment> videoCommentList = new ArrayList<>();
+        Document doc = Jsoup.parse(html);
+        Elements elements = doc.select("table.comment-divider");
+        for (Element element : elements) {
+            VideoComment videoComment = new VideoComment();
+
+            String ownnerUrl = element.select("a[href*=UID]").first().attr("href");
+            String uid = ownnerUrl.substring(ownnerUrl.indexOf("=") + 1, ownnerUrl.length());
+            videoComment.setUid(uid);
+            //Logger.t(TAG).d(uid);
+
+            String uName = element.select("a[href*=UID]").first().text();
+            videoComment.setuName(uName);
+            Logger.t(TAG).d(uName);
+
+            String replyTime = element.select("span.comment-info").first().text();
+            videoComment.setReplyTime(replyTime.replace("(", "").replace(")", ""));
+            // Logger.t(TAG).d(replyTime);
+
+            String tmpreplyId = element.select("div.comment-body").first().attr("id");
+            String replyId = tmpreplyId.substring(tmpreplyId.lastIndexOf("_") + 1, tmpreplyId.length());
+            videoComment.setReplyId(replyId);
+            // Logger.t(TAG).d("replyId:" + replyId);
+
+            String comment = element.select("div.comment-body").first().text().replace("举报", "");
+//            videoComment.setContentMessage(comment.replace("Show", ""));
+            //Logger.t(TAG).d(comment);
+
+            List<String> tmpQuoteList = new ArrayList<>();
+            tmpQuoteList.add(comment);
+            Elements quotes = element.select("div.comment-body").select("div.comment_quote");
+            for (Element element1 : quotes) {
+                String quote = element1.text();
+                tmpQuoteList.add(quote);
+            }
+
+            List<String> quoteList = new ArrayList<>();
+            for (int i = 0; i < tmpQuoteList.size(); i++) {
+                String quote;
+                if (i + 1 >= tmpQuoteList.size()) {
+                    quote = tmpQuoteList.get(i);
+                    quoteList.add(0,quote.trim());
+                    Logger.t(TAG).d(quote);
+                    break;
+                }
+                quote = tmpQuoteList.get(i).replace(tmpQuoteList.get(i + 1), "");
+                quoteList.add(0,quote.trim());
+                Logger.t(TAG).d(quote);
+            }
+
+            videoComment.setCommentQuoteList(quoteList);
+
+            Logger.d("***************************************************************************************************************");
+            String info = element.select("td").first().text();
+            String titleInfo = info.substring(0, info.indexOf("("));
+            videoComment.setTitleInfo(titleInfo.replace(uName, ""));
+            // Logger.t(TAG).d(titleInfo);
+
+            videoCommentList.add(videoComment);
+        }
+        return videoCommentList;
     }
 }

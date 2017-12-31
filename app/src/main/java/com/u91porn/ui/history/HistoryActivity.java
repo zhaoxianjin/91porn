@@ -90,12 +90,7 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
 
     }
 
@@ -110,8 +105,8 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg,int type) {
+        super.showMessage(msg,type);
     }
 
 

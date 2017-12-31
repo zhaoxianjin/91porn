@@ -1,5 +1,7 @@
 package com.u91porn.ui.update;
 
+import android.support.annotation.NonNull;
+
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
@@ -33,7 +35,7 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
     public UpdatePresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, Gson gson, LifecycleProvider<ActivityEvent> provider) {
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.gson = gson;
-        this.provider=provider;
+        this.provider = provider;
     }
 
     @Override
@@ -62,28 +64,44 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
                     }
 
                     @Override
-                    public void onSuccess(UpdateVersion updateVersion) {
+                    public void onSuccess(final UpdateVersion updateVersion) {
                         if (updateVersion.getVersionCode() > versionCode) {
-                            if (isViewAttached()) {
-                                getView().needUpdate(updateVersion);
-                            } else if (updateListener != null) {
+                            if (updateListener != null) {
                                 updateListener.needUpdate(updateVersion);
+                            } else {
+                                ifViewAttached(new ViewAction<UpdateView>() {
+                                    @Override
+                                    public void run(@NonNull UpdateView view) {
+                                        view.needUpdate(updateVersion);
+                                    }
+                                });
                             }
                         } else {
-                            if (isViewAttached()) {
-                                getView().noNeedUpdate();
-                            } else if (updateListener != null) {
+                            if (updateListener != null) {
                                 updateListener.noNeedUpdate();
+                            } else {
+                                ifViewAttached(new ViewAction<UpdateView>() {
+                                    @Override
+                                    public void run(@NonNull UpdateView view) {
+                                        view.noNeedUpdate();
+                                    }
+                                });
                             }
+
                         }
                     }
 
                     @Override
-                    public void onError(String msg, int code) {
-                        if (isViewAttached()) {
-                            getView().checkUpdateError(msg);
-                        } else if (updateListener != null) {
+                    public void onError(final String msg, int code) {
+                        if (updateListener != null) {
                             updateListener.checkUpdateError(msg);
+                        } else {
+                            ifViewAttached(new ViewAction<UpdateView>() {
+                                @Override
+                                public void run(@NonNull UpdateView view) {
+                                    view.checkUpdateError(msg);
+                                }
+                            });
                         }
                     }
                 });

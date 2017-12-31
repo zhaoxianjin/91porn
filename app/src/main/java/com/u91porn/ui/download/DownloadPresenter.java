@@ -1,5 +1,6 @@
 package com.u91porn.ui.download;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.danikula.videocache.HttpProxyCacheServer;
@@ -7,6 +8,7 @@ import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.orhanobut.logger.Logger;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.navi.NaviLifecycle;
@@ -15,6 +17,7 @@ import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.UnLimit91PornItem_;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.utils.BoxQureyHelper;
+import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DownloadManager;
 import com.u91porn.utils.MyFileNameGenerator;
@@ -72,29 +75,44 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
         UnLimit91PornItem tmp = BoxQureyHelper.findByViewKey(unLimit91PornItem.getViewKey());
         if (tmp == null) {
-            if (isViewAttached() && downloadListener == null) {
-                getView().showMessage("还未解析成功视频地址");
+            if (downloadListener != null) {
+                downloadListener.onError("还未解析成功视频地址");
             } else {
-                downloadListener.onSuccess("还未解析成功视频地址");
+                ifViewAttached(new ViewAction<DownloadView>() {
+                    @Override
+                    public void run(@NonNull DownloadView view) {
+                        view.showMessage("还未解析成功视频地址", TastyToast.WARNING);
+                    }
+                });
             }
             return;
         }
         String videoUrl = tmp.getVideoResult().getTarget().getVideoUrl();
         if (TextUtils.isEmpty(tmp.getVideoResult().getTarget().getVideoUrl())) {
-            if (isViewAttached() && downloadListener == null) {
-                getView().showMessage("还未解析成功视频地址");
+            if (downloadListener != null) {
+                downloadListener.onError("还未解析成功视频地址");
+            } else {
+                ifViewAttached(new ViewAction<DownloadView>() {
+                    @Override
+                    public void run(@NonNull DownloadView view) {
+                        view.showMessage("还未解析成功视频地址", TastyToast.WARNING);
+                    }
+                });
             }
             return;
         }
         //先检查文件
         File toFile = new File(tmp.getDownLoadPath());
         if (toFile.exists() && toFile.length() > 0) {
-            if (isViewAttached() && downloadListener == null) {
-                getView().showMessage("已经下载过了，请查看下载目录");
+            if (downloadListener != null) {
+                downloadListener.onError("已经下载过了，请查看下载目录");
             } else {
-                if (downloadListener != null) {
-                    downloadListener.onError("已经下载过了，请查看下载目录");
-                }
+                ifViewAttached(new ViewAction<DownloadView>() {
+                    @Override
+                    public void run(@NonNull DownloadView view) {
+                        view.showMessage("已经下载过了，请查看下载目录", TastyToast.INFO);
+                    }
+                });
             }
             return;
         }
@@ -103,12 +121,15 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
             try {
                 copyCacheFile(videoUrl, downloadListener);
             } catch (IOException e) {
-                if (isViewAttached() && downloadListener == null) {
-                    getView().showMessage("缓存文件错误，无法拷贝");
+                if (downloadListener != null) {
+                    downloadListener.onError("缓存文件错误，无法拷贝");
                 } else {
-                    if (downloadListener != null) {
-                        downloadListener.onError("缓存文件错误，无法拷贝");
-                    }
+                    ifViewAttached(new ViewAction<DownloadView>() {
+                        @Override
+                        public void run(@NonNull DownloadView view) {
+                            view.showMessage("缓存文件错误，无法拷贝", TastyToast.ERROR);
+                        }
+                    });
                 }
                 e.printStackTrace();
             }
@@ -116,12 +137,15 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         }
         //检查当前状态
         if (tmp.getStatus() != FileDownloadStatus.INVALID_STATUS) {
-            if (isViewAttached() && downloadListener == null) {
-                getView().showMessage("已经在下载了");
+            if (downloadListener != null) {
+                downloadListener.onError("已经在下载了");
             } else {
-                if (downloadListener != null) {
-                    downloadListener.onError("已经在下载了");
-                }
+                ifViewAttached(new ViewAction<DownloadView>() {
+                    @Override
+                    public void run(@NonNull DownloadView view) {
+                        view.showMessage("已经在下载了", TastyToast.SUCCESS);
+                    }
+                });
             }
             return;
         }
@@ -132,34 +156,44 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         tmp.setAddDownloadDate(new Date());
         tmp.setDownloadId(id);
         unLimit91PornItemBox.put(tmp);
-        if (isViewAttached() && downloadListener == null) {
-            getView().showMessage("开始下载");
+        if (downloadListener != null) {
+            downloadListener.onSuccess("开始下载");
         } else {
-            if (downloadListener != null) {
-                downloadListener.onSuccess("开始下载");
-            }
+            ifViewAttached(new ViewAction<DownloadView>() {
+                @Override
+                public void run(@NonNull DownloadView view) {
+                    view.showMessage("开始下载", TastyToast.SUCCESS);
+                }
+            });
         }
     }
 
     @Override
     public void loadDownloadingData() {
-        List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().notEqual(UnLimit91PornItem_.status, FileDownloadStatus.completed).and().notEqual(UnLimit91PornItem_.downloadId, 0).orderDesc(UnLimit91PornItem_.addDownloadDate).build().find();
-        if (isViewAttached()) {
-            getView().setDownloadingData(unLimit91PornItems);
-        }
+        final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().notEqual(UnLimit91PornItem_.status, FileDownloadStatus.completed).and().notEqual(UnLimit91PornItem_.downloadId, 0).orderDesc(UnLimit91PornItem_.addDownloadDate).build().find();
+        ifViewAttached(new ViewAction<DownloadView>() {
+            @Override
+            public void run(@NonNull DownloadView view) {
+                view.setDownloadingData(unLimit91PornItems);
+            }
+        });
     }
 
     @Override
     public void loadFinishedData() {
-        List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().equal(UnLimit91PornItem_.status, FileDownloadStatus.completed).orderDesc(UnLimit91PornItem_.finshedDownloadDate).build().find();
-        if (isViewAttached()) {
-            getView().setFinishedData(unLimit91PornItems);
-        }
+        final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().equal(UnLimit91PornItem_.status, FileDownloadStatus.completed).orderDesc(UnLimit91PornItem_.finshedDownloadDate).build().find();
+        ifViewAttached(new ViewAction<DownloadView>() {
+            @Override
+            public void run(@NonNull DownloadView view) {
+                view.setFinishedData(unLimit91PornItems);
+            }
+        });
     }
 
     @Override
     public void deleteDownloadingTask(UnLimit91PornItem unLimit91PornItem) {
-        unLimit91PornItemBox.remove(unLimit91PornItem.getId());
+        unLimit91PornItem.setDownloadId(0);
+        unLimit91PornItemBox.put(unLimit91PornItem);
     }
 
     @Override
@@ -177,7 +211,8 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
      * @param unLimit91PornItem
      */
     private void deleteWithoutFile(UnLimit91PornItem unLimit91PornItem) {
-        unLimit91PornItemBox.remove(unLimit91PornItem.getId());
+        unLimit91PornItem.setDownloadId(0);
+        unLimit91PornItemBox.put(unLimit91PornItem);
     }
 
     /**
@@ -188,11 +223,15 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
     private void deleteWithFile(UnLimit91PornItem unLimit91PornItem) {
         File file = new File(unLimit91PornItem.getDownLoadPath());
         if (file.delete()) {
-            unLimit91PornItemBox.remove(unLimit91PornItem.getId());
+            unLimit91PornItem.setDownloadId(0);
+            unLimit91PornItemBox.put(unLimit91PornItem);
         } else {
-            if (isViewAttached()) {
-                getView().showMessage("删除文件失败");
-            }
+            ifViewAttached(new ViewAction<DownloadView>() {
+                @Override
+                public void run(@NonNull DownloadView view) {
+                    view.showMessage("删除文件失败", TastyToast.ERROR);
+                }
+            });
         }
     }
 
@@ -246,76 +285,40 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
-                .subscribe(new Observer<String>() {
+                .subscribe(new CallBackWrapper<String>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
+                    public void onBegin(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(String s) {
-                        if (isViewAttached() && downloadListener == null) {
-                            getView().showMessage(s);
+                    public void onSuccess(final String s) {
+                        if (downloadListener != null) {
+                            downloadListener.onSuccess(s);
                         } else {
-                            if (downloadListener != null) {
-                                downloadListener.onSuccess(s);
-                            }
+                            ifViewAttached(new ViewAction<DownloadView>() {
+                                @Override
+                                public void run(@NonNull DownloadView view) {
+                                    view.showMessage(s, TastyToast.SUCCESS);
+                                }
+                            });
                         }
                     }
 
                     @Override
-                    public void onError(Throwable e) {
-                        if (isViewAttached() && downloadListener == null) {
-                            getView().showMessage(e.getMessage());
+                    public void onError(final String msg, int code) {
+                        if (downloadListener != null) {
+                            downloadListener.onError(msg);
                         } else {
-                            if (downloadListener != null) {
-                                downloadListener.onError(e.getMessage());
-                            }
+                            ifViewAttached(new ViewAction<DownloadView>() {
+                                @Override
+                                public void run(@NonNull DownloadView view) {
+                                    getView().showMessage(msg, TastyToast.ERROR);
+                                }
+                            });
                         }
-                    }
-
-                    @Override
-                    public void onComplete() {
-
                     }
                 });
-//        UnLimit91PornItem unLimit91PornItem = BoxQureyHelper.findByVideoUrl(videoUrl);
-//        MyFileNameGenerator myFileNameGenerator = new MyFileNameGenerator();
-//        String cacheFileName = myFileNameGenerator.generate(videoUrl);
-//        File fromFile = new File(MyApplication.getInstace().getExternalCacheDir() + "/video-cache/" + cacheFileName);
-//        if (!fromFile.exists() || fromFile.length() <= 0) {
-//            if (isViewAttached() && downloadListener == null) {
-//                getView().showMessage("缓存文件错误，无法拷贝");
-//            } else {
-//                downloadListener.onSuccess("缓存文件错误，无法拷贝");
-//            }
-//            return;
-//        }
-//        File toFile = new File(unLimit91PornItem.getDownLoadPath());
-//        if (toFile.exists() && toFile.length() > 0) {
-//            if (isViewAttached() && downloadListener == null) {
-//                getView().showMessage("已经下载过了");
-//            } else {
-//                downloadListener.onError("已经下载过了");
-//            }
-//            return;
-//        } else {
-//            toFile.delete();
-//            toFile.createNewFile();
-//        }
-//        FileUtils.copyFile(fromFile, toFile);
-//        unLimit91PornItem.setStatus(FileDownloadStatus.completed);
-//        unLimit91PornItem.setTotalFarBytes((int) fromFile.length());
-//        unLimit91PornItem.setSoFarBytes((int) fromFile.length());
-//        unLimit91PornItem.setProgress(100);
-//        unLimit91PornItem.setFinshedDownloadDate(new Date());
-//        unLimit91PornItem.setDownloadId(FileDownloadUtils.generateId(unLimit91PornItem.getVideoUrl(), unLimit91PornItem.getDownLoadPath()));
-//        MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class).put(unLimit91PornItem);
-//        if (isViewAttached() && downloadListener == null) {
-//            getView().showMessage("下载完成");
-//        } else {
-//            downloadListener.onSuccess("下载完成");
-//        }
     }
 
     public interface DownloadListener {

@@ -75,23 +75,25 @@ public interface NoLimit91PornServiceApi {
 
     /**
      * 用户注册
-     * @param next 空
-     * @param username 用户名
-     * @param password1 密码1
-     * @param password2 密码2
-     * @param email 邮箱
+     *
+     * @param next         空
+     * @param username     用户名
+     * @param password1    密码1
+     * @param password2    密码2
+     * @param email        邮箱
      * @param captchaInput 验证码
-     * @param fingerprint 机器指纹校验
-     * @param vip vip -空
+     * @param fingerprint  机器指纹校验
+     * @param vip          vip -空
      * @param actionSignup 动作 value：Sign Up
-     * @param submitX 人机x坐标 45
-     * @param submitY 人机y坐标 13
-     * @param ipAddress 随机ip
+     * @param submitX      人机x坐标 45
+     * @param submitY      人机y坐标 13
+     * @param ipAddress    随机ip
      * @return ob
      */
     @FormUrlEncoded
     @POST("/signup.php")
-    Observable<String> register(@Query("next") String next,@Field("username") String username,@Field("password1") String password1,@Field("password2") String password2,@Field("email") String email,@Field("captcha_input") String captchaInput,@Field("fingerprint") String fingerprint,@Field("vip") String vip,@Field("action_signup") String actionSignup,@Field("submit.x") String submitX,@Field("submit.y") String submitY,@Header("X-Forwarded-For") String ipAddress);
+    Observable<String> register(@Query("next") String next, @Field("username") String username, @Field("password1") String password1, @Field("password2") String password2, @Field("email") String email, @Field("captcha_input") String captchaInput, @Field("fingerprint") String fingerprint, @Field("vip") String vip, @Field("action_signup") String actionSignup, @Field("submit.x") String submitX, @Field("submit.y") String submitY, @Header("X-Forwarded-For") String ipAddress);
+
     /**
      * 我的收藏
      *
@@ -115,4 +117,44 @@ public interface NoLimit91PornServiceApi {
 
     @GET
     Observable<String> checkUpdate(@Url String url);
+
+
+    /**
+     * //http://91.91p18.space/show_comments2.php?VID=247965&start=1&comment_per_page=20
+     * 获取视频评论
+     *
+     * @param vid            视频id
+     * @param start          开始
+     * @param commentPerPage 每页数
+     * @return ob
+     */
+    @GET("/show_comments2.php")
+    Observable<String> getVideoComments(@Query("VID") String vid, @Query("start") int start, @Query("comment_per_page") int commentPerPage);
+
+    /**
+     * http://91porn.com//ajax/myajaxphp.php?cpaint_function=process_comments&cpaint_argument[]=哈哈哈&cpaint_argument[]=6826296&cpaint_argument[]=248261&cpaint_response_type=json
+     * 评论视频,无需邮箱验证，因为后台根本就不验证
+     *
+     * @param cpaintFunction 动作process_comments
+     * @param comments       评论内容
+     * @param uId            用户id
+     * @param videoId        视频id
+     * @param responseType   返回类型
+     * @return ob
+     */
+    @GET("/ajax/myajaxphp.php")
+    Observable<String> commentVideo(@Query("cpaint_function") String cpaintFunction, @Query("cpaint_argument[]") String comments, @Query("cpaint_argument[]") String uId, @Query("cpaint_argument[]") String videoId, @Query("cpaint_response_type") String responseType);
+
+    /**
+     * 回复评论
+     *
+     * @param comment   评论内容
+     * @param username  要回复的用户名
+     * @param vId       视频id
+     * @param commentId 要回复的内容id
+     * @return ob
+     */
+    @FormUrlEncoded
+    @POST("/post_comment.php")
+    Observable<String> replyComment(@Field("comment") String comment, @Field("username") String username, @Field("VID") String vId, @Field("comment_id") String commentId);
 }

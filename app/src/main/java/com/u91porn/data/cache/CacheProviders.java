@@ -73,7 +73,7 @@ public interface CacheProviders {
     Observable<Reply<String>> getRecentUpdates(Observable<String> stringObservable, DynamicKeyGroup filterPageCategory, EvictDynamicKey evictFilter);
 
     /**
-     * 获取最近更新数据
+     * 获取我的收藏
      *
      * @param stringObservable   ob
      * @param filterPageCategory 页码

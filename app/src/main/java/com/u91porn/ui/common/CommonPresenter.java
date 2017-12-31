@@ -1,5 +1,6 @@
 package com.u91porn.ui.common;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
@@ -36,14 +37,11 @@ import okhttp3.ResponseBody;
 /**
  * @author flymegoc
  * @date 2017/11/16
- * @describe
  */
 
 public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICommon {
     private NoLimit91PornServiceApi mNoLimit91PornServiceApi;
     private CacheProviders cacheProviders;
-    private String category;
-    private String viewType = "basic";
     private Integer totalPage = 1;
     private int page = 1;
     private LifecycleProvider<FragmentEvent> provider;
@@ -52,16 +50,15 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
      */
     private boolean cleanCache = false;
 
-    public CommonPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, CacheProviders cacheProviders, String category, LifecycleProvider<FragmentEvent> provider) {
+    public CommonPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, CacheProviders cacheProviders, LifecycleProvider<FragmentEvent> provider) {
         this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
-        this.category = category;
         this.provider = provider;
     }
 
     @Override
-    public void loadHotData(final boolean pullToRefresh, String m) {
-
+    public void loadHotData(final boolean pullToRefresh, String category, String m) {
+        String viewType = "basic";
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
@@ -102,40 +99,51 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                     @Override
                     public void onBegin(Disposable d) {
                         //首次加载显示加载页
-                        if (isViewAttached() && page == 1 && !pullToRefresh) {
-                            getView().showLoading(pullToRefresh);
-                        }
+                        ifViewAttached(new ViewAction<CommonView>() {
+                            @Override
+                            public void run(@NonNull CommonView view) {
+                                if (page == 1 && !pullToRefresh) {
+                                    view.showLoading(pullToRefresh);
+                                }
+                            }
+                        });
                     }
 
                     @Override
-                    public void onSuccess(List<UnLimit91PornItem> unLimit91PornItems) {
-                        if (isViewAttached()) {
-                            if (page == 1) {
-                                getView().setData(unLimit91PornItems);
-                                getView().showContent();
-                            } else {
-                                getView().loadMoreDataComplete();
-                                getView().setMoreData(unLimit91PornItems);
+                    public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItems) {
+                        ifViewAttached(new ViewAction<CommonView>() {
+                            @Override
+                            public void run(@NonNull CommonView view) {
+                                if (page == 1) {
+                                    view.setData(unLimit91PornItems);
+                                    view.showContent();
+                                } else {
+                                    view.loadMoreDataComplete();
+                                    view.setMoreData(unLimit91PornItems);
+                                }
+                                //已经最后一页了
+                                if (page == totalPage) {
+                                    view.noMoreData();
+                                } else {
+                                    page++;
+                                }
                             }
-                            //已经最后一页了
-                            if (page == totalPage) {
-                                getView().noMoreData();
-                            } else {
-                                page++;
-                            }
-
-                        }
+                        });
                     }
 
                     @Override
-                    public void onError(String msg, int code) {
+                    public void onError(final String msg, int code) {
                         //首次加载失败，显示重试页
-                        if (isViewAttached() && page == 1) {
-                            getView().showError(new Throwable(msg), false);
-                            //否则就是加载更多失败
-                        } else if (isViewAttached()) {
-                            getView().loadMoreFailed();
-                        }
+                        ifViewAttached(new ViewAction<CommonView>() {
+                            @Override
+                            public void run(@NonNull CommonView view) {
+                                if (page==1){
+                                    view.showError(msg);
+                                }else {
+                                    view.loadMoreFailed();
+                                }
+                            }
+                        });
                     }
                 });
     }

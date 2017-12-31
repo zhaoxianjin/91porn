@@ -4,6 +4,7 @@ import android.app.Application;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.bugsnag.android.Bugsnag;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
@@ -86,6 +87,10 @@ public class MyApplication extends Application {
         Fresco.initialize(this);
         initLoadingHelper();
         initFileDownload();
+        if (!BuildConfig.DEBUG) {
+            //初始化bug收集
+            Bugsnag.init(this);
+        }
     }
 
     private void initFileDownload() {
@@ -245,9 +250,9 @@ public class MyApplication extends Application {
         });
         logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
         builder.addInterceptor(logging);
-        builder.readTimeout(10, TimeUnit.SECONDS);
-        builder.writeTimeout(10, TimeUnit.SECONDS);
-        builder.connectTimeout(10, TimeUnit.SECONDS);
+        builder.readTimeout(5, TimeUnit.SECONDS);
+        builder.writeTimeout(5, TimeUnit.SECONDS);
+        builder.connectTimeout(5, TimeUnit.SECONDS);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .client(builder.build())

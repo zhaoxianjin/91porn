@@ -1,5 +1,7 @@
 package com.u91porn.ui.recentupdates;
 
+import android.support.annotation.NonNull;
+
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.FragmentEvent;
@@ -40,6 +42,7 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
      * 本次强制刷新过那下面的请求也一起刷新
      */
     private boolean cleanCache = false;
+
     public RecentUpdatesPresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, String next, LifecycleProvider<FragmentEvent> provider) {
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
@@ -52,7 +55,7 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
-            cleanCache=true;
+            cleanCache = true;
         }
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(next, page);
         EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
@@ -82,40 +85,51 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
                     @Override
                     public void onBegin(Disposable d) {
                         //首次加载显示加载页
-                        if (isViewAttached() && page == 1 && !pullToRefresh) {
-                            getView().showLoading(pullToRefresh);
-                        }
+                        ifViewAttached(new ViewAction<RecentUpdatesView>() {
+                            @Override
+                            public void run(@NonNull RecentUpdatesView view) {
+                                if (page == 1 && !pullToRefresh) {
+                                    view.showLoading(pullToRefresh);
+                                }
+                            }
+                        });
                     }
 
                     @Override
-                    public void onSuccess(List<UnLimit91PornItem> unLimit91PornItems) {
-                        if (isViewAttached()) {
-                            if (page == 1) {
-                                getView().setData(unLimit91PornItems);
-                                getView().showContent();
-                            } else {
-                                getView().loadMoreDataComplete();
-                                getView().setMoreData(unLimit91PornItems);
+                    public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItems) {
+                        ifViewAttached(new ViewAction<RecentUpdatesView>() {
+                            @Override
+                            public void run(@NonNull RecentUpdatesView view) {
+                                if (page == 1) {
+                                    view.setData(unLimit91PornItems);
+                                    view.showContent();
+                                } else {
+                                    view.loadMoreDataComplete();
+                                    view.setMoreData(unLimit91PornItems);
+                                }
+                                //已经最后一页了
+                                if (page == totalPage) {
+                                    view.noMoreData();
+                                } else {
+                                    page++;
+                                }
                             }
-                            //已经最后一页了
-                            if (page == totalPage) {
-                                getView().noMoreData();
-                            } else {
-                                page++;
-                            }
-
-                        }
+                        });
                     }
 
                     @Override
-                    public void onError(String msg, int code) {
+                    public void onError(final String msg, int code) {
                         //首次加载失败，显示重试页
-                        if (isViewAttached() && page == 1) {
-                            getView().showError(new Throwable(msg), false);
-                            //否则就是加载更多失败
-                        } else if (isViewAttached()) {
-                            getView().loadMoreFailed();
-                        }
+                        ifViewAttached(new ViewAction<RecentUpdatesView>() {
+                            @Override
+                            public void run(@NonNull RecentUpdatesView view) {
+                                if (page == 1) {
+                                    view.showError(msg);
+                                } else {
+                                    view.loadMoreFailed();
+                                }
+                            }
+                        });
                     }
                 });
     }

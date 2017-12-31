@@ -2,6 +2,7 @@ package com.u91porn.ui.about;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -10,7 +11,9 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.trello.rxlifecycle2.LifecycleTransformer;
+import com.qmuiteam.qmui.util.QMUIPackageHelper;
+import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
@@ -21,9 +24,11 @@ import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.utils.ApkVersionUtils;
 import com.u91porn.utils.DialogUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
@@ -32,8 +37,13 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @BindView(R.id.tv_check_update)
-    TextView tvCheckUpdate;
+
+    @BindView(R.id.version)
+    TextView mVersionTextView;
+    @BindView(R.id.about_list)
+    QMUIGroupListView mAboutGroupListView;
+    @BindView(R.id.copyright)
+    TextView mCopyrightTextView;
 
     private AlertDialog alertDialog;
 
@@ -57,18 +67,44 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
 
         setTitle("关于");
 
-        tvCheckUpdate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int versionCode = ApkVersionUtils.getVersionCode(AboutActivity.this);
-                if (versionCode == 0) {
-                    showMessage("获取应用本版失败");
-                    return;
-                }
-                alertDialog.show();
-                presenter.checkUpdate(versionCode);
-            }
-        });
+        mVersionTextView.setText(QMUIPackageHelper.getAppVersion(this));
+
+        QMUIGroupListView.newSection(this)
+                .addItemView(mAboutGroupListView.createItemView(getResources().getString(R.string.about_item_github)), new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String url = "https://github.com/techGay/91porn";
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(url));
+                        startActivity(intent);
+                    }
+                })
+                .addItemView(mAboutGroupListView.createItemView(getResources().getString(R.string.about_item_homepage)), new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String url = "https://github.com/techGay/91porn/issues";
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(url));
+                        startActivity(intent);
+                    }
+                })
+                .addItemView(mAboutGroupListView.createItemView(getResources().getString(R.string.about_check_update)), new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int versionCode = ApkVersionUtils.getVersionCode(AboutActivity.this);
+                        if (versionCode == 0) {
+                            showMessage("获取应用本版失败", TastyToast.ERROR);
+                            return;
+                        }
+                        alertDialog.show();
+                        presenter.checkUpdate(versionCode);
+                    }
+                })
+                .addTo(mAboutGroupListView);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy", Locale.CHINA);
+        String currentYear = dateFormat.format(new java.util.Date());
+        mCopyrightTextView.setText(String.format(getResources().getString(R.string.about_copyright), currentYear));
 
         alertDialog = DialogUtils.initLodingDialog(this, "正在检查更新，请稍后...");
     }
@@ -77,7 +113,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     @Override
     public AboutPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-        return new AboutPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson(),provider));
+        return new AboutPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson(), provider));
     }
 
     private void showUpdateDialog(final UpdateVersion updateVersion) {
@@ -87,6 +123,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
         builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                showMessage("开始下载", TastyToast.SUCCESS);
                 Intent intent = new Intent(AboutActivity.this, DownloadService.class);
                 intent.putExtra("updateVersion", updateVersion);
                 startService(intent);
@@ -108,22 +145,12 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
 
     @Override
     public void noNeedUpdate() {
-        showMessage("当前已是最新版本");
+        showMessage("当前已是最新版本", TastyToast.SUCCESS);
     }
 
     @Override
     public void checkUpdateError(String message) {
-        showMessage(message);
-    }
-
-    @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
-
+        showMessage(message, TastyToast.ERROR);
     }
 
     @Override
@@ -139,7 +166,12 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
+    }
+
+    @Override
+    public void showError(String message) {
+
     }
 }

@@ -1,5 +1,7 @@
 package com.u91porn.ui.about;
 
+import android.support.annotation.NonNull;
+
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.ui.update.UpdatePresenter;
@@ -20,27 +22,36 @@ public class AboutPresenter extends MvpBasePresenter<AboutView> implements IAbou
     public void checkUpdate(int versionCode) {
         updatePresenter.checkUpdate(versionCode, new UpdatePresenter.UpdateListener() {
             @Override
-            public void needUpdate(UpdateVersion updateVersion) {
-                if (isViewAttached()) {
-                    getView().needUpdate(updateVersion);
-                    getView().showContent();
-                }
+            public void needUpdate(final UpdateVersion updateVersion) {
+                ifViewAttached(new ViewAction<AboutView>() {
+                    @Override
+                    public void run(@NonNull AboutView view) {
+                        view.needUpdate(updateVersion);
+                        view.showContent();
+                    }
+                });
             }
 
             @Override
             public void noNeedUpdate() {
-                if (isViewAttached()) {
-                    getView().noNeedUpdate();
-                    getView().showContent();
-                }
+                ifViewAttached(new ViewAction<AboutView>() {
+                    @Override
+                    public void run(@NonNull AboutView view) {
+                        view.noNeedUpdate();
+                        view.showContent();
+                    }
+                });
             }
 
             @Override
-            public void checkUpdateError(String message) {
-                if (isViewAttached()) {
-                    getView().checkUpdateError(message);
-                    getView().showContent();
-                }
+            public void checkUpdateError(final String message) {
+                ifViewAttached(new ViewAction<AboutView>() {
+                    @Override
+                    public void run(@NonNull AboutView view) {
+                        view.checkUpdateError(message);
+                        view.showContent();
+                    }
+                });
             }
         });
     }

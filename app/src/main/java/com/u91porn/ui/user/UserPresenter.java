@@ -1,5 +1,7 @@
 package com.u91porn.ui.user;
 
+import android.support.annotation.NonNull;
+
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
@@ -8,6 +10,7 @@ import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.User;
+import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.ParseUtils;
 
 import io.reactivex.Observable;
@@ -42,52 +45,64 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
-                .subscribe(new Observer<String>() {
+                .subscribe(new CallBackWrapper<String>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
-                        if (isViewAttached() && loginListener == null) {
-                            getView().showLoading(true);
-                        }
+                    public void onBegin(Disposable d) {
+                        ifViewAttached(new ViewAction<UserView>() {
+                            @Override
+                            public void run(@NonNull UserView view) {
+                                if (loginListener == null) {
+                                    view.showLoading(true);
+                                }
+                            }
+                        });
                     }
 
                     @Override
-                    public void onNext(String s) {
+                    public void onSuccess(String s) {
                         if (!s.contains("登录") || !s.contains("注册") || s.contains("退出")) {
                             User user = ParseUtils.parseUserInfo(s);
                             MyApplication.getInstace().setUser(user);
-                            if (isViewAttached()) {
-                                getView().loginSuccess();
-                            } else if (loginListener != null) {
+                            if (loginListener != null) {
                                 loginListener.loginSuccess();
+                            } else {
+                                ifViewAttached(new ViewAction<UserView>() {
+                                    @Override
+                                    public void run(@NonNull UserView view) {
+                                        view.showContent();
+                                        view.loginSuccess();
+                                    }
+                                });
                             }
                         } else {
-                            String errorinfo = ParseUtils.parseErrorLoginInfo(s);
-                            if (isViewAttached()) {
-                                getView().loginError(errorinfo);
-                            } else if (loginListener != null) {
+                            final String errorinfo = ParseUtils.parseErrorLoginInfo(s);
+                            if (loginListener != null) {
                                 loginListener.loginFailure(errorinfo);
+                            } else {
+                                ifViewAttached(new ViewAction<UserView>() {
+                                    @Override
+                                    public void run(@NonNull UserView view) {
+                                        view.showContent();
+                                        view.loginError(errorinfo);
+                                    }
+                                });
                             }
                         }
-                        if (isViewAttached()) {
-                            getView().showContent();
-                        }
                     }
 
                     @Override
-                    public void onError(Throwable e) {
-                        if (isViewAttached()) {
-                            getView().loginError(e.getMessage());
-                        } else if (loginListener != null) {
-                            loginListener.loginFailure(e.getMessage());
+                    public void onError(final String msg, int code) {
+                        if (loginListener != null) {
+                            loginListener.loginFailure(msg);
+                        } else {
+                            ifViewAttached(new ViewAction<UserView>() {
+                                @Override
+                                public void run(@NonNull UserView view) {
+                                    view.showContent();
+                                    view.loginError(msg);
+                                }
+                            });
                         }
-                        if (isViewAttached()) {
-                            getView().showContent();
-                        }
-                    }
-
-                    @Override
-                    public void onComplete() {
-
                     }
                 });
     }
@@ -98,47 +113,51 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
-                .subscribe(new Observer<String>() {
+                .subscribe(new CallBackWrapper<String>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
-                        if (isViewAttached()) {
-                            getView().showLoading(true);
-                        }
+                    public void onBegin(Disposable d) {
+                        ifViewAttached(new ViewAction<UserView>() {
+                            @Override
+                            public void run(@NonNull UserView view) {
+                                view.showLoading(true);
+                            }
+                        });
                     }
 
                     @Override
-                    public void onNext(String s) {
+                    public void onSuccess(String s) {
                         Logger.d(s);
                         if (!s.contains("登录") || !s.contains("注册") || s.contains("退出")) {
                             User user = ParseUtils.parseUserInfo(s);
                             MyApplication.getInstace().setUser(user);
-                            if (isViewAttached()) {
-                                getView().registerSuccess();
-                            }
+                            ifViewAttached(new ViewAction<UserView>() {
+                                @Override
+                                public void run(@NonNull UserView view) {
+                                    view.showContent();
+                                    view.registerSuccess();
+                                }
+                            });
                         } else {
-                            String errorinfo = ParseUtils.parseErrorLoginInfo(s);
-                            if (isViewAttached()) {
-                                getView().registerFailure(errorinfo);
+                            final String errorinfo = ParseUtils.parseErrorLoginInfo(s);
+                            ifViewAttached(new ViewAction<UserView>() {
+                                @Override
+                                public void run(@NonNull UserView view) {
+                                    view.showContent();
+                                    view.registerFailure(errorinfo);
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(final String msg, int code) {
+                        ifViewAttached(new ViewAction<UserView>() {
+                            @Override
+                            public void run(@NonNull UserView view) {
+                                view.showContent();
+                                view.registerFailure(msg);
                             }
-                        }
-                        if (isViewAttached()) {
-                            getView().showContent();
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        if (isViewAttached()) {
-                            getView().registerFailure(e.getMessage());
-                        }
-                        if (isViewAttached()) {
-                            getView().showContent();
-                        }
-                    }
-
-                    @Override
-                    public void onComplete() {
-
+                        });
                     }
                 });
     }

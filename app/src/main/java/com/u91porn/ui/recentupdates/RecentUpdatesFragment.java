@@ -16,6 +16,7 @@ import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -130,14 +131,14 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
 
     @Override
     public void loadMoreFailed() {
-        showMessage("加载更多失败");
+        showMessage("加载更多失败",TastyToast.ERROR);
         mUnLimit91Adapter.loadMoreFail();
     }
 
     @Override
     public void noMoreData() {
         mUnLimit91Adapter.loadMoreEnd(true);
-        showMessage("没有更多数据了");
+        showMessage("没有更多数据了",TastyToast.INFO);
     }
 
     @Override
@@ -156,16 +157,10 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return "加载出错了";
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
         contentView.setRefreshing(false);
         helper.showError();
-        showMessage(e.getMessage());
-        e.printStackTrace();
+        showMessage(message, TastyToast.ERROR);
     }
 
     @Override
@@ -182,8 +177,8 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg,int type) {
+        super.showMessage(msg,type);
     }
 
     @Override

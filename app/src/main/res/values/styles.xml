@@ -6,6 +6,23 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        //背景透明，不设滑动关闭时背景就是黑的。
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="AboutTheme" parent="QMUI.Compat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        //背景透明，不设滑动关闭时背景就是黑的。
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="AppMainTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="LoadingDialogStyle" parent="Theme.AppCompat.Dialog">

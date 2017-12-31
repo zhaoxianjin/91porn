@@ -45,6 +45,7 @@ import io.rx_cache2.Reply;
 
 /**
  * A simple {@link Fragment} subclass.
+ * @author flymegoc
  */
 public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresenter> implements DownloadManager.DownloadStatusUpdater, DownloadView {
 
@@ -216,13 +217,9 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
         mUnLimit91Adapter.setNewData(unLimit91PornItems);
     }
 
-    @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
 
     @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
 
     }
 
@@ -237,7 +234,7 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     }
 
     @Override
-    public void showMessage(String msg) {
-
+    public void showMessage(String msg,int type) {
+        super.showMessage(msg,type);
     }
 }

@@ -6,6 +6,6 @@ package com.u91porn.ui.common;
  * @describe
  */
 
-public interface ICommon extends IBaseCommon{
-    void loadHotData(final boolean pullToRefresh, String m);
+public interface ICommon extends IBaseCommon {
+    void loadHotData(final boolean pullToRefresh, String category, String m);
 }

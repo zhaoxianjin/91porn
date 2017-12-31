@@ -1,5 +1,7 @@
 package com.u91porn.ui.index;
 
+import android.support.annotation.NonNull;
+
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
@@ -80,24 +82,35 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {
-                        if (isViewAttached() && !pullToRefresh) {
-                            getView().showLoading(pullToRefresh);
-                        }
+                        ifViewAttached(new ViewAction<IndexView>() {
+                            @Override
+                            public void run(@NonNull IndexView view) {
+                                if (!pullToRefresh) {
+                                    view.showLoading(pullToRefresh);
+                                }
+                            }
+                        });
                     }
 
                     @Override
-                    public void onSuccess(List<UnLimit91PornItem> unLimit91PornItems) {
-                        if (isViewAttached()) {
-                            getView().setData(unLimit91PornItems);
-                            getView().showContent();
-                        }
+                    public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItems) {
+                        ifViewAttached(new ViewAction<IndexView>() {
+                            @Override
+                            public void run(@NonNull IndexView view) {
+                                view.setData(unLimit91PornItems);
+                                view.showContent();
+                            }
+                        });
                     }
 
                     @Override
-                    public void onError(String msg, int code) {
-                        if (isViewAttached()) {
-                            getView().showError(new Throwable(msg), false);
-                        }
+                    public void onError(final String msg, int code) {
+                        ifViewAttached(new ViewAction<IndexView>() {
+                            @Override
+                            public void run(@NonNull IndexView view) {
+                                view.showError(msg);
+                            }
+                        });
                     }
                 });
     }

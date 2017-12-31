@@ -17,6 +17,7 @@ import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipeline;
 import com.orhanobut.logger.Logger;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -29,6 +30,7 @@ import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.RandomIPAdderssUtils;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.UserHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +108,6 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         for (Cookie cookie : cookieList) {
             Logger.t(TAG).d(cookie.toString());
         }
-        Logger.t(TAG).d(randomFingerprint());
     }
 
     /**
@@ -124,33 +125,33 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
 
     private void register(String username, String email, String passwordOne, String passwordTwo, String captcha) {
         if (TextUtils.isEmpty(username)) {
-            showMessage("用户名不能为空");
+            showMessage("用户名不能为空", TastyToast.INFO);
             return;
         }
         //服务器根本不会验证邮箱格式，貌似只要有@符号和.就可以通过注册了,不过如果后期验证邮箱....
         if (TextUtils.isEmpty(email)) {
-            showMessage("邮箱不能为空");
+            showMessage("邮箱不能为空", TastyToast.INFO);
             return;
         }
         if (TextUtils.isEmpty(passwordOne)) {
-            showMessage("密码不能为空");
+            showMessage("密码不能为空", TastyToast.INFO);
             return;
         }
         if (TextUtils.isEmpty(passwordTwo)) {
-            showMessage("确认密码不能为空");
+            showMessage("确认密码不能为空", TastyToast.INFO);
             return;
         }
         if (TextUtils.isEmpty(captcha)) {
-            showMessage("验证码不能为空");
+            showMessage("验证码不能为空", TastyToast.INFO);
             return;
         }
         if (!passwordOne.equals(passwordTwo)) {
-            showMessage("密码不一致，请检查");
+            showMessage("密码不一致，请检查", TastyToast.INFO);
             return;
         }
         String next = "";
 //        String fingerprint = "2192328486";
-        String fingerprint = randomFingerprint();
+        String fingerprint = UserHelper.randomFingerprint();
         String vip = "";
         String actionSignup = "Sign Up";
         String submitX = "45";
@@ -159,27 +160,11 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignup, submitX, submitY, ipAddress);
     }
 
-    /**
-     * 随机生成10位机器指纹
-     *
-     * @return 指纹码
-     */
-    private String randomFingerprint() {
-        String keys = "0123456789";
-        StringBuilder key = new StringBuilder();
-        for (int i = 0; i < keys.length(); i++) {
-            int pos = (int) (Math.random() * keys.length());
-            pos = (int) Math.floor(pos);
-            key.append(keys.charAt(pos));
-        }
-        return key.toString();
-    }
-
     @NonNull
     @Override
     public UserPresenter createPresenter() {
 
-        return new UserPresenter(noLimit91PornServiceApi,provider);
+        return new UserPresenter(noLimit91PornServiceApi, provider);
     }
 
     /**
@@ -229,7 +214,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     public void registerSuccess() {
         saveUserInfoPrf(username, password);
         startMain();
-        showMessage("注册成功");
+        showMessage("注册成功", TastyToast.SUCCESS);
     }
 
     /**
@@ -243,16 +228,11 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
 
     @Override
     public void registerFailure(String message) {
-        showMessage(message);
+        showMessage(message, TastyToast.ERROR);
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
 
     }
 
@@ -272,8 +252,8 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 
 }

@@ -18,7 +18,7 @@ public class Constants {
     /**
      * 临时可访问地址
      */
-    public static final String BASE_URL = "http://91.91p18.space/";
+    public static final String BASE_URL = "http://91.91p23.space/";
     public static final String ROOT_FOLDER = Environment.getExternalStorageDirectory() + "/91porn/";
     public static final String DOWNLOAD_PATH = ROOT_FOLDER + "video/";
     public static final String DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND = "yyyy-MM-dd HH:mm:ss";

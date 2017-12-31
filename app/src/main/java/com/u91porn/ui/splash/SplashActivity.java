@@ -101,12 +101,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
 
     }
 
@@ -121,7 +116,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
     }
 
     @Override
-    public void showMessage(String msg) {
-
+    public void showMessage(String msg,int type) {
+        super.showMessage(msg,type);
     }
 }

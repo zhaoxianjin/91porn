@@ -27,15 +27,16 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.gyf.barlibrary.ImmersionBar;
+import com.jude.swipbackhelper.SwipeBackHelper;
 import com.orhanobut.logger.Logger;
-import com.trello.rxlifecycle2.LifecycleTransformer;
+import com.qmuiteam.qmui.util.QMUIStatusBarHelper;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.data.model.User;
 import com.u91porn.service.DownloadService;
-import com.u91porn.ui.BaseAppCompatActivity;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.about.AboutActivity;
 import com.u91porn.ui.common.CommonFragment;
@@ -48,24 +49,16 @@ import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.ApkVersionUtils;
 import com.u91porn.utils.AppManager;
-import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
 import com.yanzhenjie.permission.AndPermission;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import java.io.File;
 import java.util.Calendar;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
-import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
@@ -98,7 +91,8 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ImmersionBar.with(this).init();
+        mImmersionBar.statusBarColor(android.R.color.transparent).init();
+        SwipeBackHelper.getCurrentPage(this).setSwipeBackEnable(false);
         ButterKnife.bind(this);
         File file = new File(Constants.DOWNLOAD_PATH);
         if (!file.exists()) {
@@ -137,9 +131,9 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         getSupportFragmentManager().beginTransaction().add(R.id.content, indexFragment).commit();
         mCurrentFragment = indexFragment;
 
-        setUpUserInfo(MyApplication.getInstace().getUser());
-
         checkUpdate();
+
+        // Bugsnag.notify(new RuntimeException("Non-fatal"));
     }
 
     private void checkUpdate() {
@@ -200,6 +194,13 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setUpUserInfo(MyApplication.getInstace().getUser());
+    }
+
     private void setUpUserInfo(User user) {
 
         View headerView = navView.getHeaderView(0);
@@ -232,15 +233,16 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 //            setIntent.addCategory(Intent.CATEGORY_HOME);
 //            setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //            startActivity(setIntent);
-            showMessage("再次点击退出程序");
+            showMessage("再次点击退出程序", TastyToast.INFO);
             long currentTime = Calendar.getInstance().getTimeInMillis();
             if (currentTime - lastClickTime > MIN_CLICK_DELAY_TIME) {
                 lastClickTime = currentTime;
-            }else {
+            } else {
                 Intent homeIntent = new Intent(Intent.ACTION_MAIN);
                 homeIntent.addCategory(Intent.CATEGORY_HOME);
                 homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(homeIntent);
+                //super.onBackPressed();
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -329,7 +331,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                         MyApplication.getInstace().setHost(customAddress);
                         SPUtils.put(MainActivity.this, Keys.KEY_SP_CUSTOM_ADDRESS, customAddress);
                     } else {
-                        showMessage("设置失败，输入地址格式不正确");
+                        showMessage("设置失败，输入地址格式不正确", TastyToast.ERROR);
                     }
 
                 } else {
@@ -505,12 +507,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        ImmersionBar.with(this).destroy();
-    }
-
     private void showUpdateDialog(final UpdateVersion updateVersion) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("发现新版本");
@@ -518,6 +514,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                showMessage("开始下载", TastyToast.INFO);
                 Intent intent = new Intent(MainActivity.this, DownloadService.class);
                 intent.putExtra("updateVersion", updateVersion);
                 startService(intent);
@@ -536,7 +533,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     @Override
     public MainPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-        return new MainPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson(),provider));
+        return new MainPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson(), provider));
     }
 
     @Override
@@ -555,12 +552,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
 
     }
 
@@ -575,8 +567,8 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 
 }

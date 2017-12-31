@@ -1,10 +1,12 @@
 package com.u91porn.ui.favorite;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.navi.NaviLifecycle;
@@ -62,6 +64,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
      * 本次强制刷新过那下面的请求也一起刷新
      */
     private boolean cleanCache = false;
+
     public FavoritePresenter(Box<UnLimit91PornItem> unLimit91PornItemBox, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
         this.unLimit91PornItemBox = unLimit91PornItemBox;
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
@@ -93,7 +96,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                     }
 
                     @Override
-                    public void onSuccess(Favorite favorite) {
+                    public void onSuccess(final Favorite favorite) {
                         Logger.t(TAG).d(favorite);
                         if (favoriteListener != null) {
                             if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_SUCCESS) {
@@ -106,25 +109,35 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                                 favoriteListener.onError("不能收藏自己的视频");
                             }
 
-                        } else if (isViewAttached()) {
-                            if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_SUCCESS) {
-                                getView().showMessage("收藏成功");
-                            } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_FAIL) {
-                                getView().showMessage("收藏失败");
-                            } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_ALREADY) {
-                                getView().showMessage("已经收藏过了");
-                            } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_YOURSELF) {
-                                getView().showMessage("不能收藏自己的视频");
-                            }
+                        } else {
+                            ifViewAttached(new ViewAction<FavoriteView>() {
+                                @Override
+                                public void run(@NonNull FavoriteView view) {
+                                    if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_SUCCESS) {
+                                        view.showMessage("收藏成功", TastyToast.SUCCESS);
+                                    } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_FAIL) {
+                                        view.showMessage("收藏失败", TastyToast.ERROR);
+                                    } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_ALREADY) {
+                                        view.showMessage("已经收藏过了", TastyToast.INFO);
+                                    } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_YOURSELF) {
+                                        view.showMessage("不能收藏自己的视频", TastyToast.WARNING);
+                                    }
+                                }
+                            });
                         }
                     }
 
                     @Override
-                    public void onError(String msg, int code) {
+                    public void onError(final String msg, int code) {
                         if (favoriteListener != null) {
                             favoriteListener.onError(msg);
-                        } else if (isViewAttached()) {
-                            getView().showMessage(msg);
+                        } else {
+                            ifViewAttached(new ViewAction<FavoriteView>() {
+                                @Override
+                                public void run(@NonNull FavoriteView view) {
+                                    view.showMessage(msg, TastyToast.ERROR);
+                                }
+                            });
                         }
                     }
                 });
@@ -136,7 +149,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
-            cleanCache=true;
+            cleanCache = true;
         }
         //RxCache条件区别
         String condition = null;
@@ -172,46 +185,57 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                     @Override
                     public void onBegin(Disposable d) {
                         //首次加载显示加载页
-                        if (isViewAttached() && page == 1 && !pullToRefresh) {
-                            getView().showLoading(pullToRefresh);
-                        }
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                if (page == 1 && !pullToRefresh) {
+                                    view.showLoading(pullToRefresh);
+                                }
+                            }
+                        });
                     }
 
                     @Override
-                    public void onSuccess(List<UnLimit91PornItem> unLimit91PornItems) {
-                        if (isViewAttached()) {
-                            if (page == 1) {
-                                getView().setFavoriteData(unLimit91PornItems);
-                                getView().showContent();
-                            } else {
-                                getView().loadMoreDataComplete();
-                                getView().setMoreData(unLimit91PornItems);
+                    public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItems) {
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                if (page == 1) {
+                                    view.setFavoriteData(unLimit91PornItems);
+                                    view.showContent();
+                                } else {
+                                    view.loadMoreDataComplete();
+                                    view.setMoreData(unLimit91PornItems);
+                                }
+                                //已经最后一页了
+                                if (page == totalPage) {
+                                    view.noMoreData();
+                                } else {
+                                    page++;
+                                }
                             }
-                            //已经最后一页了
-                            if (page == totalPage) {
-                                getView().noMoreData();
-                            } else {
-                                page++;
-                            }
-
-                        }
+                        });
                     }
 
                     @Override
-                    public void onError(String msg, int code) {
+                    public void onError(final String msg, int code) {
                         //首次加载失败，显示重试页
-                        if (isViewAttached() && page == 1) {
-                            getView().showError(new Throwable(msg), false);
-                            //否则就是加载更多失败
-                        } else if (isViewAttached()) {
-                            getView().loadMoreFailed();
-                        }
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                if (page == 1) {
+                                    view.showError(msg);
+                                } else {
+                                    view.loadMoreFailed();
+                                }
+                            }
+                        });
                     }
                 });
     }
 
     @Override
-    public void deleteFavorite(int position, UnLimit91PornItem unLimit91PornItem) {
+    public void deleteFavorite(final int position, UnLimit91PornItem unLimit91PornItem) {
 
         String videoUrl = BoxQureyHelper.getVideoUrlByViewKey(unLimit91PornItem.getViewKey());
         if (TextUtils.isEmpty(videoUrl)) {
@@ -220,9 +244,12 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
             unLimit91PornItem.setFavorite(UnLimit91PornItem.FAVORITE_NO);
             unLimit91PornItemBox.put(unLimit91PornItem);
         }
-        if (isViewAttached()) {
-            getView().deleteFavoriteSucc(position);
-        }
+        ifViewAttached(new ViewAction<FavoriteView>() {
+            @Override
+            public void run(@NonNull FavoriteView view) {
+                view.deleteFavoriteSucc(position);
+            }
+        });
     }
 
     @Override
@@ -272,30 +299,30 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
-                .subscribe(new Observer<String>() {
+                .subscribe(new CallBackWrapper<String>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
+                    public void onBegin(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(String s) {
-                        if (isViewAttached()) {
-                            getView().showMessage(s);
-                        }
+                    public void onSuccess(final String s) {
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                view.showMessage(s, TastyToast.SUCCESS);
+                            }
+                        });
                     }
 
                     @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                        if (isViewAttached()) {
-                            getView().showMessage(e.getMessage());
-                        }
-                    }
-
-                    @Override
-                    public void onComplete() {
-
+                    public void onError(final String msg, int code) {
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                view.showMessage(msg, TastyToast.ERROR);
+                            }
+                        });
                     }
                 });
     }

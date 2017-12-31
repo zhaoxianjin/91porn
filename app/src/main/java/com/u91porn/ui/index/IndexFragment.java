@@ -16,6 +16,7 @@ import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -30,6 +31,7 @@ import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.play.PlayVideoActivity;
 import com.u91porn.utils.BoxQureyHelper;
 import com.u91porn.utils.Keys;
+import com.u91porn.utils.LoadHelperUtils;
 
 
 import java.util.ArrayList;
@@ -73,11 +75,6 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
         return new IndexPresenter(noLimit91PornServiceApi, cacheProviders, provider);
-    }
-
-    @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return getString(R.string.load_failed);
     }
 
     @Override
@@ -139,6 +136,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
+        LoadHelperUtils.setLoadingText(helper.getLoadIng(),R.id.tv_loading_text,"拼命加载中...");
         contentView.setEnabled(false);
     }
 
@@ -155,17 +153,16 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg,int type) {
+        super.showMessage(msg,type);
     }
 
 
     @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
         contentView.setRefreshing(false);
         helper.showError();
-        showMessage(e.getMessage());
-        e.printStackTrace();
+        showMessage(message, TastyToast.ERROR);
     }
 
     @Override

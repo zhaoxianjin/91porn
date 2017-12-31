@@ -23,6 +23,10 @@ public class VideoResult {
     private String ownnerId;
     private String thumbImgUrl;
 
+    private String ownnerName;
+    private String addDate;
+    private String userOtherInfo;
+
     public long getId() {
         return id;
     }
@@ -63,6 +67,30 @@ public class VideoResult {
         this.thumbImgUrl = thumbImgUrl;
     }
 
+    public String getOwnnerName() {
+        return ownnerName;
+    }
+
+    public void setOwnnerName(String ownnerName) {
+        this.ownnerName = ownnerName;
+    }
+
+    public String getAddDate() {
+        return addDate;
+    }
+
+    public void setAddDate(String addDate) {
+        this.addDate = addDate;
+    }
+
+    public String getUserOtherInfo() {
+        return userOtherInfo;
+    }
+
+    public void setUserOtherInfo(String userOtherInfo) {
+        this.userOtherInfo = userOtherInfo;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -90,6 +118,9 @@ public class VideoResult {
                 ", videoId='" + videoId + '\'' +
                 ", ownnerId='" + ownnerId + '\'' +
                 ", thumbImgUrl='" + thumbImgUrl + '\'' +
+                ", ownnerName='" + ownnerName + '\'' +
+                ", addDate='" + addDate + '\'' +
+                ", userOtherInfo='" + userOtherInfo + '\'' +
                 '}';
     }
 }

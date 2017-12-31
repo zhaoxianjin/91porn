@@ -18,6 +18,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.orhanobut.logger.Logger;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -92,7 +93,7 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
                         presenter.deleteDownloadingTask(unLimit91PornItem);
                         presenter.loadDownloadingData();
                     } else {
-                        showMessage("删除失败，请重试");
+                        showMessage("删除失败，请重试", TastyToast.ERROR);
                     }
                 } else if (view.getId() == R.id.iv_download_control) {
                     if (unLimit91PornItem.getStatus() == FileDownloadStatus.progress && FileDownloader.getImpl().isServiceConnected()) {
@@ -156,16 +157,6 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return null;
-    }
-
-    @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
-
-    }
-
-    @Override
     public void showLoading(boolean pullToRefresh) {
 
     }
@@ -176,8 +167,12 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg,int type) {
+        super.showMessage(msg,type);
     }
 
+    @Override
+    public void showError(String message) {
+
+    }
 }

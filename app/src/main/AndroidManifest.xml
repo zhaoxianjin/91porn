@@ -24,7 +24,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.main.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppMainTheme" />
         <activity
             android:name=".ui.play.PlayVideoActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
@@ -55,8 +55,14 @@
         <activity android:name=".ui.user.UserRegisterActivity" />
         <activity android:name=".ui.upload.UploadVideoActivity" />
         <activity android:name=".ui.history.HistoryActivity" />
-        <activity android:name=".ui.about.AboutActivity"/>
-        <service android:name=".service.DownloadService"/>
+        <activity android:name=".ui.about.AboutActivity"
+            android:theme="@style/AboutTheme"
+            />
+
+        <service android:name=".service.DownloadService" />
+        <meta-data
+            android:name="com.bugsnag.android.API_KEY"
+            android:value="73db9899f53aac81c8966375ec1dad33" />
     </application>
 
 </manifest>

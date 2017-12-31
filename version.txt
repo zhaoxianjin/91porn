@@ -1,8 +1,10 @@
 {
-"apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta-v1.0.5.apk",
-"updateMessage": "1.修复注册重复问题\n
-                  2.修复刷新之后加载更多重复的bug\n
-                  3.优化代码",
-"versionCode": 6,
-"versionName": "1.0.5"
+"apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta-v1.0.6.apk",
+"updateMessage": "1. 播放界面改版\n
+                  2. 增加显示视频评论以及评论视频，回复评论\n
+                  3. 集成APP崩溃日志收集\n
+                  4. 修复安装包证书错误问题\n
+                  5. 其他细小改进",
+"versionCode": 7,
+"versionName": "1.0.6"
 }

@@ -12,25 +12,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.aitsuki.swipe.SwipeItemLayout;
 import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
-import com.trello.rxlifecycle2.LifecycleTransformer;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpFragment;
-import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.play.PlayVideoActivity;
-import com.u91porn.utils.BoxQureyHelper;
 import com.u91porn.utils.Keys;
+import com.u91porn.utils.LoadHelperUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +35,12 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import io.objectbox.Box;
-import io.rx_cache2.Reply;
 
 /**
  * 通用
  * A simple {@link Fragment} subclass.
+ *
+ * @author flymegoc
  */
 public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> implements CommonView, SwipeRefreshLayout.OnRefreshListener {
 
@@ -85,7 +82,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     public CommonPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        return new CommonPresenter(noLimit91PornServiceApi, cacheProviders, category, provider);
+        return new CommonPresenter(noLimit91PornServiceApi, cacheProviders, provider);
     }
 
     @Override
@@ -100,7 +97,6 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         unbinder = ButterKnife.bind(this, view);
-
         // Setup contentView == SwipeRefreshView
         contentView.setOnRefreshListener(this);
 
@@ -113,7 +109,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 String hd = "hd";
                 if (hd.equals(category)) {
-                    showMessage("非会员，无法观看高清视频！");
+                    showMessage("非会员，无法观看高清视频！", TastyToast.WARNING);
                     return;
                 }
                 UnLimit91PornItem unLimit91PornItems = (UnLimit91PornItem) adapter.getData().get(position);
@@ -123,7 +119,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadHotData(false, m);
+                presenter.loadHotData(false,category, m);
             }
         }, recyclerView);
         helper = new LoadViewHelper(recyclerView);
@@ -144,11 +140,6 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     }
 
     @Override
-    public String getErrorMessage(Throwable e, boolean pullToRefresh) {
-        return getString(R.string.load_failed);
-    }
-
-    @Override
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
@@ -162,12 +153,13 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
+        LoadHelperUtils.setLoadingText(helper.getLoadIng(),R.id.tv_loading_text,"拼命加载中...");
         contentView.setEnabled(false);
     }
 
     @Override
     public void loadData(boolean pullToRefresh) {
-        presenter.loadHotData(pullToRefresh, m);
+        presenter.loadHotData(pullToRefresh,category, m);
     }
 
     @Override
@@ -183,16 +175,15 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     }
 
     @Override
-    public void showMessage(String msg) {
-        super.showMessage(msg);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 
     @Override
-    public void showError(Throwable e, boolean pullToRefresh) {
+    public void showError(String message) {
         contentView.setRefreshing(false);
         helper.showError();
-        showMessage(e.getMessage());
-        e.printStackTrace();
+        showMessage(message, TastyToast.ERROR);
     }
 
     @Override
@@ -202,14 +193,14 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
 
     @Override
     public void loadMoreFailed() {
-        showMessage("加载更多失败");
+        showMessage("加载更多失败", TastyToast.ERROR);
         mUnLimit91Adapter.loadMoreFail();
     }
 
     @Override
     public void noMoreData() {
         mUnLimit91Adapter.loadMoreEnd(true);
-        showMessage("没有更多数据了");
+        showMessage("没有更多数据了", TastyToast.INFO);
     }
 
     @Override

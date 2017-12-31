@@ -31,4 +31,14 @@
     <string name="history_views">浏览历史</string>
     <string name="register">注册</string>
     <string name="exit_app">退出程序</string>
+    <string name="share">分享</string>
+    <string name="close">关闭</string>
+    <string name="comments">评论</string>
+    <string name="scale_down_show_behavior">com.u91porn.behavior.ScaleDownShowBehavior</string>
+    <string name="bottom_behavior">com.u91porn.behavior.BottomBehavior</string>
+    <string name="comment_video_hint_tip">切勿回复与视频无关内容，否则禁言</string>
+    <string name="about_item_homepage">去GitHub提建议或者Bug反馈</string>
+    <string name="about_item_github">GitHub</string>
+    <string name="about_copyright">© %1$s TechGay 91PORN All rights reserved.</string>
+    <string name="about_check_update">检查更新</string>
 </resources>

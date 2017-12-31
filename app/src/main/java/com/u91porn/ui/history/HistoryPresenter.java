@@ -1,5 +1,7 @@
 package com.u91porn.ui.history;
 
+import android.support.annotation.NonNull;
+
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.u91porn.data.model.UnLimit91PornItem;
@@ -33,22 +35,24 @@ public class HistoryPresenter extends MvpBasePresenter<HistoryView> implements I
         if (pullToRefresh) {
             page = 1;
         }
-        List<UnLimit91PornItem> unLimit91PornItemList = unLimit91PornItemBox.query().notNull(UnLimit91PornItem_.viewHistoryDate).orderDesc(UnLimit91PornItem_.viewHistoryDate).build().find((page - 1) * pageSize, pageSize);
-        if (isViewAttached()) {
-
-            if (page == 1) {
-                Logger.t(TAG).d("加载首页");
-                getView().setData(unLimit91PornItemList);
-            } else {
-                Logger.t(TAG).d("加载更多");
-                getView().setMoreData(unLimit91PornItemList);
-                getView().loadMoreDataComplete();
+        final List<UnLimit91PornItem> unLimit91PornItemList = unLimit91PornItemBox.query().notNull(UnLimit91PornItem_.viewHistoryDate).orderDesc(UnLimit91PornItem_.viewHistoryDate).build().find((page - 1) * pageSize, pageSize);
+        ifViewAttached(new ViewAction<HistoryView>() {
+            @Override
+            public void run(@NonNull HistoryView view) {
+                if (page == 1) {
+                    Logger.t(TAG).d("加载首页");
+                    view.setData(unLimit91PornItemList);
+                } else {
+                    Logger.t(TAG).d("加载更多");
+                    view.setMoreData(unLimit91PornItemList);
+                    view.loadMoreDataComplete();
+                }
+                page++;
+                if (unLimit91PornItemList.size() == 0 || unLimit91PornItemList.size() < pageSize) {
+                    Logger.t(TAG).d("没有更多");
+                    view.noMoreData();
+                }
             }
-            page++;
-            if (unLimit91PornItemList.size() == 0 || unLimit91PornItemList.size() < pageSize) {
-                Logger.t(TAG).d("没有更多");
-                getView().noMoreData();
-            }
-        }
+        });
     }
 }
