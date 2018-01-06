@@ -14,7 +14,7 @@
             android:id="@+id/rb_never_go_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="http://91porn.com/(永久可用地址,但需要翻墙)" />
+            android:text="http://91porn.com/(永久可用地址,但需要挂VPN代理)" />
 
         <RadioButton
             android:id="@+id/rb_will_go_someday"

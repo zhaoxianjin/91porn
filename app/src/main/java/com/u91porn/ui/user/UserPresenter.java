@@ -36,12 +36,12 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
     }
 
     @Override
-    public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y) {
-        login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y, null);
+    public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y, String referer) {
+        login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y, referer, null);
     }
 
-    public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y, final LoginListener loginListener) {
-        noLimit91PornServiceApi.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y)
+    public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y, String referer, final LoginListener loginListener) {
+        noLimit91PornServiceApi.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y, referer)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
@@ -108,8 +108,8 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
     }
 
     @Override
-    public void register(String next, String username, String password1, String password2, String email, String captchaInput, String fingerprint, String vip, String actionSignup, String submitX, String submitY, String ipAddress) {
-        noLimit91PornServiceApi.register(next, username, password1, password2, email, captchaInput, fingerprint, vip, actionSignup, submitX, submitY, ipAddress)
+    public void register(String next, String username, String password1, String password2, String email, String captchaInput, String fingerprint, String vip, String actionSignup, String submitX, String submitY, String ipAddress, String referer) {
+        noLimit91PornServiceApi.register(next, username, password1, password2, email, captchaInput, fingerprint, vip, actionSignup, submitX, submitY, referer, ipAddress)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))

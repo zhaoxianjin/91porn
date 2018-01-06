@@ -47,8 +47,8 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
      * @param pullToRefresh 是否刷新
      */
     @Override
-    public void loadIndexData(final boolean pullToRefresh) {
-        Observable<String> indexPhpObservable = mNoLimit91PornServiceApi.indexPhp();
+    public void loadIndexData(final boolean pullToRefresh,String referer) {
+        Observable<String> indexPhpObservable = mNoLimit91PornServiceApi.indexPhp(referer);
         cacheProviders.getIndexPhp(indexPhpObservable, new EvictProvider(pullToRefresh))
                 .map(new Function<Reply<String>, String>() {
                     @Override

@@ -1,8 +1,10 @@
 package com.u91porn.ui.download;
 
 
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +24,7 @@ import com.aitsuki.swipe.SwipeItemLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -45,6 +48,7 @@ import io.rx_cache2.Reply;
 
 /**
  * A simple {@link Fragment} subclass.
+ *
  * @author flymegoc
  */
 public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresenter> implements DownloadManager.DownloadStatusUpdater, DownloadView {
@@ -134,6 +138,11 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
         builder.show();
     }
 
+    /**
+     * 调用系统播放器播放本地视频
+     *
+     * @param unLimit91PornItem item
+     */
     private void openMp4File(UnLimit91PornItem unLimit91PornItem) {
         File file = new File(unLimit91PornItem.getDownLoadPath());
         if (file.exists()) {
@@ -144,10 +153,17 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
                 uri = Uri.fromFile(file);
             }
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri, "video/mpeg");
+            intent.setDataAndType(uri, "video/mp4");
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            PackageManager pm = getContext().getPackageManager();
+            ComponentName cn = intent.resolveActivity(pm);
+            if (cn == null) {
+                showMessage("你手机上未安装任何可以播放此视频的播放器！", TastyToast.INFO);
+                return;
+            }
             startActivity(intent);
         } else {
             showReDownloadFileDialog(unLimit91PornItem);
@@ -234,7 +250,7 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     }
 
     @Override
-    public void showMessage(String msg,int type) {
-        super.showMessage(msg,type);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 }

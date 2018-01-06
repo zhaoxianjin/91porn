@@ -12,7 +12,10 @@ import io.objectbox.annotation.Index;
  */
 @Entity
 public class VideoResult {
-
+    /**
+     * 游客超过每天观看次数
+     */
+    public static final int OUT_OF_WATCH_TIMES = -1;
     @Id
     public long id;
 

@@ -27,6 +27,7 @@ import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.AppManager;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.RandomIPAdderssUtils;
 import com.u91porn.utils.SPUtils;
@@ -157,7 +158,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         String submitX = "45";
         String submitY = "13";
         String ipAddress = RandomIPAdderssUtils.getRandomIPAdderss();
-        presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignup, submitX, submitY, ipAddress);
+        presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignup, submitX, submitY, ipAddress, HeaderUtils.getUserHeader("signup"));
     }
 
     @NonNull

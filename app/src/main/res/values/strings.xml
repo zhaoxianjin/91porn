@@ -41,4 +41,5 @@
     <string name="about_item_github">GitHub</string>
     <string name="about_copyright">© %1$s TechGay 91PORN All rights reserved.</string>
     <string name="about_check_update">检查更新</string>
+    <string name="playback_engine">播放引擎</string>
 </resources>

@@ -1,7 +1,10 @@
 package com.u91porn.ui.play;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
+import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
@@ -18,6 +21,7 @@ import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoComment;
 import com.u91porn.data.model.VideoCommentResult;
 import com.u91porn.data.model.VideoResult;
+import com.u91porn.exception.VideoException;
 import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.utils.BoxQureyHelper;
@@ -35,9 +39,13 @@ import io.objectbox.Box;
 
 import io.objectbox.relation.RelationInfo;
 import io.objectbox.relation.ToOne;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import io.rx_cache2.DynamicKey;
 import io.rx_cache2.EvictDynamicKey;
@@ -74,10 +82,10 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     }
 
     @Override
-    public void loadVideoUrl(String viewKey) {
+    public void loadVideoUrl(String viewKey, String referer) {
 
         String ip = RandomIPAdderssUtils.getRandomIPAdderss();
-        cacheProviders.getVideoPlayPage(mNoLimit91PornServiceApi.getVideoPlayPage(viewKey, ip), new DynamicKey(viewKey), new EvictDynamicKey(false))
+        cacheProviders.getVideoPlayPage(mNoLimit91PornServiceApi.getVideoPlayPage(viewKey, ip, referer), new DynamicKey(viewKey), new EvictDynamicKey(false))
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBodyReply) throws Exception {
@@ -98,8 +106,19 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                     }
                 }).map(new Function<String, VideoResult>() {
             @Override
-            public VideoResult apply(String s) throws Exception {
-                return ParseUtils.parseVideoPlayUrl(s);
+            public VideoResult apply(String s) throws VideoException {
+                VideoResult videoResult = ParseUtils.parseVideoPlayUrl(s);
+                if (TextUtils.isEmpty(videoResult.getVideoUrl())) {
+                    if (videoResult.getId() == VideoResult.OUT_OF_WATCH_TIMES) {
+                        //尝试强行重置，并上报异常
+                        resetWatchTime(true);
+                        Bugsnag.notify(new Throwable(TAG+":warning, ten videos each day"), Severity.WARNING);
+                        throw new VideoException("观看次数达到上限了！");
+                    } else {
+                        throw new VideoException("解析视频链接失败了");
+                    }
+                }
+                return videoResult;
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -117,7 +136,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
 
                     @Override
                     public void onSuccess(final VideoResult videoResult) {
-                        resetWatchTime();
+                        resetWatchTime(false);
                         ifViewAttached(new ViewAction<PlayVideoView>() {
                             @Override
                             public void run(@NonNull PlayVideoView view) {
@@ -139,11 +158,11 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     }
 
     @Override
-    public void loadVideoComment(String videoId, final boolean pullToRefresh) {
+    public void loadVideoComment(String videoId, final boolean pullToRefresh, String referer) {
         if (pullToRefresh) {
             start = 1;
         }
-        mNoLimit91PornServiceApi.getVideoComments(videoId, start, commentPerPage)
+        mNoLimit91PornServiceApi.getVideoComments(videoId, start, commentPerPage, referer)
                 .map(new Function<String, List<VideoComment>>() {
                     @Override
                     public List<VideoComment> apply(String s) throws Exception {
@@ -203,12 +222,12 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     }
 
     @Override
-    public void commentVideo(String comment, String uid, String vid) {
+    public void commentVideo(String comment, String uid, String vid, String referer) {
         String cpaintFunction = "process_comments";
         String responseType = "json";
         String comments = "\"" + comment + "\"";
         Logger.d(comments);
-        mNoLimit91PornServiceApi.commentVideo(cpaintFunction, comments, uid, vid, responseType)
+        mNoLimit91PornServiceApi.commentVideo(cpaintFunction, comments, uid, vid, responseType, referer)
                 .map(new Function<String, VideoCommentResult>() {
                     @Override
                     public VideoCommentResult apply(String s) throws Exception {
@@ -255,8 +274,8 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     }
 
     @Override
-    public void replyComment(String comment, String username, String vid, String commentId) {
-        mNoLimit91PornServiceApi.replyComment(comment, username, vid, commentId)
+    public void replyComment(String comment, String username, String vid, String commentId, String referer) {
+        mNoLimit91PornServiceApi.replyComment(comment, username, vid, commentId, referer)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
@@ -294,23 +313,85 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     }
 
     /**
-     * 检查并重置观看次数
+     * 重置观看次数
+     *
+     * @param forceReset 强行重置
      */
-
-    private void resetWatchTime() {
+    private void resetWatchTime(final boolean forceReset) {
         List<Cookie> cookieList = sharedPrefsCookiePersistor.loadAll();
-        for (Cookie cookie : cookieList) {
-            if ("watch_times".equals(cookie.name())) {
-                if ("10".equals(cookie.value())) {
+//        for (Cookie cookie : cookieList) {
+//            if ("watch_times".equals(cookie.name())) {
+//                if (TextUtils.isDigitsOnly(cookie.value())) {
+//                    int watchTime = Integer.parseInt(cookie.value());
+//                    if (watchTime >= 10) {
+//                        Logger.t(TAG).d("已经观看10次，重置cookies");
+//                        sharedPrefsCookiePersistor.delete(cookie);
+//                        setCookieCache.delete(cookie);
+//                    } else {
+//                        Logger.t(TAG).d("当前已经看了：" + cookie.value() + " 次");
+//                    }
+//                } else if ("10".equals(cookie.value())) {
+//                    Logger.t(TAG).d("已经观看10次，重置cookies");
+//                    sharedPrefsCookiePersistor.delete(cookie);
+//                    setCookieCache.delete(cookie);
+//                } else {
+//                    Logger.t(TAG).d("当前已经看了：" + cookie.value() + " 次");
+//                }
+//            }
+//        }
+
+
+        Observable
+                .fromIterable(cookieList)
+                .filter(new Predicate<Cookie>() {
+                    @Override
+                    public boolean test(Cookie cookie) throws Exception {
+                        return "watch_times".equals(cookie.name());
+                    }
+                }).filter(new Predicate<Cookie>() {
+            @Override
+            public boolean test(Cookie cookie) throws Exception {
+                boolean isDigitsOnly = TextUtils.isDigitsOnly(cookie.value());
+                if (!isDigitsOnly) {
+                    Logger.t(TAG).d("观看次数cookies异常");
+                    Bugsnag.notify(new Throwable(TAG + ":cookie watchtimes is not DigitsOnly"), Severity.WARNING);
+                }
+                return isDigitsOnly;
+            }
+        }).filter(new Predicate<Cookie>() {
+            @Override
+            public boolean test(Cookie cookie) throws Exception {
+                int watchTime = Integer.parseInt(cookie.value());
+                Logger.t(TAG).d("当前已经看了：" + watchTime + " 次");
+                if (forceReset) {
                     Logger.t(TAG).d("已经观看10次，重置cookies");
                     sharedPrefsCookiePersistor.delete(cookie);
                     setCookieCache.delete(cookie);
-                } else {
-                    Logger.t(TAG).d("当前已经看了：" + cookie.value() + " 次");
                 }
+                return watchTime >= 10;
             }
-        }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<Cookie>bindUntilEvent(ActivityEvent.STOP))
+                .subscribe(new CallBackWrapper<Cookie>() {
+                    @Override
+                    public void onBegin(Disposable d) {
+                        Logger.t(TAG).d("开始读取观看次数");
+                    }
 
+                    @Override
+                    public void onSuccess(Cookie cookie) {
+                        Logger.t(TAG).d("已经观看10次，重置cookies");
+                        sharedPrefsCookiePersistor.delete(cookie);
+                        setCookieCache.delete(cookie);
+                    }
+
+                    @Override
+                    public void onError(String msg, int code) {
+                        Logger.t(TAG).d("重置观看次数出错了：" + msg);
+                        Bugsnag.notify(new Throwable(TAG+":reset watchTimes error:" + msg), Severity.WARNING);
+                    }
+                });
     }
 
     @Override
@@ -358,8 +439,8 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     }
 
     @Override
-    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType) {
-        favoritePresenter.favorite(cpaintFunction, uId, videoId, ownnerId, responseType, new FavoritePresenter.FavoriteListener() {
+    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType, String referer) {
+        favoritePresenter.favorite(cpaintFunction, uId, videoId, ownnerId, responseType, referer, new FavoritePresenter.FavoriteListener() {
             @Override
             public void onSuccess(String message) {
                 ifViewAttached(new ViewAction<PlayVideoView>() {

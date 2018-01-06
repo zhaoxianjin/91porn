@@ -1,7 +1,6 @@
 package com.u91porn.ui.common;
 
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,9 +23,7 @@ import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpFragment;
-import com.u91porn.ui.main.MainActivity;
-import com.u91porn.ui.play.PlayVideoActivity;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.LoadHelperUtils;
 
 import java.util.ArrayList;
@@ -119,7 +116,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadHotData(false,category, m);
+                presenter.loadHotData(false,category, m, HeaderUtils.getIndexHeader());
             }
         }, recyclerView);
         helper = new LoadViewHelper(recyclerView);
@@ -130,13 +127,6 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
             }
         });
         loadData(false);
-    }
-
-
-    private void goToPlayVideo(UnLimit91PornItem unLimit91PornItem) {
-        Intent intent = new Intent(getContext(), PlayVideoActivity.class);
-        intent.putExtra(Keys.KEY_INTENT_UNLIMIT91PORNITEM, unLimit91PornItem);
-        ((MainActivity) getActivity()).startActivityWithAnimotion(intent);
     }
 
     @Override
@@ -159,7 +149,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
 
     @Override
     public void loadData(boolean pullToRefresh) {
-        presenter.loadHotData(pullToRefresh,category, m);
+        presenter.loadHotData(pullToRefresh,category, m, HeaderUtils.getIndexHeader());
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.u91porn.utils;
 
+import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
@@ -69,7 +71,7 @@ public class DownloadManager {
     private FileDownloadListener lis = new FileDownloadListener() {
         @Override
         protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            Logger.t(TAG).d("pending:"+"--status:"+task.getStatus()+"--:soFarBytes："+soFarBytes + "--:totalBytes："+totalBytes);
+            Logger.t(TAG).d("pending:" + "--status:" + task.getStatus() + "--:soFarBytes：" + soFarBytes + "--:totalBytes：" + totalBytes);
             saveDownloadInfo(task);
             update(task);
         }
@@ -77,7 +79,7 @@ public class DownloadManager {
         @Override
         protected void started(BaseDownloadTask task) {
             super.started(task);
-            Logger.t(TAG).d("started:"+"--status:"+task.getStatus()+"--:soFarBytes："+task.getSmallFileSoFarBytes() + "--:totalBytes："+task.getSmallFileTotalBytes());
+            Logger.t(TAG).d("started:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             saveDownloadInfo(task);
             update(task);
         }
@@ -85,7 +87,7 @@ public class DownloadManager {
         @Override
         protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
             super.connected(task, etag, isContinue, soFarBytes, totalBytes);
-            Logger.t(TAG).d("connected:"+"--status:"+task.getStatus()+"--:soFarBytes："+soFarBytes + "--:totalBytes："+totalBytes);
+            Logger.t(TAG).d("connected:" + "--status:" + task.getStatus() + "--:soFarBytes：" + soFarBytes + "--:totalBytes：" + totalBytes);
             saveDownloadInfo(task);
             update(task);
         }
@@ -99,13 +101,13 @@ public class DownloadManager {
 
         @Override
         protected void blockComplete(BaseDownloadTask task) {
-            Logger.t(TAG).d("blockComplete:"+"--status:"+task.getStatus()+"--:soFarBytes："+task.getSmallFileSoFarBytes() + "--:totalBytes："+task.getSmallFileTotalBytes());
+            Logger.t(TAG).d("blockComplete:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             // blockComplete(task);
         }
 
         @Override
         protected void completed(BaseDownloadTask task) {
-            Logger.t(TAG).d("completed:"+"--status:"+task.getStatus()+"--:soFarBytes："+task.getSmallFileSoFarBytes() + "--:totalBytes："+task.getSmallFileTotalBytes());
+            Logger.t(TAG).d("completed:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             Logger.d("completed");
             saveDownloadInfo(task);
             update(task);
@@ -113,21 +115,21 @@ public class DownloadManager {
 
         @Override
         protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            Logger.t(TAG).d("paused:"+"--status:"+task.getStatus()+"--:soFarBytes："+soFarBytes + "--:totalBytes："+totalBytes);
+            Logger.t(TAG).d("paused:" + "--status:" + task.getStatus() + "--:soFarBytes：" + soFarBytes + "--:totalBytes：" + totalBytes);
             saveDownloadInfo(task);
             update(task);
         }
 
         @Override
         protected void error(BaseDownloadTask task, Throwable e) {
-            Logger.t(TAG).d("error:"+"--status:"+task.getStatus()+"--:soFarBytes："+task.getSmallFileSoFarBytes() + "--:totalBytes："+task.getSmallFileTotalBytes());
+            Logger.t(TAG).d("error:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             saveDownloadInfo(task);
             update(task);
         }
 
         @Override
         protected void warn(BaseDownloadTask task) {
-            Logger.t(TAG).d("warn:"+"--status:"+task.getStatus()+"--:soFarBytes："+task.getSmallFileSoFarBytes() + "--:totalBytes："+task.getSmallFileTotalBytes());
+            Logger.t(TAG).d("warn:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             update(task);
         }
     };
@@ -139,7 +141,10 @@ public class DownloadManager {
      */
     private void saveDownloadInfo(BaseDownloadTask task) {
         UnLimit91PornItem unLimit91PornItem = BoxQureyHelper.findByVideoUrl(task.getUrl());
-
+        if (unLimit91PornItem == null) {
+            Bugsnag.notify(new Throwable("save download info failure:" + task.getUrl()), Severity.WARNING);
+            return;
+        }
         int soFarBytes = task.getSmallFileSoFarBytes();
         int totalBytes = task.getSmallFileTotalBytes();
         if (soFarBytes > 0) {
@@ -153,7 +158,7 @@ public class DownloadManager {
             int p = (int) (((float) soFarBytes / totalBytes) * 100);
             unLimit91PornItem.setProgress(p);
         }
-        if (task.getStatus()== FileDownloadStatus.completed){
+        if (task.getStatus() == FileDownloadStatus.completed) {
             unLimit91PornItem.setFinshedDownloadDate(new Date());
         }
         unLimit91PornItem.setSpeed(task.getSpeed());

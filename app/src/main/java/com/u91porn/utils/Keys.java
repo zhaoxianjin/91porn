@@ -14,5 +14,6 @@ public class Keys {
     public final static String KEY_SP_USER_AUTO_LOGIN = "key_sp_user_auto_login";
     public final static String KEY_SP_APPBARLAYOUT_HEIGHT = "key_sp_appbarlayout_height";
     public final static String KEY_SP_USER_FAVORITE_NEED_REFRESH="key_sp_user_favorite_need_refresh";
+    public final static String KEY_SP_PLAYBACK_ENGINE="key_sp_playback_engine";
     public final static String KEY_INTENT_UNLIMIT91PORNITEM = "key_intent_unlimit91pornitem";
 }

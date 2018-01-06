@@ -28,6 +28,7 @@ import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.UserHelper;
@@ -158,7 +159,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
             showMessage("请填写验证码", TastyToast.INFO);
             return;
         }
-        presenter.login(username, password, f, f2, captcha, acl, x, y);
+        presenter.login(username, password, f, f2, captcha, acl, x, y, HeaderUtils.getUserHeader("login"));
     }
 
     /**

@@ -23,6 +23,6 @@ public interface IBaseUser {
      * @return ob
      */
 
-    void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y);
+    void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y,String referer);
 
 }

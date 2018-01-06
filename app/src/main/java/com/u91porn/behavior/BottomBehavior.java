@@ -43,8 +43,6 @@ public class BottomBehavior extends CoordinatorLayout.Behavior<LinearLayout> {
         if (dependency instanceof AppBarLayout) {
             float dis = Math.abs(dependency.getY());
             float f = dis / height;
-            Logger.d("onDependentViewChanged::::" + dis + "*****" + f + "*****" + child.getHeight());
-
             child.setY(oLy - child.getHeight() * f);
         }
         return returnValue;

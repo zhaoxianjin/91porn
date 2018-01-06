@@ -15,6 +15,7 @@ import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.user.UserPresenter;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
 
@@ -65,7 +66,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
         String acl = "Log In";
         String x = "47";
         String y = "12";
-        presenter.login(username, password, f, f2, captcha, acl, x, y);
+        presenter.login(username, password, f, f2, captcha, acl, x, y, HeaderUtils.getUserHeader("login"));
     }
 
     private void startMain() {

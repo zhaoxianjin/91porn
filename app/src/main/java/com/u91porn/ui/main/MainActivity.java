@@ -24,12 +24,13 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.gyf.barlibrary.ImmersionBar;
-import com.jude.swipbackhelper.SwipeBackHelper;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.util.QMUIStatusBarHelper;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -91,8 +92,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mImmersionBar.statusBarColor(android.R.color.transparent).init();
-        SwipeBackHelper.getCurrentPage(this).setSwipeBackEnable(false);
+        QMUIStatusBarHelper.translucent(this);
         ButterKnife.bind(this);
         File file = new File(Constants.DOWNLOAD_PATH);
         if (!file.exists()) {
@@ -133,7 +133,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
         checkUpdate();
 
-        // Bugsnag.notify(new RuntimeException("Non-fatal"));
+        //testVersionUpdate();
     }
 
     private void checkUpdate() {
@@ -150,13 +150,17 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         updateVersion.setVersionCode(4);
         updateVersion.setVersionName("1.0.4");
         updateVersion.setApkDownloadUrl("https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta_v1.0.2.apk");
-        updateVersion.setUpdateMessage("新增用户注册功能");
-
-        Logger.t(TAG).d(new Gson().toJson(updateVersion));
-
-        Intent intent = new Intent(this, DownloadService.class);
-        intent.putExtra("updateVersion", updateVersion);
-        startService(intent);
+        updateVersion.setUpdateMessage("1. 播放界面改版\n" +
+                "2. 增加显示视频评论以及评论视频，回复评论\n" +
+                "3. 集成APP崩溃日志收集\n" +
+                "4. 修复安装包证书错误问题\n" +
+                "5. 其他细小改进");
+        showUpdateDialog(updateVersion);
+//        Logger.t(TAG).d(new Gson().toJson(updateVersion));
+//
+//        Intent intent = new Intent(this, DownloadService.class);
+//        intent.putExtra("updateVersion", updateVersion);
+//        startService(intent);
     }
 
     private void showExitDialog() {
@@ -229,10 +233,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
-//            Intent setIntent = new Intent(Intent.ACTION_MAIN);
-//            setIntent.addCategory(Intent.CATEGORY_HOME);
-//            setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            startActivity(setIntent);
             showMessage("再次点击退出程序", TastyToast.INFO);
             long currentTime = Calendar.getInstance().getTimeInMillis();
             if (currentTime - lastClickTime > MIN_CLICK_DELAY_TIME) {
@@ -242,10 +242,11 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 homeIntent.addCategory(Intent.CATEGORY_HOME);
                 homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(homeIntent);
-                //super.onBackPressed();
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        existActivityWithAnimation=false;
+                        MainActivity.super.onBackPressed();
                         AppManager.getAppManager().AppExit();
                     }
                 }, 100);
@@ -282,13 +283,34 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                     AppManager.getAppManager().AppExit();
                 }
             }, 100);
-
+            return true;
         } else if (id == R.id.action_history) {
             Intent intent = new Intent(this, HistoryActivity.class);
             startActivityWithAnimotion(intent);
+            return true;
+        } else if (id == R.id.action_playback_engine) {
+            showPlaybackEngineChoiceDialog();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showPlaybackEngineChoiceDialog() {
+        final String[] items = new String[]{"Google Exoplayer Engine(Beta)", "JiaoZiPlayer Engine",};
+        final int checkedIndex = (int) SPUtils.get(this, Keys.KEY_SP_PLAYBACK_ENGINE, 0);
+        new QMUIDialog.CheckableDialogBuilder(this)
+                .setTitle("播放引擎选择")
+                .setCheckedIndex(checkedIndex)
+                .addItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SPUtils.put(MainActivity.this, Keys.KEY_SP_PLAYBACK_ENGINE, which);
+                        showMessage("设置成功", TastyToast.SUCCESS);
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 
     private void showSettingDialog() {
@@ -307,6 +329,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         } else {
             customRadioButton.setText(customAddress + "(当前自定义地址)");
         }
+        willGoRadioButton.setText(Constants.BASE_URL + "(不需翻墙，但会被封杀)");
         if (!TextUtils.isEmpty(nowAddress)) {
             if (nowAddress.equals(Constants.NEVER_GO_ADDRESS)) {
                 naverRadioButton.setChecked(true);
@@ -508,25 +531,45 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     }
 
     private void showUpdateDialog(final UpdateVersion updateVersion) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("发现新版本");
-        builder.setMessage(updateVersion.getUpdateMessage());
-        builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                showMessage("开始下载", TastyToast.INFO);
-                Intent intent = new Intent(MainActivity.this, DownloadService.class);
-                intent.putExtra("updateVersion", updateVersion);
-                startService(intent);
-            }
-        });
-        builder.setNegativeButton("稍后更新", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-            }
-        });
-        builder.show();
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle("发现新版本");
+//        builder.setMessage(updateVersion.getUpdateMessage());
+//        builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                showMessage("开始下载", TastyToast.INFO);
+//                Intent intent = new Intent(MainActivity.this, DownloadService.class);
+//                intent.putExtra("updateVersion", updateVersion);
+//                startService(intent);
+//            }
+//        });
+//        builder.setNegativeButton("稍后更新", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//
+//            }
+//        });
+//        builder.show();
+        new QMUIDialog.MessageDialogBuilder(this)
+                .setTitle("发现新版本")
+                .setMessage(updateVersion.getUpdateMessage())
+                .addAction("立即更新", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                        showMessage("开始下载", TastyToast.INFO);
+                        Intent intent = new Intent(MainActivity.this, DownloadService.class);
+                        intent.putExtra("updateVersion", updateVersion);
+                        startService(intent);
+                    }
+                })
+                .addAction("稍后更新", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 
     @NonNull

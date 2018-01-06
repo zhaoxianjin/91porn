@@ -2,6 +2,8 @@ package com.u91porn.utils;
 
 import android.text.TextUtils;
 
+import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.orhanobut.logger.Logger;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.UnLimit91PornItem;
@@ -140,6 +142,8 @@ public class ParseUtils {
         VideoResult videoResult = new VideoResult();
         if (html.contains("你每天只可观看10个视频")) {
             Logger.d("已经超出观看上限了");
+            //设置标志位,用于上传日志
+            videoResult.setId(VideoResult.OUT_OF_WATCH_TIMES);
             return videoResult;
         }
         Document doc = Jsoup.parse(html);
@@ -174,6 +178,7 @@ public class ParseUtils {
         String thumImg = doc.getElementById("vid").attr("poster");
         videoResult.setThumbImgUrl(thumImg);
         Logger.d("缩略图：" + thumImg);
+
         return videoResult;
     }
 
@@ -330,7 +335,7 @@ public class ParseUtils {
             videoComment.setReplyId(replyId);
             // Logger.t(TAG).d("replyId:" + replyId);
 
-            String comment = element.select("div.comment-body").first().text().replace("举报", "");
+            String comment = element.select("div.comment-body").first().text().replace("举报", "").replace("Show", "");
 //            videoComment.setContentMessage(comment.replace("Show", ""));
             //Logger.t(TAG).d(comment);
 
@@ -347,18 +352,17 @@ public class ParseUtils {
                 String quote;
                 if (i + 1 >= tmpQuoteList.size()) {
                     quote = tmpQuoteList.get(i);
-                    quoteList.add(0,quote.trim());
-                    Logger.t(TAG).d(quote);
+                    quoteList.add(0, quote.trim());
+                    //Logger.t(TAG).d(quote);
                     break;
                 }
                 quote = tmpQuoteList.get(i).replace(tmpQuoteList.get(i + 1), "");
-                quoteList.add(0,quote.trim());
-                Logger.t(TAG).d(quote);
+                quoteList.add(0, quote.trim());
+                //Logger.t(TAG).d(quote);
             }
 
             videoComment.setCommentQuoteList(quoteList);
 
-            Logger.d("***************************************************************************************************************");
             String info = element.select("td").first().text();
             String titleInfo = info.substring(0, info.indexOf("("));
             videoComment.setTitleInfo(titleInfo.replace(uName, ""));

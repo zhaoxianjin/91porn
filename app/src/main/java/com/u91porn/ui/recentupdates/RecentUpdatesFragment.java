@@ -1,7 +1,6 @@
 package com.u91porn.ui.recentupdates;
 
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,13 +10,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.aitsuki.swipe.SwipeItemLayout;
 import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
@@ -25,9 +22,7 @@ import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpFragment;
-import com.u91porn.ui.main.MainActivity;
-import com.u91porn.ui.play.PlayVideoActivity;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.HeaderUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +30,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
@@ -96,7 +90,7 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadRecentUpdatesData(false, next);
+                presenter.loadRecentUpdatesData(false, next, HeaderUtils.getIndexHeader());
             }
         }, recyclerViewRecentUpdates);
         helper = new LoadViewHelper(recyclerViewRecentUpdates);
@@ -108,12 +102,6 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
         });
         loadData(false);
 
-    }
-
-    private void goToPlayVideo(UnLimit91PornItem unLimit91PornItem) {
-        Intent intent = new Intent(getContext(), PlayVideoActivity.class);
-        intent.putExtra(Keys.KEY_INTENT_UNLIMIT91PORNITEM, unLimit91PornItem);
-        ((MainActivity) getActivity()).startActivityWithAnimotion(intent);
     }
 
     @Override
@@ -148,7 +136,7 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
 
     @Override
     public void loadData(boolean pullToRefresh) {
-        presenter.loadRecentUpdatesData(pullToRefresh, next);
+        presenter.loadRecentUpdatesData(pullToRefresh, next, HeaderUtils.getIndexHeader());
     }
 
     @Override

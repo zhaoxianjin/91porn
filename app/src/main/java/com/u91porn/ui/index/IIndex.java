@@ -7,5 +7,5 @@ package com.u91porn.ui.index;
  */
 
 public interface IIndex extends IBaseIndex{
-    void loadIndexData(final boolean pullToRefresh);
+    void loadIndexData(final boolean pullToRefresh,String referer);
 }

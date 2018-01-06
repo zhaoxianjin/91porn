@@ -1,5 +1,9 @@
 package com.u91porn.data;
 
+import com.u91porn.MyApplication;
+import com.u91porn.utils.Constants;
+import com.u91porn.utils.HeaderUtils;
+
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -26,7 +30,7 @@ public interface NoLimit91PornServiceApi {
      * @return body
      */
     @GET("/index.php")
-    Observable<String> indexPhp();
+    Observable<String> indexPhp(@Header("Referer") String referer);
 
     /**
      * 访问页面获取视频地址页面
@@ -36,7 +40,7 @@ public interface NoLimit91PornServiceApi {
      * @return body
      */
     @GET("/view_video.php")
-    Observable<String> getVideoPlayPage(@Query("viewkey") String viewkey, @Header("X-Forwarded-For") String ipAddress);
+    Observable<String> getVideoPlayPage(@Query("viewkey") String viewkey, @Header("X-Forwarded-For") String ipAddress,@Header("Referer") String referer);
 
     /**
      * 获取相应类别数据
@@ -47,7 +51,7 @@ public interface NoLimit91PornServiceApi {
      * @return body
      */
     @GET("/v.php")
-    Observable<String> getCategoryPage(@Query("category") String category, @Query("viewtype") String viewtype, @Query("page") Integer page, @Query("m") String m);
+    Observable<String> getCategoryPage(@Query("category") String category, @Query("viewtype") String viewtype, @Query("page") Integer page, @Query("m") String m,@Header("Referer") String referer);
 
     /**
      * 最近更新
@@ -56,7 +60,7 @@ public interface NoLimit91PornServiceApi {
      * @return ob
      */
     @GET("/v.php")
-    Observable<String> recentUpdates(@Query("next") String next, @Query("page") Integer page);
+    Observable<String> recentUpdates(@Query("next") String next, @Query("page") Integer page,@Header("Referer") String referer);
 
     /**
      * @param username     用户名
@@ -71,7 +75,7 @@ public interface NoLimit91PornServiceApi {
      */
     @FormUrlEncoded
     @POST("/login.php")
-    Observable<String> login(@Field("username") String username, @Field("password") String password, @Field("fingerprint") String fingerprint, @Field("fingerprint2") String fingerprint2, @Field("captcha_input") String captcha, @Field("action_login") String actionlogin, @Field("x") String x, @Field("y") String y);
+    Observable<String> login(@Field("username") String username, @Field("password") String password, @Field("fingerprint") String fingerprint, @Field("fingerprint2") String fingerprint2, @Field("captcha_input") String captcha, @Field("action_login") String actionlogin, @Field("x") String x, @Field("y") String y,@Header("Referer") String referer);
 
     /**
      * 用户注册
@@ -92,7 +96,7 @@ public interface NoLimit91PornServiceApi {
      */
     @FormUrlEncoded
     @POST("/signup.php")
-    Observable<String> register(@Query("next") String next, @Field("username") String username, @Field("password1") String password1, @Field("password2") String password2, @Field("email") String email, @Field("captcha_input") String captchaInput, @Field("fingerprint") String fingerprint, @Field("vip") String vip, @Field("action_signup") String actionSignup, @Field("submit.x") String submitX, @Field("submit.y") String submitY, @Header("X-Forwarded-For") String ipAddress);
+    Observable<String> register(@Query("next") String next, @Field("username") String username, @Field("password1") String password1, @Field("password2") String password2, @Field("email") String email, @Field("captcha_input") String captchaInput, @Field("fingerprint") String fingerprint, @Field("vip") String vip, @Field("action_signup") String actionSignup, @Field("submit.x") String submitX, @Field("submit.y") String submitY,@Header("Referer") String referer, @Header("X-Forwarded-For") String ipAddress);
 
     /**
      * 我的收藏
@@ -100,7 +104,7 @@ public interface NoLimit91PornServiceApi {
      * @return ob
      */
     @GET("/my_favour.php")
-    Observable<String> myFavorite(@Query("page") int page);
+    Observable<String> myFavorite(@Query("page") int page,@Header("Referer") String referer);
 
     /**
      * 收藏视频
@@ -113,11 +117,15 @@ public interface NoLimit91PornServiceApi {
      * @return ob
      */
     @GET("/ajax/myajaxphp.php")
-    Observable<String> favoriteVideo(@Query("cpaint_function") String cpaintFunction, @Query("cpaint_argument[]") String uId, @Query("cpaint_argument[]") String videoId, @Query("cpaint_argument[]") String ownerId, @Query("cpaint_response_type") String responseType);
+    Observable<String> favoriteVideo(@Query("cpaint_function") String cpaintFunction, @Query("cpaint_argument[]") String uId, @Query("cpaint_argument[]") String videoId, @Query("cpaint_argument[]") String ownerId, @Query("cpaint_response_type") String responseType,@Header("Referer") String referer);
 
+    /**
+     * 检查更新
+     * @param url 链接
+     * @return ob
+     */
     @GET
     Observable<String> checkUpdate(@Url String url);
-
 
     /**
      * //http://91.91p18.space/show_comments2.php?VID=247965&start=1&comment_per_page=20
@@ -129,7 +137,10 @@ public interface NoLimit91PornServiceApi {
      * @return ob
      */
     @GET("/show_comments2.php")
-    Observable<String> getVideoComments(@Query("VID") String vid, @Query("start") int start, @Query("comment_per_page") int commentPerPage);
+    @Headers({
+            "X-Requested-With: XMLHttpRequest",
+    })
+    Observable<String> getVideoComments(@Query("VID") String vid, @Query("start") int start, @Query("comment_per_page") int commentPerPage,@Header("Referer") String referer);
 
     /**
      * http://91porn.com//ajax/myajaxphp.php?cpaint_function=process_comments&cpaint_argument[]=哈哈哈&cpaint_argument[]=6826296&cpaint_argument[]=248261&cpaint_response_type=json
@@ -143,7 +154,7 @@ public interface NoLimit91PornServiceApi {
      * @return ob
      */
     @GET("/ajax/myajaxphp.php")
-    Observable<String> commentVideo(@Query("cpaint_function") String cpaintFunction, @Query("cpaint_argument[]") String comments, @Query("cpaint_argument[]") String uId, @Query("cpaint_argument[]") String videoId, @Query("cpaint_response_type") String responseType);
+    Observable<String> commentVideo(@Query("cpaint_function") String cpaintFunction, @Query("cpaint_argument[]") String comments, @Query("cpaint_argument[]") String uId, @Query("cpaint_argument[]") String videoId, @Query("cpaint_response_type") String responseType,@Header("Referer") String referer);
 
     /**
      * 回复评论
@@ -156,5 +167,5 @@ public interface NoLimit91PornServiceApi {
      */
     @FormUrlEncoded
     @POST("/post_comment.php")
-    Observable<String> replyComment(@Field("comment") String comment, @Field("username") String username, @Field("VID") String vId, @Field("comment_id") String commentId);
+    Observable<String> replyComment(@Field("comment") String comment, @Field("username") String username, @Field("VID") String vId, @Field("comment_id") String commentId,@Header("Referer") String referer);
 }

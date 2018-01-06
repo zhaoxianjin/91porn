@@ -19,8 +19,8 @@ public class SplashPresenter extends MvpBasePresenter<SplashView> implements ISp
     }
 
     @Override
-    public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y) {
-        userPresenter.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y, new UserPresenter.LoginListener() {
+    public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y,String referer) {
+        userPresenter.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y,referer, new UserPresenter.LoginListener() {
             @Override
             public void loginSuccess() {
                 ifViewAttached(new ViewAction<SplashView>() {

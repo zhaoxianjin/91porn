@@ -26,6 +26,7 @@ import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.LoadHelperUtils;
 import com.u91porn.utils.SPUtils;
@@ -109,7 +110,7 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
             @Override
             public void onLoadMoreRequested() {
                 //presenter.loadFavoriteData(mUnLimit91PornItemList.size(), pageSize);
-                presenter.loadRemoteFavoriteData(false);
+                presenter.loadRemoteFavoriteData(false, HeaderUtils.getIndexHeader());
             }
         }, recyclerView);
         //presenter.loadFavoriteData(mUnLimit91PornItemList.size(), pageSize);
@@ -118,11 +119,11 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
         helper.setListener(new OnLoadViewListener() {
             @Override
             public void onRetryClick() {
-                presenter.loadRemoteFavoriteData(false);
+                presenter.loadRemoteFavoriteData(false, HeaderUtils.getIndexHeader());
             }
         });
         boolean needRefresh = (boolean) SPUtils.get(this, Keys.KEY_SP_USER_FAVORITE_NEED_REFRESH, false);
-        presenter.loadRemoteFavoriteData(needRefresh);
+        presenter.loadRemoteFavoriteData(needRefresh, HeaderUtils.getIndexHeader());
     }
 
     @NonNull
@@ -241,6 +242,6 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
 
     @Override
     public void onRefresh() {
-        presenter.loadRemoteFavoriteData(true);
+        presenter.loadRemoteFavoriteData(true, HeaderUtils.getIndexHeader());
     }
 }

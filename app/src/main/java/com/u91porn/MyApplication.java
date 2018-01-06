@@ -157,6 +157,9 @@ public class MyApplication extends Application {
      * @return 地址
      */
     public String getHost() {
+        if (TextUtils.isEmpty(host)) {
+            return Constants.BASE_URL;
+        }
         return host;
     }
 
@@ -231,6 +234,14 @@ public class MyApplication extends Application {
                                 .host(host)
                                 .build();
                         requestBuilder.url(newUrl);
+                        if (!"github.com".equals(original.url().host())) {
+                            requestBuilder.header("Host", host);
+                        }
+                    }
+                }else {
+                    if (!"github.com".equals(original.url().host())) {
+                        host=Constants.BASE_URL.substring(Constants.BASE_URL.indexOf("//") + 2, Constants.BASE_URL.lastIndexOf("/"));
+                        requestBuilder.header("Host", host);
                     }
                 }
 

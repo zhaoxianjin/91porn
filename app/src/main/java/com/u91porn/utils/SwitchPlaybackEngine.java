@@ -1,0 +1,42 @@
+package com.u91porn.utils;
+
+import android.content.Context;
+import android.content.Intent;
+
+import com.u91porn.ui.play.ExoMediaPlayerActivity;
+import com.u91porn.ui.play.JiaoZiVideoPlayerActivity;
+
+/**
+ * 播放引擎切换
+ *
+ * @author flymegoc
+ * @date 2018/1/2
+ */
+
+public class SwitchPlaybackEngine {
+    public static final int EXOMEDIAPLAYER_ENGINE = 0;
+    public static final int JIAOZIVIDEOPLAYER_ENGINE = 1;
+
+    /**
+     * 获取播放引擎
+     *
+     * @param context 上下文
+     * @return intent
+     */
+    public static Intent getPlaybackEngineIntent(Context context) {
+
+        int engine = (int) SPUtils.get(context, Keys.KEY_SP_PLAYBACK_ENGINE, 1);
+
+        Intent intent = new Intent();
+        switch (engine) {
+            case EXOMEDIAPLAYER_ENGINE:
+                intent.setClass(context, ExoMediaPlayerActivity.class);
+                break;
+            case JIAOZIVIDEOPLAYER_ENGINE:
+                intent.setClass(context, JiaoZiVideoPlayerActivity.class);
+                break;
+            default:
+        }
+        return intent;
+    }
+}

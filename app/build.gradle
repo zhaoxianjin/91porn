@@ -11,6 +11,9 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
+    dexOptions {
+        jumboMode true
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -75,7 +78,7 @@ dependencies {
     compile 'com.bugsnag:bugsnag-android:4.1.5'
     compile 'com.github.rubensousa:floatingtoolbar:1.5.1'
     compile 'com.qmuiteam:qmui:1.0.6'
-    compile 'com.jude:swipebackhelper:3.1.2'
     compile 'com.androidadvance:topsnackbar:1.1.1'
-    compile 'com.gyf.barlibrary:barlibrary:2.3.0'
+    compile 'com.devbrackets.android:exomedia:4.1.0'
+    compile 'com.github.ybq:Android-SpinKit:1.1.0'
 }

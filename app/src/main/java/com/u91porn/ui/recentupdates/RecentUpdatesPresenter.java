@@ -51,7 +51,7 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
     }
 
     @Override
-    public void loadRecentUpdatesData(final boolean pullToRefresh, String next) {
+    public void loadRecentUpdatesData(final boolean pullToRefresh, String next,String referer) {
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
@@ -60,7 +60,7 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(next, page);
         EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
 
-        Observable<String> categoryPage = noLimit91PornServiceApi.recentUpdates(next, page);
+        Observable<String> categoryPage = noLimit91PornServiceApi.recentUpdates(next, page,referer);
         cacheProviders.getRecentUpdates(categoryPage, dynamicKeyGroup, evictDynamicKey)
                 .map(new Function<Reply<String>, String>() {
                     @Override

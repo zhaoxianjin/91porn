@@ -14,6 +14,11 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_playback_engine"
+        android:orderInCategory="100"
+        android:title="@string/playback_engine"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_exit_app"
         android:orderInCategory="100"
         android:title="@string/exit_app"

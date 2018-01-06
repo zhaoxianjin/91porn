@@ -10,5 +10,5 @@ import retrofit2.http.Query;
  */
 
 public interface IUser extends IBaseUser {
-    void register(String next, String username, String password1, String password2, String email, String captchaInput, String fingerprint, String vip, String actionSignup, String submitX, String submitY, String ipAddress);
+    void register(String next, String username, String password1, String password2, String email, String captchaInput, String fingerprint, String vip, String actionSignup, String submitX, String submitY, String ipAddress,String referer);
 }

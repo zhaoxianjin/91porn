@@ -1,22 +1,9 @@
 package com.u91porn.utils;
 
-import android.net.ParseException;
-
-import com.google.gson.JsonParseException;
-import com.google.gson.stream.MalformedJsonException;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
-import java.util.List;
+import com.u91porn.exception.ApiException;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.exceptions.CompositeException;
-import okhttp3.ResponseBody;
-import retrofit2.HttpException;
 
 /**
  *

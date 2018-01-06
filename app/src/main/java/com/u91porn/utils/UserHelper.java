@@ -23,7 +23,11 @@ public class UserHelper {
         }
         return key.toString();
     }
-
+    /**
+     * 随机生成32位机器指纹
+     *
+     * @return 指纹码
+     */
     public static String randomFingerprint2() {
         String keys = "abcdefghijklmnopqrstuvwxyz0123456789";
         int keyLength=32;

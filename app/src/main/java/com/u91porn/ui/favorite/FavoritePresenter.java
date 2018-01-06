@@ -74,12 +74,12 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
     }
 
     @Override
-    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType) {
-        favorite(cpaintFunction, uId, videoId, ownnerId, responseType, null);
+    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType,String referer) {
+        favorite(cpaintFunction, uId, videoId, ownnerId, responseType,referer, null);
     }
 
-    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType, final FavoriteListener favoriteListener) {
-        noLimit91PornServiceApi.favoriteVideo(cpaintFunction, uId, videoId, ownnerId, responseType)
+    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType,String referer, final FavoriteListener favoriteListener) {
+        noLimit91PornServiceApi.favoriteVideo(cpaintFunction, uId, videoId, ownnerId, responseType,referer)
                 .map(new Function<String, Favorite>() {
                     @Override
                     public Favorite apply(String s) throws Exception {
@@ -145,7 +145,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
 
 
     @Override
-    public void loadRemoteFavoriteData(final boolean pullToRefresh) {
+    public void loadRemoteFavoriteData(final boolean pullToRefresh,String referer) {
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
@@ -159,7 +159,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(condition, page);
         EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
 
-        Observable<String> favoriteObservable = noLimit91PornServiceApi.myFavorite(page);
+        Observable<String> favoriteObservable = noLimit91PornServiceApi.myFavorite(page,referer);
 
         cacheProviders.getFavorite(favoriteObservable, dynamicKeyGroup, evictDynamicKey)
                 .map(new Function<Reply<String>, String>() {

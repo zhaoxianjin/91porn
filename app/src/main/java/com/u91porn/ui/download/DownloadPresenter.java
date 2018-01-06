@@ -57,7 +57,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
     }
 
     @Override
-    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType) {
+    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType,String referer) {
 
     }
 

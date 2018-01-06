@@ -33,6 +33,7 @@ import io.rx_cache2.EvictDynamicKeyGroup;
 import io.rx_cache2.Reply;
 import io.rx_cache2.internal.RxCache;
 import okhttp3.ResponseBody;
+import retrofit2.http.Header;
 
 /**
  * @author flymegoc
@@ -57,7 +58,7 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
     }
 
     @Override
-    public void loadHotData(final boolean pullToRefresh, String category, String m) {
+    public void loadHotData(final boolean pullToRefresh, String category, String m,@Header("Referer") String referer) {
         String viewType = "basic";
         //如果刷新则重置页数
         if (pullToRefresh) {
@@ -74,7 +75,7 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(condition, page);
         EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
 
-        Observable<String> categoryPage = mNoLimit91PornServiceApi.getCategoryPage(category, viewType, page, m);
+        Observable<String> categoryPage = mNoLimit91PornServiceApi.getCategoryPage(category, viewType, page, m,referer);
         cacheProviders.getCategoryPage(categoryPage, dynamicKeyGroup, evictDynamicKey)
                 .map(new Function<Reply<String>, String>() {
                     @Override
