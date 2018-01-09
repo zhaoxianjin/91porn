@@ -78,7 +78,7 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(FragmentEvent.STOP))
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(FragmentEvent.DESTROY))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {

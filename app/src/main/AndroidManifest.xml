@@ -24,9 +24,14 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.main.MainActivity"
-            android:theme="@style/QMUI.Compat" />
-        <activity android:name=".ui.download.DownloadActivity" />
-        <activity android:name=".ui.favorite.FavoriteActivity" />
+            android:screenOrientation="portrait"
+            android:theme="@style/QMUI.Compat.NoActionBar" />
+        <activity
+            android:name=".ui.download.DownloadActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.favorite.FavoriteActivity"
+            android:screenOrientation="portrait" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -38,9 +43,12 @@
                 android:resource="@xml/filepaths" />
         </provider>
 
-        <activity android:name=".ui.user.UserLoginActivity" />
+        <activity
+            android:name=".ui.user.UserLoginActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.splash.SplashActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppFullScreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,14 +56,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.user.UserRegisterActivity" />
-        <activity android:name=".ui.upload.UploadVideoActivity" />
-        <activity android:name=".ui.history.HistoryActivity" />
+        <activity
+            android:name=".ui.user.UserRegisterActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.upload.UploadVideoActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.history.HistoryActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.about.AboutActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AboutTheme" />
 
-        <service android:name=".service.DownloadService" />
+        <service android:name=".service.UpdateDownloadService" />
 
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
@@ -63,10 +78,18 @@
 
         <activity
             android:name=".ui.play.ExoMediaPlayerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.play.JiaoZiVideoPlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.search.SearchActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AboutTheme" />
+        <activity
+            android:name=".ui.author.AuthorActivity"
             android:screenOrientation="portrait" />
     </application>
 

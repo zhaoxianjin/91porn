@@ -1,7 +1,9 @@
 package com.u91porn;
 
 import android.app.Application;
+import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.multidex.MultiDexApplication;
 import android.text.TextUtils;
 
 import com.bugsnag.android.Bugsnag;
@@ -55,11 +57,11 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
  *
  * @author flymegoc
  * @date 2017/11/14
- * @describe
  */
 
-public class MyApplication extends Application {
+public class MyApplication extends MultiDexApplication {
 
+    private static final String TAG = MyApplication.class.getSimpleName();
     private NoLimit91PornServiceApi mNoLimit91PornServiceApi;
     private static MyApplication mMyApplication;
     private PersistentCookieJar cookieJar;
@@ -222,6 +224,8 @@ public class MyApplication extends Application {
                 Request.Builder requestBuilder = original.newBuilder();
                 requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299");
                 requestBuilder.header("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5");
+                requestBuilder.header("Proxy-Connection","keep-alive");
+                requestBuilder.header("Cache-Control","max-age=0");
                 // requestBuilder.header("X-Forwarded-For","114.114.114.117")
                 requestBuilder.method(original.method(), original.body());
                 String host = MyApplication.this.host;
@@ -255,8 +259,8 @@ public class MyApplication extends Application {
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
-            public void log(String message) {
-                Logger.d(message);
+            public void log(@NonNull String message) {
+                Logger.t(TAG).d("HttpLog:"+message);
             }
         });
         logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
@@ -283,7 +287,7 @@ public class MyApplication extends Application {
      * 初始化缓存
      */
     private void initCache() {
-        File cacheDir = getExternalCacheDir();
+        File cacheDir = getCacheDir();
         cacheProviders = new RxCache.Builder()
                 .useExpiredDataIfLoaderNotAvailable(true)
                 .persistence(cacheDir, new GsonSpeaker())
@@ -326,7 +330,7 @@ public class MyApplication extends Application {
                 // (Optional) How many method line to show. Default 2
                 .methodCount(0)
                 // (Optional) Hides internal method calls up to offset. Default 5
-                .methodOffset(7)
+                .methodOffset(5)
                 // .logStrategy(customLog) // (Optional) Changes the log strategy to print out. Default LogCat
                 // .tag("My custom tag")   // (Optional) Global tag for every log. Default PRETTY_LOGGER
                 .build();

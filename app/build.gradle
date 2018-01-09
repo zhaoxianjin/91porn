@@ -1,23 +1,26 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.objectbox' // after applying Android plugin
+apply plugin: 'com.bugsnag.android.gradle' // apply on last line
 android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.u91porn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 8
-        versionName "1.0.7"
+        versionCode 9
+        versionName "1.0.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
     }
     dexOptions {
         jumboMode true
     }
+
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro','proguard-fresco.pro'
         }
     }
 }
@@ -81,4 +84,6 @@ dependencies {
     compile 'com.androidadvance:topsnackbar:1.1.1'
     compile 'com.devbrackets.android:exomedia:4.1.0'
     compile 'com.github.ybq:Android-SpinKit:1.1.0'
+    compile 'com.github.arcadefire:nice-spinner:1.3.1'
+    compile 'com.android.support:multidex:1.0.2'
 }

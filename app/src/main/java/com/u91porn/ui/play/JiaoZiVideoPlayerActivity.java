@@ -1,29 +1,26 @@
 package com.u91porn.ui.play;
 
 import android.net.Uri;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import com.u91porn.R;
 
-import butterknife.BindView;
 import cn.jzvd.JZVideoPlayer;
 import cn.jzvd.JZVideoPlayerStandard;
 
 /**
  * @author flymegoc
  */
-public class JiaoZiVideoPlayerActivity extends BasePlayVideoActivity {
+public class JiaoZiVideoPlayerActivity extends BasePlayVideo {
 
     JZVideoPlayerStandard jzVideoPlayerStandard;
 
     @Override
-    public View getPlayerView() {
-        View view = LayoutInflater.from(this).inflate(R.layout.playback_engine_jiao_zi, videoplayerContainer, false);
+    public void initPlayerView() {
+        View view = LayoutInflater.from(this).inflate(R.layout.playback_engine_jiao_zi, videoplayerContainer, true);
         jzVideoPlayerStandard = view.findViewById(R.id.videoplayer);
-        return view;
     }
 
     @Override

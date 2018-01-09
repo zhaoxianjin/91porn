@@ -18,7 +18,7 @@ import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
-import com.u91porn.service.DownloadService;
+import com.u91porn.service.UpdateDownloadService;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.utils.ApkVersionUtils;
@@ -124,7 +124,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 showMessage("开始下载", TastyToast.SUCCESS);
-                Intent intent = new Intent(AboutActivity.this, DownloadService.class);
+                Intent intent = new Intent(AboutActivity.this, UpdateDownloadService.class);
                 intent.putExtra("updateVersion", updateVersion);
                 startService(intent);
             }

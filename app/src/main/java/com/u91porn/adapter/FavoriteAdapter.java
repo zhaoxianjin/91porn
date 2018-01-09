@@ -31,11 +31,6 @@ public class FavoriteAdapter extends BaseQuickAdapter<UnLimit91PornItem,BaseView
         Uri uri = Uri.parse(item.getImgUrl());
         simpleDraweeView.setImageURI(uri);
 
-        helper.setVisible(R.id.tv_91porn_item_info,true);
-        helper.setVisible(R.id.progressBar_layout,false);
-        helper.setVisible(R.id.iv_download_control,false);
-
-        helper.addOnClickListener(R.id.right_menu_favorite);
         helper.addOnClickListener(R.id.right_menu_delete);
     }
 }

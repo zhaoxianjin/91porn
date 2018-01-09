@@ -181,7 +181,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
 
     @Override
     public void loadFinishedData() {
-        final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().equal(UnLimit91PornItem_.status, FileDownloadStatus.completed).orderDesc(UnLimit91PornItem_.finshedDownloadDate).build().find();
+        final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().equal(UnLimit91PornItem_.status, FileDownloadStatus.completed).notEqual(UnLimit91PornItem_.downloadId, 0).orderDesc(UnLimit91PornItem_.finshedDownloadDate).build().find();
         ifViewAttached(new ViewAction<DownloadView>() {
             @Override
             public void run(@NonNull DownloadView view) {
@@ -284,7 +284,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -313,7 +313,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
                             ifViewAttached(new ViewAction<DownloadView>() {
                                 @Override
                                 public void run(@NonNull DownloadView view) {
-                                    getView().showMessage(msg, TastyToast.ERROR);
+                                    view.showMessage(msg, TastyToast.ERROR);
                                 }
                             });
                         }

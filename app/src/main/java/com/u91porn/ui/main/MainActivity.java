@@ -3,12 +3,14 @@ package com.u91porn.ui.main;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -20,15 +22,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.util.QMUIStatusBarHelper;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.sdsmdg.tastytoast.TastyToast;
@@ -37,7 +38,7 @@ import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.data.model.User;
-import com.u91porn.service.DownloadService;
+import com.u91porn.service.UpdateDownloadService;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.about.AboutActivity;
 import com.u91porn.ui.common.CommonFragment;
@@ -46,6 +47,7 @@ import com.u91porn.ui.favorite.FavoriteActivity;
 import com.u91porn.ui.history.HistoryActivity;
 import com.u91porn.ui.index.IndexFragment;
 import com.u91porn.ui.recentupdates.RecentUpdatesFragment;
+import com.u91porn.ui.search.SearchActivity;
 import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.ApkVersionUtils;
@@ -73,6 +75,10 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     DrawerLayout drawerLayout;
     @BindView(R.id.nav_view)
     NavigationView navView;
+    @BindView(R.id.content)
+    FrameLayout content;
+    @BindView(R.id.status_bar)
+    View statusBar;
     private ImageView userHeadImageView;
     private Fragment mCurrentFragment;
     private IndexFragment indexFragment;
@@ -92,8 +98,10 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        QMUIStatusBarHelper.translucent(this);
         ButterKnife.bind(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, android.R.color.transparent));
+        }
         File file = new File(Constants.DOWNLOAD_PATH);
         if (!file.exists()) {
             file.mkdirs();
@@ -158,7 +166,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         showUpdateDialog(updateVersion);
 //        Logger.t(TAG).d(new Gson().toJson(updateVersion));
 //
-//        Intent intent = new Intent(this, DownloadService.class);
+//        Intent intent = new Intent(this, UpdateDownloadService.class);
 //        intent.putExtra("updateVersion", updateVersion);
 //        startService(intent);
     }
@@ -245,7 +253,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        existActivityWithAnimation=false;
+                        existActivityWithAnimation = false;
                         MainActivity.super.onBackPressed();
                         AppManager.getAppManager().AppExit();
                     }
@@ -291,6 +299,17 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         } else if (id == R.id.action_playback_engine) {
             showPlaybackEngineChoiceDialog();
             return true;
+        } else if (id == R.id.action_search_video) {
+            User user = MyApplication.getInstace().getUser();
+            if (user == null) {
+                showMessage("请先登录", TastyToast.INFO);
+                Intent intent = new Intent(MainActivity.this, UserLoginActivity.class);
+                startActivityForResultWithAnimotion(intent, Constants.USER_LOGIN_REQUEST_CODE);
+                return true;
+            }
+            Intent intent = new Intent(this, SearchActivity.class);
+            startActivityWithAnimotion(intent);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -298,7 +317,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
     private void showPlaybackEngineChoiceDialog() {
         final String[] items = new String[]{"Google Exoplayer Engine(Beta)", "JiaoZiPlayer Engine",};
-        final int checkedIndex = (int) SPUtils.get(this, Keys.KEY_SP_PLAYBACK_ENGINE, 0);
+        final int checkedIndex = (int) SPUtils.get(this, Keys.KEY_SP_PLAYBACK_ENGINE, 1);
         new QMUIDialog.CheckableDialogBuilder(this)
                 .setTitle("播放引擎选择")
                 .setCheckedIndex(checkedIndex)
@@ -538,7 +557,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 //            @Override
 //            public void onClick(DialogInterface dialog, int which) {
 //                showMessage("开始下载", TastyToast.INFO);
-//                Intent intent = new Intent(MainActivity.this, DownloadService.class);
+//                Intent intent = new Intent(MainActivity.this, UpdateDownloadService.class);
 //                intent.putExtra("updateVersion", updateVersion);
 //                startService(intent);
 //            }
@@ -558,7 +577,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                     public void onClick(QMUIDialog dialog, int index) {
                         dialog.dismiss();
                         showMessage("开始下载", TastyToast.INFO);
-                        Intent intent = new Intent(MainActivity.this, DownloadService.class);
+                        Intent intent = new Intent(MainActivity.this, UpdateDownloadService.class);
                         intent.putExtra("updateVersion", updateVersion);
                         startService(intent);
                     }
@@ -614,4 +633,8 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         super.showMessage(msg, type);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

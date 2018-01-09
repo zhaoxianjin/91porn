@@ -1,5 +1,6 @@
 package com.u91porn.utils;
 
+import com.orhanobut.logger.Logger;
 import com.u91porn.exception.ApiException;
 
 import io.reactivex.Observer;
@@ -13,6 +14,8 @@ import io.reactivex.disposables.Disposable;
 
 public abstract class CallBackWrapper<T> implements Observer<T> {
 
+    private static final String TAG = CallBackWrapper.class.getSimpleName();
+
     @Override
     public void onSubscribe(Disposable d) {
         onBegin(d);
@@ -25,6 +28,7 @@ public abstract class CallBackWrapper<T> implements Observer<T> {
 
     @Override
     public void onError(Throwable e) {
+        e.printStackTrace();
         ApiException apiException = ApiException.handleException(e);
         onError(apiException.getMessage(), apiException.getCode());
     }

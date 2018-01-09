@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context="com.u91porn.ui.play.BasePlayVideoActivity">
+    tools:context="com.u91porn.ui.play.BasePlayVideo">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar_layout"
@@ -16,8 +16,8 @@
         <FrameLayout
             android:id="@+id/videoplayer_container"
             android:layout_width="match_parent"
-            android:background="@color/black"
             android:layout_height="220dp"
+            android:background="@color/black"
             android:visibility="invisible"
             app:layout_scrollFlags="scroll|enterAlways" />
 
@@ -39,12 +39,27 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_play_video_author"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="作者：---"
-                android:textColor="@color/white" />
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/tv_play_video_author_"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:text="作者："
+                    android:textColor="@color/white" />
+                <TextView
+                    android:id="@+id/tv_play_video_author"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:text="---"
+                    android:textColor="@color/yeloo" />
+            </LinearLayout>
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/tv_play_video_add_date"

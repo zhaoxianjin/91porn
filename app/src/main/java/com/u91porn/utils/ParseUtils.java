@@ -132,6 +132,68 @@ public class ParseUtils {
         return baseResult;
     }
 
+    public static BaseResult parseSearchVideos(String html) {
+        int totalPage = 1;
+        List<UnLimit91PornItem> unLimit91PornItemList = new ArrayList<>();
+        Document doc = Jsoup.parse(html);
+        Element body = doc.getElementById("fullside");
+        if (body == null) {
+            String errorMsg=parseErrorLoginInfo(html);
+            Logger.t(TAG).d(errorMsg);
+            BaseResult baseResult = new BaseResult();
+
+            baseResult.setCode(BaseResult.ERROR_CODE);
+            baseResult.setMessage(errorMsg);
+            return baseResult;
+        }
+        Elements listchannel = body.getElementsByClass("listchannel");
+        for (Element element : listchannel) {
+            UnLimit91PornItem unLimit91PornItem = new UnLimit91PornItem();
+            String contentUrl = element.select("a").first().attr("href");
+            //Logger.d(contentUrl);
+            contentUrl = contentUrl.substring(0, contentUrl.indexOf("&"));
+            //Logger.d(contentUrl);
+
+            String viewKey = contentUrl.substring(contentUrl.indexOf("=") + 1);
+            unLimit91PornItem.setViewKey(viewKey);
+            //Logger.d(viewKey);
+
+            String imgUrl = element.select("a").first().select("img").first().attr("src");
+            //Logger.d(imgUrl);
+            unLimit91PornItem.setImgUrl(imgUrl);
+
+            String title = element.select("span.title").text();
+            //Logger.d(title);
+            unLimit91PornItem.setTitle(title);
+
+            String duration = element.select("span.duration").text();
+            unLimit91PornItem.setDuration(duration);
+
+            String allInfo = element.text();
+
+            int start = allInfo.indexOf("添加时间");
+            String info = allInfo.substring(start);
+            unLimit91PornItem.setInfo(info.replace("还未被评分", ""));
+            //Logger.d(info);
+
+            unLimit91PornItemList.add(unLimit91PornItem);
+        }
+        //总页数
+        Element pagingnav = body.getElementById("paging");
+        Elements a = pagingnav.select("a");
+        if (a.size() > 2) {
+            String ppp = a.get(a.size() - 2).text();
+            if (TextUtils.isDigitsOnly(ppp)) {
+                totalPage = Integer.parseInt(ppp);
+                //Logger.d("总页数：" + totalPage);
+            }
+        }
+        BaseResult baseResult = new BaseResult();
+        baseResult.setTotalPage(totalPage);
+        baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
+        return baseResult;
+    }
+
     /**
      * 解析视频播放连接
      *
@@ -277,6 +339,70 @@ public class ParseUtils {
             if (TextUtils.isDigitsOnly(ppp)) {
                 totalPage = Integer.parseInt(ppp);
                 Logger.d("总页数：" + totalPage);
+            }
+        }
+
+        BaseResult baseResult = new BaseResult();
+        baseResult.setTotalPage(totalPage);
+        baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
+
+        return baseResult;
+    }
+
+    /**
+     * 解析作者更多视频
+     * @param html html
+     * @return list
+     */
+    public static BaseResult parseAuthorVideos(String html) {
+        int totalPage = 1;
+        List<UnLimit91PornItem> unLimit91PornItemList = new ArrayList<>();
+        Document doc = Jsoup.parse(html);
+        Element body = doc.getElementById("leftside");
+
+        Elements videos = doc.select("div.myvideo");
+
+        for (Element element : videos) {
+
+            UnLimit91PornItem unLimit91PornItem = new UnLimit91PornItem();
+
+            String contentUrl = element.select("a").first().attr("href");
+
+            String viewKey = contentUrl.substring(contentUrl.indexOf("=") + 1, contentUrl.length());
+            unLimit91PornItem.setViewKey(viewKey);
+            //Logger.t(TAG).d(viewKey);
+
+            String title = element.select("strong").first().text();
+            unLimit91PornItem.setTitle(title);
+            //Logger.t(TAG).d(title);
+
+            String imgUrl = element.select("img").first().attr("src");
+            unLimit91PornItem.setImgUrl(imgUrl);
+            //Logger.t(TAG).d(imgUrl);
+
+            String allInfo = element.text();
+            //Logger.t(TAG).d(allInfo);
+
+            String duration = allInfo.substring(allInfo.indexOf("时长") + 3, allInfo.indexOf("查看") - 3);
+            unLimit91PornItem.setDuration(duration);
+            //Logger.t(TAG).d(duration);
+
+            String info = allInfo.substring(allInfo.indexOf("添加时间"), allInfo.length());
+            unLimit91PornItem.setInfo(info);
+            //Logger.t(TAG).d(info);
+
+
+            unLimit91PornItemList.add(unLimit91PornItem);
+        }
+
+        //总页数
+        Element pagingnav = body.getElementById("paging");
+        Elements a = pagingnav.select("a");
+        if (a.size() >= 2) {
+            String ppp = a.get(a.size() - 2).text();
+            if (TextUtils.isDigitsOnly(ppp)) {
+                totalPage = Integer.parseInt(ppp);
+                //Logger.d("总页数：" + totalPage);
             }
         }
 

@@ -88,7 +88,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<Favorite>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<Favorite>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<Favorite>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -180,7 +180,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -298,7 +298,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {

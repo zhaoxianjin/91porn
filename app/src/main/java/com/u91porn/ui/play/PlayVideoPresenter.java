@@ -112,7 +112,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                     if (videoResult.getId() == VideoResult.OUT_OF_WATCH_TIMES) {
                         //尝试强行重置，并上报异常
                         resetWatchTime(true);
-                        Bugsnag.notify(new Throwable(TAG+":warning, ten videos each day"), Severity.WARNING);
+                        Bugsnag.notify(new Throwable(TAG + ":warning, ten videos each day"), Severity.WARNING);
                         throw new VideoException("观看次数达到上限了！");
                     } else {
                         throw new VideoException("解析视频链接失败了");
@@ -122,7 +122,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<VideoResult>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<VideoResult>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<VideoResult>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -171,13 +171,13 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<List<VideoComment>>bindUntilEvent(ActivityEvent.STOP)).subscribe(new CallBackWrapper<List<VideoComment>>() {
+                .compose(provider.<List<VideoComment>>bindUntilEvent(ActivityEvent.DESTROY)).subscribe(new CallBackWrapper<List<VideoComment>>() {
             @Override
             public void onBegin(Disposable d) {
                 ifViewAttached(new ViewAction<PlayVideoView>() {
                     @Override
                     public void run(@NonNull PlayVideoView view) {
-                        if (start == 1 && !pullToRefresh) {
+                        if (start == 1 && pullToRefresh) {
                             view.showLoading(pullToRefresh);
                         }
                     }
@@ -236,7 +236,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<VideoCommentResult>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<VideoCommentResult>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<VideoCommentResult>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -278,7 +278,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
         mNoLimit91PornServiceApi.replyComment(comment, username, vid, commentId, referer)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -372,7 +372,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<Cookie>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<Cookie>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<Cookie>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -389,7 +389,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                     @Override
                     public void onError(String msg, int code) {
                         Logger.t(TAG).d("重置观看次数出错了：" + msg);
-                        Bugsnag.notify(new Throwable(TAG+":reset watchTimes error:" + msg), Severity.WARNING);
+                        Bugsnag.notify(new Throwable(TAG + ":reset watchTimes error:" + msg), Severity.WARNING);
                     }
                 });
     }

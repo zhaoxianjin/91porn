@@ -42,4 +42,17 @@
     <string name="about_copyright">© %1$s TechGay 91PORN All rights reserved.</string>
     <string name="about_check_update">检查更新</string>
     <string name="playback_engine">播放引擎</string>
+
+    <array name="search">
+        <item>视频</item>
+        <item>用户</item>
+        <item>Video ID</item>
+    </array>
+
+    <array name="sort_by">
+        <item>添加时间</item>
+        <item>标题</item>
+        <item>观看次数</item>
+        <item>影片时长</item>
+    </array>
 </resources>

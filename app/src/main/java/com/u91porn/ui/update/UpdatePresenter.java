@@ -56,7 +56,7 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<UpdateVersion>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<UpdateVersion>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<UpdateVersion>() {
                     @Override
                     public void onBegin(Disposable d) {

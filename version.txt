@@ -1,11 +1,11 @@
 {
-"apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta-v1.0.7.apk",
-"updateMessage": "1. 修复超观看次数上限时未验证videoUrl为null导致崩溃的bug\n
-                  2. 改善了总是网络超时问题\n
-                  3. 修复由于解析视频失败时点击播放器崩溃的bug\n
-                  4. 修复打开下载视频时由于没有安装任何播放器导致程序崩溃的bug\n
-                  5. 新增exoplayer播放引擎（beta），支持倍速播放\n
-                  6. 其他细小bug以及优化改进",
-"versionCode": 8,
-"versionName": "1.0.7"
+"apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta-v1.0.8.apk",
+"updateMessage": "1 .完善exoplayer播放引擎\n
+                  2 .修复首次默认播放引擎显示错误问题\n
+                  3 .修复自动更新安装出错问题（以往可到下载目录（download）下手动点击安装包安装）\n
+                  4 .新增视频搜索功能\n
+                  5 .新增查看作者更多视频（播放界面点击视频作者名字）\n
+                  6 .启用混淆打包，减少安装包大小",
+"versionCode": 9,
+"versionName": "1.0.8"
 }

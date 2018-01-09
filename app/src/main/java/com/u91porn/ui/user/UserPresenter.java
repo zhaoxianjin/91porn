@@ -44,7 +44,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
         noLimit91PornServiceApi.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y, referer)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -112,7 +112,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
         noLimit91PornServiceApi.register(next, username, password1, password2, email, captchaInput, fingerprint, vip, actionSignup, submitX, submitY, referer, ipAddress)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {

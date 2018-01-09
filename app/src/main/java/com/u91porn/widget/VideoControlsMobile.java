@@ -23,6 +23,7 @@ import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +61,7 @@ import cn.jzvd.JZUtils;
  */
 @SuppressWarnings("unused")
 public class VideoControlsMobile extends VideoControls {
-    protected SeekBar seekBar;
+    protected AppCompatSeekBar seekBar;
     protected ImageView fullScreenImageView;
     protected TextView speedTextView;
     protected ProgressBar bottomProgressBar;

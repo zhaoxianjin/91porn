@@ -1,7 +1,6 @@
 package com.u91porn.ui;
 
 import android.content.Intent;
-import android.widget.Toast;
 
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.navi2.component.support.NaviFragment;
@@ -10,7 +9,6 @@ import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.main.MainActivity;
-import com.u91porn.ui.play.BasePlayVideoActivity;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SwitchPlaybackEngine;
 

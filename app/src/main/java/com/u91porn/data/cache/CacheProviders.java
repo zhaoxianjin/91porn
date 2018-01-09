@@ -17,7 +17,6 @@ import io.rx_cache2.Reply;
  *
  * @author flymegoc
  * @date 2017/11/18
- * @describe
  */
 
 public interface CacheProviders {
@@ -83,4 +82,16 @@ public interface CacheProviders {
     @ProviderKey("favorite")
     @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
     Observable<Reply<String>> getFavorite(Observable<String> stringObservable, DynamicKeyGroup filterPageCategory, EvictDynamicKey evictFilter);
+
+    /**
+     * 作者视频
+     *
+     * @param stringObservable   ob
+     * @param filterPageCategory 页码
+     * @param evictFilter        缓存控制
+     * @return ob
+     */
+    @ProviderKey("authorVideos")
+    @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
+    Observable<Reply<String>> authorVideos(Observable<String> stringObservable, DynamicKeyGroup filterPageCategory, EvictDynamicKey evictFilter);
 }

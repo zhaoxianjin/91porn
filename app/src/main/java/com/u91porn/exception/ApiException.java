@@ -66,6 +66,7 @@ public class ApiException extends Exception {
 
     public static ApiException handleException(Throwable e) {
         //使用RxCache之后返回的是包裹的CompositeException，一般包含2个异常，rxcache异常和原本的异常
+        Logger.t(TAG).d("开始解析错误------");
         if (e instanceof CompositeException) {
             CompositeException compositeException = (CompositeException) e;
             for (Throwable throwable : compositeException.getExceptions()) {
@@ -141,7 +142,6 @@ public class ApiException extends Exception {
         } else {
             ex = new ApiException(e, ERROR.UNKNOWN);
             ex.message = "未知错误";
-            e.printStackTrace();
             return ex;
         }
     }

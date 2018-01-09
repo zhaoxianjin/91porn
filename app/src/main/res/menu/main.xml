@@ -2,12 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_search_video"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_search_black_24dp"
+        app:iconTint="@color/white"
+        android:title="搜索视频"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_history"
         android:orderInCategory="100"
         android:icon="@drawable/ic_history_black_24dp"
         app:iconTint="@color/white"
         android:title="@string/history_views"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"

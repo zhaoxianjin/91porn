@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 
@@ -88,5 +89,19 @@ public abstract class BaseAppCompatActivity extends NaviAppCompatActivity {
         textView.setTextSize(16);
         textView.setTextColor(Color.WHITE);
         snackbar.show();
+    }
+
+    protected void initToolBar(Toolbar toolbar){
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+        toolbar.setContentInsetStartWithNavigation(0);
     }
 }

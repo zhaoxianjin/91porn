@@ -6,7 +6,9 @@ import com.u91porn.ui.BaseView;
 import java.util.List;
 
 /**
- * Created by flymegoc on 2017/12/19.
+ *
+ * @author flymegoc
+ * @date 2017/12/19
  */
 
 public interface RecentUpdatesView extends BaseView {

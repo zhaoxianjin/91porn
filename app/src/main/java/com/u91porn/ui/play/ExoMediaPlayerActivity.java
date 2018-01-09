@@ -1,28 +1,23 @@
 package com.u91porn.ui.play;
 
-import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.design.widget.AppBarLayout;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.ui.widget.VideoView;
-import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.u91porn.R;
 import com.u91porn.widget.VideoControlsMobile;
 
 /**
  * @author flymegoc
  */
-public class ExoMediaPlayerActivity extends BasePlayVideoActivity implements OnPreparedListener {
+public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedListener {
 
     private VideoView videoplayer;
     private VideoControlsMobile videoControlsMobile;
+    private boolean isPauseByActivityEvent = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,18 +26,21 @@ public class ExoMediaPlayerActivity extends BasePlayVideoActivity implements OnP
     }
 
     @Override
-    public View getPlayerView() {
-        View view = LayoutInflater.from(this).inflate(R.layout.playback_engine_exo_media, videoplayerContainer, false);
+    public void initPlayerView() {
+        View view = LayoutInflater.from(this).inflate(R.layout.playback_engine_exo_media, videoplayerContainer, true);
         videoplayer = view.findViewById(R.id.video_view);
         videoplayer.setReleaseOnDetachFromWindow(false);
         videoplayer.setOnPreparedListener(this);
         videoControlsMobile = new VideoControlsMobile(this);
         videoplayer.setControls(videoControlsMobile);
-        return view;
     }
 
     @Override
     public void playVideo(String title, String videoUrl, String name, String thumImgUrl) {
+        if (isPauseByActivityEvent) {
+            isPauseByActivityEvent = false;
+            videoplayer.reset();
+        }
         String proxyUrl = proxy.getProxyUrl(videoUrl);
         videoplayer.setVideoURI(Uri.parse(proxyUrl));
     }
@@ -50,6 +48,23 @@ public class ExoMediaPlayerActivity extends BasePlayVideoActivity implements OnP
     @Override
     public void onPrepared() {
         videoplayer.start();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!videoplayer.isPlaying() && isPauseByActivityEvent) {
+            isPauseByActivityEvent = false;
+            videoplayer.start();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        videoplayer.pause();
+        isPauseByActivityEvent = true;
+        super.onPause();
+
     }
 
     @Override
@@ -61,7 +76,7 @@ public class ExoMediaPlayerActivity extends BasePlayVideoActivity implements OnP
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         videoplayer.release();
+        super.onDestroy();
     }
 }
