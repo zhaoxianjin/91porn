@@ -1,6 +1,6 @@
 {
 "apkDownloadUrl": "https://raw.githubusercontent.com/techGay/91porn/master/apk/app-beta-v1.0.8.apk",
-"updateMessage": "注意：升级错误的请到自己手机存储卡的下载目录（download）找到安装包手动升级到v1.0.8版本\n
+"updateMessage": "注意：自动更新升级错误的请到自己手机存储卡的下载目录（download）找到安装包手动安装升级到v1.0.8版本即可\n
                   1 .完善exoplayer播放引擎\n
                   2 .修复首次默认播放引擎显示错误问题\n
                   3 .修复自动更新安装出错问题（以往版本下载完成后可到下载目录（download）下手动点击安装包安装）\n
