@@ -19,6 +19,35 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+#指定代码的压缩级别
+-optimizationpasses 5
+
+#包明不混合大小写
+-dontusemixedcaseclassnames
+
+#不去忽略非公共的库类
+-dontskipnonpubliclibraryclasses
+
+-dontskipnonpubliclibraryclassmembers
+
+ #预校验
+-dontpreverify
+
+##记录生成的日志数据,gradle build时在本项目根目录输出##
+#apk 包内所有 class 的内部结构
+-dump class_files.txt
+#未混淆的类和成员
+-printseeds seeds.txt
+#列出从 apk 中删除的代码
+-printusage unused.txt
+#混淆前后的映射
+-printmapping mapping.txt
+########记录生成的日志数据，gradle build时 在本项目根目录输出-end#####
+
+ # 混淆时所采用的算法
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+
+## Retrofit2 ##
 -dontwarn okio.**
 -dontwarn javax.annotation.**
 # Platform calls Class.forName on types which do not exist on Android to determine platform.
@@ -29,13 +58,14 @@
 -keepattributes Signature
 # Retain declared checked exceptions for use by a Proxy instance.
 -keepattributes Exceptions
-
+## yanzhenjie:permission ##
 -keepclassmembers class ** {
     @com.yanzhenjie.permission.PermissionYes <methods>;
 }
 -keepclassmembers class ** {
     @com.yanzhenjie.permission.PermissionNo <methods>;
 }
+## RxCache ##
 -dontwarn io.rx_cache2.internal.**
 -keepclassmembers enum io.rx_cache2.Source { *; }
 -keepclassmembernames class * { @io.rx_cache2.* <methods>; }
@@ -165,22 +195,5 @@
    public *;
 }
 
-#指定代码的压缩级别
--optimizationpasses 5
-
-#包明不混合大小写
--dontusemixedcaseclassnames
-
-#不去忽略非公共的库类
--dontskipnonpubliclibraryclasses
-
--dontskipnonpubliclibraryclassmembers
-
- #预校验
--dontpreverify
-
- #混淆时是否记录日志
--verbose
-
- # 混淆时所采用的算法
--optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+## 保持自定义实体类不被混淆
+-keep class com.u91porn.data.model.** { *; }

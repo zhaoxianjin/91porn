@@ -16,6 +16,7 @@ import com.u91porn.ui.play.JiaoZiVideoPlayerActivity;
 public class SwitchPlaybackEngine {
     public static final int EXOMEDIAPLAYER_ENGINE = 0;
     public static final int JIAOZIVIDEOPLAYER_ENGINE = 1;
+    public static final int DEFAULT_PLAYER_ENGINE = EXOMEDIAPLAYER_ENGINE;
 
     /**
      * 获取播放引擎
@@ -25,7 +26,7 @@ public class SwitchPlaybackEngine {
      */
     public static Intent getPlaybackEngineIntent(Context context) {
 
-        int engine = (int) SPUtils.get(context, Keys.KEY_SP_PLAYBACK_ENGINE, 1);
+        int engine = (int) SPUtils.get(context, Keys.KEY_SP_PLAYBACK_ENGINE, DEFAULT_PLAYER_ENGINE);
 
         Intent intent = new Intent();
         switch (engine) {

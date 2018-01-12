@@ -109,7 +109,7 @@ public class AuthorPresenter extends MvpBasePresenter<AuthorView> implements IAu
                                     view.setMoreData(unLimit91PornItems);
                                 }
                                 //已经最后一页了
-                                if (page == totalPage) {
+                                if (page >= totalPage) {
                                     view.noMoreData();
                                 } else {
                                     page++;

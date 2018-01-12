@@ -28,6 +28,14 @@ public class HeaderUtils {
     }
 
     /**
+     * 收藏
+     * @return header
+     */
+    public static String getFavHeader(){
+        return MyApplication.getInstace().getHost() + "my_favour.php";
+    }
+
+    /**
      * 获取用户header
      * @param action login or register
      * @return header

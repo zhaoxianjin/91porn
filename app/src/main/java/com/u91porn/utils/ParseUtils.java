@@ -2,8 +2,6 @@ package com.u91porn.utils;
 
 import android.text.TextUtils;
 
-import com.bugsnag.android.Bugsnag;
-import com.bugsnag.android.Severity;
 import com.orhanobut.logger.Logger;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.UnLimit91PornItem;
@@ -138,7 +136,7 @@ public class ParseUtils {
         Document doc = Jsoup.parse(html);
         Element body = doc.getElementById("fullside");
         if (body == null) {
-            String errorMsg=parseErrorLoginInfo(html);
+            String errorMsg = parseErrorInfo(html);
             Logger.t(TAG).d(errorMsg);
             BaseResult baseResult = new BaseResult();
 
@@ -327,6 +325,11 @@ public class ParseUtils {
             unLimit91PornItem.setInfo(info);
             Logger.t(TAG).d(info);
 
+            String rvid = element.select("input").first().attr("value");
+            Logger.t(TAG).d("rvid::" + rvid);
+            VideoResult videoResult = new VideoResult();
+            videoResult.setVideoId(rvid);
+            unLimit91PornItem.getVideoResult().setTarget(videoResult);
 
             unLimit91PornItemList.add(unLimit91PornItem);
         }
@@ -341,8 +344,23 @@ public class ParseUtils {
                 Logger.d("总页数：" + totalPage);
             }
         }
-
         BaseResult baseResult = new BaseResult();
+        //尝试解析删除信息
+        Elements msgElements = doc.select("div.msgbox");
+        if (msgElements != null) {
+            String msgInfo = msgElements.text();
+            if (!TextUtils.isEmpty(msgInfo)) {
+                baseResult.setCode(BaseResult.SUCCESS_CODE);
+                baseResult.setMessage(msgInfo);
+            }
+        } else {
+            String errorMsg = parseErrorInfo(html);
+            if (!TextUtils.isEmpty(errorMsg)) {
+                baseResult.setMessage(errorMsg);
+                baseResult.setCode(BaseResult.ERROR_CODE);
+            }
+        }
+
         baseResult.setTotalPage(totalPage);
         baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
 
@@ -351,6 +369,7 @@ public class ParseUtils {
 
     /**
      * 解析作者更多视频
+     *
      * @param html html
      * @return list
      */
@@ -391,7 +410,6 @@ public class ParseUtils {
             unLimit91PornItem.setInfo(info);
             //Logger.t(TAG).d(info);
 
-
             unLimit91PornItemList.add(unLimit91PornItem);
         }
 
@@ -414,19 +432,18 @@ public class ParseUtils {
     }
 
     /**
-     * 解析登录注册等错误提示
+     * 解析错误提示
      *
      * @param html html
      * @return 错误洗洗脑
      */
-    public static String parseErrorLoginInfo(String html) {
-        String errorInfo = "未知";
+    public static String parseErrorInfo(String html) {
+        String errorInfo = "";
         Document doc = Jsoup.parse(html);
-        // Elements ee = doc.getElementsByClass("errorbox");
-        Elements e = doc.select("div.errorbox");
-
-        errorInfo = e.text();
-
+        Elements errorElements = doc.select("div.errorbox");
+        if (errorElements != null) {
+            errorInfo = errorElements.text();
+        }
         return errorInfo;
     }
 

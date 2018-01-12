@@ -106,6 +106,20 @@ public interface NoLimit91PornServiceApi {
     @GET("/my_favour.php")
     Observable<String> myFavorite(@Query("page") int page, @Header("Referer") String referer);
 
+    /**删除我的收藏
+     * rvid=250198&removfavour=Remove+Favorite&x=45&y=19
+     * @param rvid 要删除的视频id
+     * @param removFavour 标志
+     * @param x 点击x
+     * @param y 点击y
+     * @param referer rf
+     * @return ob
+     */
+    @FormUrlEncoded
+    @POST("/my_favour.php")
+    Observable<String> deleteMyFavorite(@Field("rvid") String rvid,@Field("removfavour") String removFavour,@Field("x") int x,@Field("y") int y, @Header("Referer") String referer);
+
+
     /**
      * 收藏视频
      *

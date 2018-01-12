@@ -6,17 +6,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
-import com.devbrackets.android.exomedia.ui.widget.VideoView;
+import com.flymegoc.exolibrary.widget.ExoVideoControlsMobile;
+import com.flymegoc.exolibrary.widget.ExoVideoView;
 import com.u91porn.R;
-import com.u91porn.widget.VideoControlsMobile;
 
 /**
  * @author flymegoc
  */
 public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedListener {
 
-    private VideoView videoplayer;
-    private VideoControlsMobile videoControlsMobile;
+    private ExoVideoView videoplayer;
+    private ExoVideoControlsMobile videoControlsMobile;
     private boolean isPauseByActivityEvent = false;
 
     @Override
@@ -29,10 +29,8 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
     public void initPlayerView() {
         View view = LayoutInflater.from(this).inflate(R.layout.playback_engine_exo_media, videoplayerContainer, true);
         videoplayer = view.findViewById(R.id.video_view);
-        videoplayer.setReleaseOnDetachFromWindow(false);
+        videoControlsMobile = (ExoVideoControlsMobile) videoplayer.getVideoControls();
         videoplayer.setOnPreparedListener(this);
-        videoControlsMobile = new VideoControlsMobile(this);
-        videoplayer.setControls(videoControlsMobile);
     }
 
     @Override
@@ -41,8 +39,16 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
             isPauseByActivityEvent = false;
             videoplayer.reset();
         }
+        videoControlsMobile.setOnBackButtonClickListener(new ExoVideoControlsMobile.OnBackButtonClickListener() {
+            @Override
+            public void onBackClick(View view) {
+                onBackPressed();
+            }
+        });
+        videoplayer.setPreviewImage(Uri.parse(thumImgUrl));
         String proxyUrl = proxy.getProxyUrl(videoUrl);
         videoplayer.setVideoURI(Uri.parse(proxyUrl));
+        videoControlsMobile.setTitle(title);
     }
 
     @Override

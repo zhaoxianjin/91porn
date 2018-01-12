@@ -49,6 +49,7 @@ public class UnLimit91PornItem implements Serializable {
     private Date addDownloadDate;
     private Date finshedDownloadDate;
     private Date viewHistoryDate;
+
     public Long getId() {
         return id;
     }
@@ -215,6 +216,10 @@ public class UnLimit91PornItem implements Serializable {
 
     public void setViewHistoryDate(Date viewHistoryDate) {
         this.viewHistoryDate = viewHistoryDate;
+    }
+
+    public String getTitleWithDuration() {
+        return getTitle() + "  (" + getDuration() + ")";
     }
 
     @Override

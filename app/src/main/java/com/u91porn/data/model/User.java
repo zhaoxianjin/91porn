@@ -60,4 +60,16 @@ public class User {
     public void setLogin(boolean login) {
         isLogin = login;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userName='" + userName + '\'' +
+                ", isLogin=" + isLogin +
+                ", userId=" + userId +
+                ", status='" + status + '\'' +
+                ", lastLoginTime='" + lastLoginTime + '\'' +
+                ", lastLoginIP='" + lastLoginIP + '\'' +
+                '}';
+    }
 }

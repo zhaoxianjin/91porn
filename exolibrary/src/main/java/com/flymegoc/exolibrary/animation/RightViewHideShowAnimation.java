@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.u91porn.animation;
+package com.flymegoc.exolibrary.animation;
 
 import android.content.Context;
 import android.support.v4.view.animation.FastOutLinearInInterpolator;

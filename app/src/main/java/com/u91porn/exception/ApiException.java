@@ -139,6 +139,10 @@ public class ApiException extends Exception {
             ex = new ApiException(e, ERROR.PARSE_VIDEO_URL_ERROR);
             ex.message = e.getMessage();
             return ex;
+        } else if (e instanceof FavoriteException) {
+            ex = new ApiException(e, ERROR.FAVORITE_VIDEO_ERROR);
+            ex.message = e.getMessage();
+            return ex;
         } else {
             ex = new ApiException(e, ERROR.UNKNOWN);
             ex.message = "未知错误";
@@ -211,5 +215,9 @@ public class ApiException extends Exception {
          * 解析视频链接错误
          */
         private static final int PARSE_VIDEO_URL_ERROR = NULLPOINTER_EXCEPTION + 1;
+        /**
+         * 解析视频链接错误
+         */
+        private static final int FAVORITE_VIDEO_ERROR = PARSE_VIDEO_URL_ERROR + 1;
     }
 }

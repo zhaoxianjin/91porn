@@ -3,6 +3,8 @@ package com.u91porn.ui.favorite;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
@@ -18,9 +20,12 @@ import com.u91porn.data.model.Favorite;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.UnLimit91PornItem_;
 import com.u91porn.data.model.User;
+import com.u91porn.exception.ApiException;
+import com.u91porn.exception.FavoriteException;
 import com.u91porn.utils.BoxQureyHelper;
 import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.Constants;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.ParseUtils;
 
 import org.greenrobot.essentials.io.FileUtils;
@@ -64,6 +69,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
      * 本次强制刷新过那下面的请求也一起刷新
      */
     private boolean cleanCache = false;
+    private String uploadMsg;
 
     public FavoritePresenter(Box<UnLimit91PornItem> unLimit91PornItemBox, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
         this.unLimit91PornItemBox = unLimit91PornItemBox;
@@ -74,54 +80,65 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
     }
 
     @Override
-    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType,String referer) {
-        favorite(cpaintFunction, uId, videoId, ownnerId, responseType,referer, null);
+    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType, String referer) {
+        favorite(cpaintFunction, uId, videoId, ownnerId, responseType, referer, null);
     }
 
-    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType,String referer, final FavoriteListener favoriteListener) {
-        noLimit91PornServiceApi.favoriteVideo(cpaintFunction, uId, videoId, ownnerId, responseType,referer)
+    public void favorite(String cpaintFunction, String uId, String videoId, String ownnerId, String responseType, String referer, final FavoriteListener favoriteListener) {
+        noLimit91PornServiceApi.favoriteVideo(cpaintFunction, uId, videoId, ownnerId, responseType, referer)
                 .map(new Function<String, Favorite>() {
                     @Override
                     public Favorite apply(String s) throws Exception {
+                        Logger.t(TAG).d("favoriteStr: " + s);
+                        uploadMsg = s;
                         return new Gson().fromJson(s, Favorite.class);
+                    }
+                })
+                .map(new Function<Favorite, Integer>() {
+                    @Override
+                    public Integer apply(Favorite favorite) throws Exception {
+                        return favorite.getAddFavMessage().get(0).getData();
+                    }
+                })
+                .map(new Function<Integer, String>() {
+                    @Override
+                    public String apply(Integer code) throws Exception {
+                        String msg;
+                        switch (code) {
+                            case Favorite.FAVORITE_SUCCESS:
+                                msg = "收藏成功";
+                                break;
+                            case Favorite.FAVORITE_FAIL:
+                                throw new FavoriteException("收藏失败");
+                            case Favorite.FAVORITE_ALREADY:
+                                throw new FavoriteException("已经收藏过了");
+                            case Favorite.FAVORITE_YOURSELF:
+                                throw new FavoriteException("不能收藏自己的视频");
+                            default:
+                                throw new FavoriteException("收藏失败");
+                        }
+                        return msg;
                     }
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<Favorite>bindUntilEvent(ActivityEvent.DESTROY))
-                .subscribe(new CallBackWrapper<Favorite>() {
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
+                .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {
 
                     }
 
                     @Override
-                    public void onSuccess(final Favorite favorite) {
-                        Logger.t(TAG).d(favorite);
+                    public void onSuccess(final String msg) {
                         if (favoriteListener != null) {
-                            if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_SUCCESS) {
-                                favoriteListener.onSuccess("收藏成功");
-                            } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_FAIL) {
-                                favoriteListener.onError("收藏失败");
-                            } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_ALREADY) {
-                                favoriteListener.onError("已经收藏过了");
-                            } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_YOURSELF) {
-                                favoriteListener.onError("不能收藏自己的视频");
-                            }
+                            favoriteListener.onSuccess(msg);
 
                         } else {
                             ifViewAttached(new ViewAction<FavoriteView>() {
                                 @Override
                                 public void run(@NonNull FavoriteView view) {
-                                    if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_SUCCESS) {
-                                        view.showMessage("收藏成功", TastyToast.SUCCESS);
-                                    } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_FAIL) {
-                                        view.showMessage("收藏失败", TastyToast.ERROR);
-                                    } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_ALREADY) {
-                                        view.showMessage("已经收藏过了", TastyToast.INFO);
-                                    } else if (favorite.getAddFavMessage().get(0).getData() == Favorite.FAVORITE_YOURSELF) {
-                                        view.showMessage("不能收藏自己的视频", TastyToast.WARNING);
-                                    }
+                                    view.showMessage(msg, TastyToast.SUCCESS);
                                 }
                             });
                         }
@@ -129,15 +146,37 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
 
                     @Override
                     public void onError(final String msg, int code) {
-                        if (favoriteListener != null) {
-                            favoriteListener.onError(msg);
-                        } else {
-                            ifViewAttached(new ViewAction<FavoriteView>() {
-                                @Override
-                                public void run(@NonNull FavoriteView view) {
-                                    view.showMessage(msg, TastyToast.ERROR);
+                        if (code == ApiException.ERROR.NULLPOINTER_EXCEPTION) {
+                            if (!TextUtils.isEmpty(uploadMsg)) {
+                                if (user != null) {
+                                    uploadMsg = uploadMsg + user.toString();
                                 }
-                            });
+                                //仅做分析
+                                Bugsnag.notify(new Throwable("Info: " + uploadMsg), Severity.WARNING);
+                            }
+
+                            final String message = "收藏失败";
+                            if (favoriteListener != null) {
+                                favoriteListener.onError(message);
+                            } else {
+                                ifViewAttached(new ViewAction<FavoriteView>() {
+                                    @Override
+                                    public void run(@NonNull FavoriteView view) {
+                                        view.showMessage(message, TastyToast.ERROR);
+                                    }
+                                });
+                            }
+                        } else {
+                            if (favoriteListener != null) {
+                                favoriteListener.onError(msg);
+                            } else {
+                                ifViewAttached(new ViewAction<FavoriteView>() {
+                                    @Override
+                                    public void run(@NonNull FavoriteView view) {
+                                        view.showMessage(msg, TastyToast.ERROR);
+                                    }
+                                });
+                            }
                         }
                     }
                 });
@@ -145,7 +184,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
 
 
     @Override
-    public void loadRemoteFavoriteData(final boolean pullToRefresh,String referer) {
+    public void loadRemoteFavoriteData(final boolean pullToRefresh, String referer) {
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
@@ -156,10 +195,22 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         if (user != null) {
             condition = user.getUserName();
         }
+        if (TextUtils.isEmpty(condition)) {
+            ifViewAttached(new ViewAction<FavoriteView>() {
+                @Override
+                public void run(@NonNull FavoriteView view) {
+                    if (user != null) {
+                        Bugsnag.notify(new Throwable(TAG + " user info: " + user.toString()), Severity.WARNING);
+                    }
+                    view.showError("用户信息不完整，请重新登录后重试！");
+                }
+            });
+            return;
+        }
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(condition, page);
         EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
 
-        Observable<String> favoriteObservable = noLimit91PornServiceApi.myFavorite(page,referer);
+        Observable<String> favoriteObservable = noLimit91PornServiceApi.myFavorite(page, referer);
 
         cacheProviders.getFavorite(favoriteObservable, dynamicKeyGroup, evictDynamicKey)
                 .map(new Function<Reply<String>, String>() {
@@ -180,7 +231,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -208,7 +259,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                                     view.setMoreData(unLimit91PornItems);
                                 }
                                 //已经最后一页了
-                                if (page == totalPage) {
+                                if (page >= totalPage) {
                                     view.noMoreData();
                                 } else {
                                     page++;
@@ -235,21 +286,64 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
     }
 
     @Override
-    public void deleteFavorite(final int position, UnLimit91PornItem unLimit91PornItem) {
+    public void deleteFavorite(String rvid) {
+        String removFavour = "Remove Favorite";
+        noLimit91PornServiceApi.deleteMyFavorite(rvid, removFavour, 45, 19, HeaderUtils.getFavHeader())
+                .map(new Function<String, BaseResult>() {
+                    @Override
+                    public BaseResult apply(String s) throws Exception {
+                        return ParseUtils.parseMyFavorite(s);
+                    }
+                })
+                .map(new Function<BaseResult, BaseResult>() {
+                    @Override
+                    public BaseResult apply(BaseResult baseResult) throws Exception {
+                        if (baseResult.getCode() == BaseResult.ERROR_CODE) {
+                            throw new FavoriteException(baseResult.getMessage());
+                        }
+                        return baseResult;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<BaseResult>bindUntilEvent(ActivityEvent.STOP))
+                .subscribe(new CallBackWrapper<BaseResult>() {
+                    @Override
+                    public void onBegin(Disposable d) {
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                view.showDeleteDialog();
+                            }
+                        });
+                    }
 
-        String videoUrl = BoxQureyHelper.getVideoUrlByViewKey(unLimit91PornItem.getViewKey());
-        if (TextUtils.isEmpty(videoUrl)) {
-            unLimit91PornItemBox.remove(unLimit91PornItem.getId());
-        } else {
-            unLimit91PornItem.setFavorite(UnLimit91PornItem.FAVORITE_NO);
-            unLimit91PornItemBox.put(unLimit91PornItem);
-        }
-        ifViewAttached(new ViewAction<FavoriteView>() {
-            @Override
-            public void run(@NonNull FavoriteView view) {
-                view.deleteFavoriteSucc(position);
-            }
-        });
+                    @Override
+                    public void onSuccess(final BaseResult baseResult) {
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                if (baseResult.getCode() == BaseResult.SUCCESS_CODE && !TextUtils.isEmpty(baseResult.getMessage())) {
+                                    //顺序很重要，涉及缓存
+                                    view.setFavoriteData(baseResult.getUnLimit91PornItemList());
+                                    view.deleteFavoriteSucc(baseResult.getMessage());
+                                }
+                            }
+                        });
+
+                    }
+
+                    @Override
+                    public void onError(final String msg, int code) {
+                        ifViewAttached(new ViewAction<FavoriteView>() {
+                            @Override
+                            public void run(@NonNull FavoriteView view) {
+                                view.deleteFavoriteError(msg);
+                            }
+                        });
+                    }
+                })
+        ;
     }
 
     @Override

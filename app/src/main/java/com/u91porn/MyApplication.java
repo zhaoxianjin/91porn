@@ -1,16 +1,15 @@
 package com.u91porn;
 
-import android.app.Application;
-import android.content.Context;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDexApplication;
 import android.text.TextUtils;
 
 import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
-
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -92,7 +91,24 @@ public class MyApplication extends MultiDexApplication {
         if (!BuildConfig.DEBUG) {
             //初始化bug收集
             Bugsnag.init(this);
+        } else {
+            enableStrictMode();
         }
+    }
+
+    private void enableStrictMode() {
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .detectNetwork()
+                .penaltyLog()
+                .build());
+
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                .detectLeakedSqlLiteObjects()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .build());
     }
 
     private void initFileDownload() {
@@ -146,10 +162,20 @@ public class MyApplication extends MultiDexApplication {
     }
 
     public User getUser() {
+        boolean isUserInfoNotComplete = user == null || user.getUserId() == 0 || TextUtils.isEmpty(user.getUserName());
+        if (isUserInfoNotComplete) {
+            return null;
+        }
+        if (user!=null&&(user.getUserId()==0||TextUtils.isEmpty(user.getUserName()))){
+            Bugsnag.notify(new Throwable("User info: "+user.toString()), Severity.WARNING);
+        }
         return user;
     }
 
     public void setUser(User user) {
+        if (user != null) {
+            Logger.t(TAG).d(user.toString());
+        }
         this.user = user;
     }
 
@@ -224,8 +250,8 @@ public class MyApplication extends MultiDexApplication {
                 Request.Builder requestBuilder = original.newBuilder();
                 requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299");
                 requestBuilder.header("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5");
-                requestBuilder.header("Proxy-Connection","keep-alive");
-                requestBuilder.header("Cache-Control","max-age=0");
+                requestBuilder.header("Proxy-Connection", "keep-alive");
+                requestBuilder.header("Cache-Control", "max-age=0");
                 // requestBuilder.header("X-Forwarded-For","114.114.114.117")
                 requestBuilder.method(original.method(), original.body());
                 String host = MyApplication.this.host;
@@ -242,9 +268,9 @@ public class MyApplication extends MultiDexApplication {
                             requestBuilder.header("Host", host);
                         }
                     }
-                }else {
+                } else {
                     if (!"github.com".equals(original.url().host())) {
-                        host=Constants.BASE_URL.substring(Constants.BASE_URL.indexOf("//") + 2, Constants.BASE_URL.lastIndexOf("/"));
+                        host = Constants.BASE_URL.substring(Constants.BASE_URL.indexOf("//") + 2, Constants.BASE_URL.lastIndexOf("/"));
                         requestBuilder.header("Host", host);
                     }
                 }
@@ -260,7 +286,7 @@ public class MyApplication extends MultiDexApplication {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
             public void log(@NonNull String message) {
-                Logger.t(TAG).d("HttpLog:"+message);
+                Logger.t(TAG).d("HttpLog:" + message);
             }
         });
         logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);

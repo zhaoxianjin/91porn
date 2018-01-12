@@ -1,5 +1,6 @@
 package com.u91porn.ui.play;
 
+import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -49,12 +50,18 @@ import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.BoxQureyHelper;
+import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.LoadHelperUtils;
 import com.u91porn.utils.SPUtils;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.PermissionListener;
+import com.yanzhenjie.permission.Rationale;
+import com.yanzhenjie.permission.RationaleListener;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -122,6 +129,8 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
     private boolean isVideoError = true;
     private boolean isComment = true;
     private VideoComment videoComment;
+    private int permisionCode = 300;
+    private int permisionReqCode = 400;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -546,6 +555,10 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.menu_play_collect) {
+            if (unLimit91PornItem == null || unLimit91PornItem.getVideoResult() == null) {
+                showMessage("还未成功解析视频链接，不能收藏！", TastyToast.INFO);
+                return true;
+            }
             VideoResult videoResult = unLimit91PornItem.getVideoResult().getTarget();
             if (videoResult == null) {
                 showMessage("还未成功解析视频链接，不能收藏！", TastyToast.INFO);
@@ -565,7 +578,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
             presenter.favorite("addToFavorites", String.valueOf(user.getUserId()), videoResult.getVideoId(), videoResult.getOwnnerId(), "json", HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
             return true;
         } else if (id == R.id.menu_play_download) {
-            presenter.downloadVideo(unLimit91PornItem);
+            makeDirAndCheckPermision();
             return true;
         } else if (id == R.id.menu_play_share) {
             if (unLimit91PornItem.getVideoResult() == null || unLimit91PornItem.getVideoResult().getTarget() == null) {
@@ -600,6 +613,13 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == permisionReqCode) {
+            if (AndPermission.hasPermission(BasePlayVideo.this, permission)) {
+                presenter.downloadVideo(unLimit91PornItem);
+            } else {
+                showMessage("你拒绝了读写存储卡权限，无法下载！！", TastyToast.WARNING);
+            }
+        }
         if (resultCode == AuthorActivity.AUTHORACTIVITY_RESULT_CODE) {
             unLimit91PornItem = (UnLimit91PornItem) data.getSerializableExtra(Keys.KEY_INTENT_UNLIMIT91PORNITEM);
             recyclerViewVideoComment.smoothScrollToPosition(0);
@@ -610,4 +630,74 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
+
+    /**
+     * 申请权限并创建下载目录
+     */
+    private void makeDirAndCheckPermision() {
+        if (AndPermission.hasPermission(BasePlayVideo.this, permission)) {
+            presenter.downloadVideo(unLimit91PornItem);
+        } else {
+            AndPermission.with(this)
+                    .requestCode(permisionCode)
+                    .permission(permission)
+                    .rationale(new RationaleListener() {
+                        @Override
+                        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+                            // 此对话框可以自定义，调用rationale.resume()就可以继续申请。
+                            AndPermission.rationaleDialog(BasePlayVideo.this, rationale).show();
+                        }
+                    })
+                    .callback(listener)
+                    .start();
+
+        }
+    }
+
+    private String[] permission = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+    private PermissionListener listener = new PermissionListener() {
+        File file = new File(Constants.DOWNLOAD_PATH);
+
+        @Override
+        public void onSucceed(int requestCode, @NonNull List<String> grantedPermissions) {
+            // 权限申请成功回调。
+
+            // 这里的requestCode就是申请时设置的requestCode。
+            // 和onActivityResult()的requestCode一样，用来区分多个不同的请求。
+            if (requestCode == permisionCode) {
+                // TODO ...
+                if (AndPermission.hasPermission(BasePlayVideo.this, grantedPermissions)) {
+                    if (!file.exists()) {
+                        if (file.mkdirs()) {
+                            presenter.downloadVideo(unLimit91PornItem);
+                        } else {
+                            showMessage("创建下载目录失败了", TastyToast.ERROR);
+                        }
+                    } else {
+                        presenter.downloadVideo(unLimit91PornItem);
+                    }
+                } else {
+                    AndPermission.defaultSettingDialog(BasePlayVideo.this, permisionReqCode).show();
+                }
+            }
+        }
+
+        @Override
+        public void onFailed(int requestCode, @NonNull List<String> deniedPermissions) {
+            // 权限申请失败回调。
+            if (requestCode == permisionCode) {
+                // TODO ...
+                if (!AndPermission.hasPermission(BasePlayVideo.this, deniedPermissions)) {
+                    // 是否有不再提示并拒绝的权限。
+                    if (AndPermission.hasAlwaysDeniedPermission(BasePlayVideo.this, deniedPermissions)) {
+                        // 第一种：用AndPermission默认的提示语。
+                        AndPermission.defaultSettingDialog(BasePlayVideo.this, permisionReqCode).show();
+                    } else {
+                        AndPermission.defaultSettingDialog(BasePlayVideo.this, permisionReqCode).show();
+                    }
+                }
+            }
+        }
+    };
 }

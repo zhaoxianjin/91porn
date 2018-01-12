@@ -108,7 +108,7 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
                                     view.setMoreData(unLimit91PornItems);
                                 }
                                 //已经最后一页了
-                                if (page == totalPage) {
+                                if (page >= totalPage) {
                                     view.noMoreData();
                                 } else {
                                     page++;

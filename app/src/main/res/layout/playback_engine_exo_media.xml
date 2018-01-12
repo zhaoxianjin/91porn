@@ -4,10 +4,11 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.devbrackets.android.exomedia.ui.widget.VideoView
+    <com.flymegoc.exolibrary.widget.ExoVideoView
         android:id="@+id/video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:useDefaultControls="true"
         app:useTextureViewBacking="true"
         android:background="@android:color/black" />
 </merge>

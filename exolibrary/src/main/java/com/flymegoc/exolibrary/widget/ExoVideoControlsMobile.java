@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.u91porn.widget;
+package com.flymegoc.exolibrary.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
@@ -30,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -37,30 +39,29 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
 import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
-import com.devbrackets.android.exomedia.ui.widget.VideoControls;
-import com.devbrackets.android.exomedia.ui.widget.VideoView;
+import com.devbrackets.android.exomedia.util.ResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
-import com.github.ybq.android.spinkit.style.FadingCircle;
-import com.qmuiteam.qmui.util.QMUIDisplayHelper;
-import com.u91porn.R;
-import com.u91porn.animation.RightViewHideShowAnimation;
+import com.flymegoc.exolibrary.R;
+import com.flymegoc.exolibrary.animation.RightViewHideShowAnimation;
+import com.flymegoc.exolibrary.utils.ActivityUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import cn.jzvd.JZUtils;
-
 /**
- * Provides playback controls for the {@link VideoView} on Mobile
+ * Provides playback controls for the {@link ExoVideoView} on Mobile
  * (Phone, Tablet, etc.) devices.
  */
 @SuppressWarnings("unused")
-public class VideoControlsMobile extends VideoControls {
+public class ExoVideoControlsMobile extends ExoVideoControls {
+    private static final String TAG = ExoVideoControlsMobile.class.getSimpleName();
     protected AppCompatSeekBar seekBar;
     protected ImageView fullScreenImageView;
     protected TextView speedTextView;
@@ -71,23 +72,37 @@ public class VideoControlsMobile extends VideoControls {
     protected FullScreenListener fullScreenListener = new FullScreenListener();
 
     protected boolean isPlayComplete = false;
+    protected Drawable replayDrawable;
+    protected Drawable errorDrawable;
     protected ViewGroup speedPanelContainner;
     protected ListView speedListView;
+    protected ImageButton backImageButton;
+    protected OnBackButtonClickListener onBackButtonClickListener;
+    protected boolean isPlayError = false;
+    protected long duration = 0;
+    protected TextView formatTimeTextView;
+    protected TextView volumeLightTextView;
+    protected Drawable volumeDrawable;
+    protected Drawable lightDrawable;
 
-    public VideoControlsMobile(Context context) {
+    public void setOnBackButtonClickListener(OnBackButtonClickListener onBackButtonClickListener) {
+        this.onBackButtonClickListener = onBackButtonClickListener;
+    }
+
+    public ExoVideoControlsMobile(Context context) {
         super(context);
     }
 
-    public VideoControlsMobile(Context context, AttributeSet attrs) {
+    public ExoVideoControlsMobile(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public VideoControlsMobile(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ExoVideoControlsMobile(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public VideoControlsMobile(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public ExoVideoControlsMobile(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
@@ -97,24 +112,71 @@ public class VideoControlsMobile extends VideoControls {
     }
 
     @Override
-    public void setVideoView(@Nullable final VideoView videoView) {
+    public void setVideoView(@Nullable final ExoVideoView videoView) {
         super.setVideoView(videoView);
         if (videoView != null && videoView.getVideoControls() != null) {
             videoView.getVideoControls().setVisibilityListener(new ControlsVisibilityListener());
+            videoView.setReleaseOnDetachFromWindow(false);
             videoView.setOnCompletionListener(new OnCompletionListener() {
                 @Override
                 public void onCompletion() {
                     isPlayComplete = true;
+                    playPauseButton.setImageDrawable(replayDrawable);
+                    hideBuffering();
+                }
+            });
+            videoView.setOnErrorListener(new OnErrorListener() {
+                @Override
+                public boolean onError(Exception e) {
+                    isPlayError = true;
+                    playPauseButton.setImageDrawable(errorDrawable);
+                    hideBuffering();
+                    return false;
+                }
+            });
+            videoView.setOnBufferUpdateListener(new OnBufferUpdateListener() {
+                @Override
+                public void onBufferingUpdate(int bufferPercent) {
+                    if (seekBar != null) {
+                        //当前缓冲和播放进度相等，且没有出错，暂认定为缓冲中...
+                        if (seekBar.getProgress() >= seekBar.getSecondaryProgress() && videoView.isPlaying() && !isPlayError && !isPlayComplete) {
+                            showBuffering();
+                        } else if (!isPlayError && !isPlayComplete) {
+                            hideBuffering();
+                        }
+                    }
                 }
             });
         }
     }
+
+    private void hideBuffering() {
+        if (isLoading) {
+            return;
+        }
+        loadingProgressBar.setVisibility(GONE);
+    }
+
+    private void showBuffering() {
+        if (isLoading) {
+            return;
+        }
+        loadingProgressBar.setVisibility(VISIBLE);
+    }
+
 
     @Override
     protected void onPlayPauseClick() {
         if (isPlayComplete) {
             if (videoView != null) {
                 isPlayComplete = false;
+                playPauseButton.setImageDrawable(pauseDrawable);
+                videoView.restart();
+            }
+        } else if (isPlayError) {
+            if (videoView != null) {
+                isPlayError = false;
+                playPauseButton.setImageDrawable(pauseDrawable);
                 videoView.restart();
             }
         } else {
@@ -131,6 +193,7 @@ public class VideoControlsMobile extends VideoControls {
 
     @Override
     public void setDuration(@IntRange(from = 0) long duration) {
+        this.duration = duration;
         if (duration != seekBar.getMax()) {
             endTimeTextView.setText(TimeFormatUtil.formatMs(duration));
             seekBar.setMax((int) duration);
@@ -178,10 +241,9 @@ public class VideoControlsMobile extends VideoControls {
         bottomProgressBar = findViewById(R.id.exomedia_controls_bottom_progress);
         speedPanelContainner = findViewById(R.id.exomedia_controls_right_speed_panel);
         speedListView = findViewById(R.id.exomedia_controls_right_speed_listview);
-
-        FadingCircle fadingCircle = new FadingCircle();
-        fadingCircle.setBounds(0, 0, 50, 50);
-        loadingProgressBar.setIndeterminateDrawable(fadingCircle);
+        backImageButton = findViewById(R.id.exomedia_controls_back);
+        formatTimeTextView = findViewById(R.id.exomedia_controls_format_time);
+        volumeLightTextView = findViewById(R.id.exomedia_controls_volume_textview);
     }
 
     @Override
@@ -201,7 +263,7 @@ public class VideoControlsMobile extends VideoControls {
         speedTextView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (videoView != null && !videoView.isPlaying()) {
+                if (videoView != null && !videoView.isPlaying() || speedPanelContainner.getVisibility() == VISIBLE) {
                     return;
                 }
                 LayoutParams layoutParams = (LayoutParams) speedPanelContainner.getLayoutParams();
@@ -224,16 +286,28 @@ public class VideoControlsMobile extends VideoControls {
                 hide();
             }
         });
+        backImageButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isFullScreen) {
+                    exitFullScreen();
+                } else {
+                    if (onBackButtonClickListener != null) {
+                        onBackButtonClickListener.onBackClick(backImageButton);
+                    }
+                }
+            }
+        });
     }
 
     protected void goFullScreen() {
         isFullScreen = true;
-        fullScreenImageView.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.jz_shrink));
+        fullScreenImageView.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.discover_video_fs_exit_fullscr));
         //setUiFlags(true);
         hideSystemUI();
-        JZUtils.setRequestedOrientation(getContext(), ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        ActivityUtils.setRequestedOrientation(getContext(), ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        ViewGroup viewGroup = JZUtils.getWindow(getContext()).getDecorView().findViewById(android.R.id.content);
+        ViewGroup viewGroup = ActivityUtils.getWindow(getContext()).getDecorView().findViewById(android.R.id.content);
         parentViewGroup = (ViewGroup) videoView.getParent();
         parentViewGroup.removeView(videoView);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
@@ -243,17 +317,17 @@ public class VideoControlsMobile extends VideoControls {
 
         RelativeLayout parent = (RelativeLayout) controlsContainer.getParent();
         ViewGroup.LayoutParams layoutParams = parent.getLayoutParams();
-        layoutParams.width = QMUIDisplayHelper.getScreenWidth(getContext()) + 1000;
+        layoutParams.width = getWidth() + 1000;
         parent.setLayoutParams(layoutParams);
     }
 
     protected void exitFullScreen() {
         isFullScreen = false;
-        fullScreenImageView.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.jz_enlarge));
+        fullScreenImageView.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.discover_video_fullscr));
         setUiFlags(false);
-        JZUtils.setRequestedOrientation(getContext(), ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        ActivityUtils.setRequestedOrientation(getContext(), ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        ViewGroup viewGroup = JZUtils.getWindow(getContext()).getDecorView().findViewById(android.R.id.content);
+        ViewGroup viewGroup = ActivityUtils.getWindow(getContext()).getDecorView().findViewById(android.R.id.content);
         viewGroup.removeView(videoView);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -288,7 +362,7 @@ public class VideoControlsMobile extends VideoControls {
         // Set the IMMERSIVE flag.
         // Set the content to appear under the system bars so that the content
         // doesn't resize when the system bars hide and show.
-        JZUtils.getWindow(getContext()).getDecorView().setSystemUiVisibility(
+        ActivityUtils.getWindow(getContext()).getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -300,7 +374,7 @@ public class VideoControlsMobile extends VideoControls {
     // This snippet shows the system bars. It does this by removing all the flags
 // except for the ones that make the content appear under the system bars.
     private void showSystemUI() {
-        JZUtils.getWindow(getContext()).getDecorView().setSystemUiVisibility(
+        ActivityUtils.getWindow(getContext()).getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
@@ -308,7 +382,7 @@ public class VideoControlsMobile extends VideoControls {
 
     /**
      * Listens to the system to determine when to show the default controls
-     * for the {@link VideoView}
+     * for the {@link ExoVideoView}
      */
     private class FullScreenListener implements OnSystemUiVisibilityChangeListener {
         @Override
@@ -329,14 +403,14 @@ public class VideoControlsMobile extends VideoControls {
      * @param fullscreen True if entering fullscreen mode
      */
     private void setUiFlags(boolean fullscreen) {
-        View decorView = JZUtils.getWindow(getContext()).getDecorView();
+        View decorView = ActivityUtils.getWindow(getContext()).getDecorView();
         if (decorView != null) {
             decorView.setSystemUiVisibility(fullscreen ? getFullscreenUiFlags() : View.SYSTEM_UI_FLAG_VISIBLE);
         }
     }
 
     /**
-     * A Listener for the {@link VideoControls}
+     * A Listener for the {@link ExoVideoControls}
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
     private class ControlsVisibilityListener implements VideoControlsVisibilityListener {
@@ -365,8 +439,7 @@ public class VideoControlsMobile extends VideoControls {
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
         }
-
-        View decorView = JZUtils.getWindow(getContext()).getDecorView();
+        View decorView = ActivityUtils.getWindow(getContext()).getDecorView();
         if (decorView != null) {
             decorView.setSystemUiVisibility(flags);
             decorView.setOnSystemUiVisibilityChangeListener(fullScreenListener);
@@ -406,12 +479,9 @@ public class VideoControlsMobile extends VideoControls {
             return;
         }
 
-        if (!hideEmptyTextContainer || !isTextContainerEmpty()) {
-            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
-        }
-
         if (!isLoading) {
             controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
         }
         if (isVisible) {
             playPauseButton.setVisibility(GONE);
@@ -428,22 +498,6 @@ public class VideoControlsMobile extends VideoControls {
     }
 
     @Override
-    protected void updateTextContainerVisibility() {
-        if (!isVisible) {
-            return;
-        }
-
-        boolean emptyText = isTextContainerEmpty();
-        if (hideEmptyTextContainer && emptyText && textContainer.getVisibility() == VISIBLE) {
-            textContainer.clearAnimation();
-            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, false, CONTROL_VISIBILITY_ANIMATION_LENGTH));
-        } else if ((!hideEmptyTextContainer || !emptyText) && textContainer.getVisibility() != VISIBLE) {
-            textContainer.clearAnimation();
-            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH));
-        }
-    }
-
-    @Override
     public void showLoading(boolean initialLoad) {
         if (isLoading) {
             return;
@@ -454,10 +508,9 @@ public class VideoControlsMobile extends VideoControls {
         playPauseButton.setVisibility(GONE);
         if (initialLoad) {
             controlsContainer.setVisibility(View.GONE);
+            textContainer.setVisibility(GONE);
         } else {
             playPauseButton.setEnabled(false);
-            previousButton.setEnabled(false);
-            nextButton.setEnabled(false);
         }
 
         show();
@@ -472,20 +525,67 @@ public class VideoControlsMobile extends VideoControls {
         isLoading = false;
         loadingProgressBar.setVisibility(View.GONE);
         controlsContainer.setVisibility(View.VISIBLE);
+        textContainer.setVisibility(VISIBLE);
         playPauseButton.setVisibility(VISIBLE);
         bottomProgressBar.setVisibility(GONE);
         playPauseButton.setEnabled(true);
-        previousButton.setEnabled(enabledViews.get(R.id.exomedia_controls_previous_btn, true));
-        nextButton.setEnabled(enabledViews.get(R.id.exomedia_controls_next_btn, true));
 
         updatePlaybackState(videoView != null && videoView.isPlaying());
     }
 
     @Override
+    public void showFormatTime(long formatTime) {
+        formatTimeTextView.setVisibility(VISIBLE);
+        if (isVisible()) {
+            playPauseButton.setVisibility(GONE);
+        }
+        if (formatTime >= 0) {
+            formatTimeTextView.setText("+ " + TimeFormatUtil.formatMs(formatTime));
+        } else {
+            formatTimeTextView.setText("- " + TimeFormatUtil.formatMs(Math.abs(formatTime)));
+        }
+    }
+
+    @Override
+    public void hideFormatTime() {
+        if (isVisible() && !isLoading) {
+            playPauseButton.setVisibility(VISIBLE);
+        }
+        formatTimeTextView.setVisibility(GONE);
+    }
+
+    @Override
+    public void showVolumeLightView(float volume, int model) {
+        if (isVisible()) {
+            playPauseButton.setVisibility(GONE);
+        }
+        if (model == VOLUME_MODEL) {
+            volumeLightTextView.setCompoundDrawablesWithIntrinsicBounds(volumeDrawable, null, null, null);
+        } else if (model == LIGHT_MODEL) {
+            volumeLightTextView.setCompoundDrawablesWithIntrinsicBounds(lightDrawable, null, null, null);
+        }
+        volumeLightTextView.setVisibility(VISIBLE);
+        int process = (int) (volume * 100);
+        volumeLightTextView.setText(process + "%");
+    }
+
+    @Override
+    public void hideVolumeLightView() {
+        volumeLightTextView.setVisibility(GONE);
+        if (isVisible() && !isLoading) {
+            playPauseButton.setVisibility(VISIBLE);
+        }
+    }
+
+    @Override
     protected void updateButtonDrawables() {
         super.updateButtonDrawables();
-        pauseDrawable = ContextCompat.getDrawable(getContext(), R.drawable.jz_click_pause_selector);
-        playDrawable = ContextCompat.getDrawable(getContext(), R.drawable.jz_click_play_selector);
+        pauseDrawable = ContextCompat.getDrawable(getContext(), R.drawable.discover_video_pause);
+        playDrawable = ContextCompat.getDrawable(getContext(), R.drawable.discover_video_play1);
+        replayDrawable = ContextCompat.getDrawable(getContext(), R.drawable.discover_video_replay);
+        errorDrawable = ContextCompat.getDrawable(getContext(), R.drawable.jc_error_normal);
+        volumeDrawable = ResourceUtil.tintList(getContext(), R.drawable.ic_volume_up_black_24dp, com.devbrackets.android.exomedia.R.color.exomedia_default_controls_button_selector);
+        lightDrawable = ResourceUtil.tintList(getContext(), R.drawable.ic_wb_sunny_black_24dp, com.devbrackets.android.exomedia.R.color.exomedia_default_controls_button_selector);
     }
 
     /**
@@ -521,5 +621,9 @@ public class VideoControlsMobile extends VideoControls {
                 internalListener.onSeekEnded(seekToTime);
             }
         }
+    }
+
+    public interface OnBackButtonClickListener {
+        void onBackClick(View view);
     }
 }

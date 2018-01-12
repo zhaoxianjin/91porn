@@ -6,15 +6,12 @@ import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.User;
 import com.u91porn.utils.CallBackWrapper;
 import com.u91porn.utils.ParseUtils;
 
-import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -75,7 +72,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                                 });
                             }
                         } else {
-                            final String errorinfo = ParseUtils.parseErrorLoginInfo(s);
+                            final String errorinfo = ParseUtils.parseErrorInfo(s);
                             if (loginListener != null) {
                                 loginListener.loginFailure(errorinfo);
                             } else {
@@ -138,7 +135,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                                 }
                             });
                         } else {
-                            final String errorinfo = ParseUtils.parseErrorLoginInfo(s);
+                            final String errorinfo = ParseUtils.parseErrorInfo(s);
                             ifViewAttached(new ViewAction<UserView>() {
                                 @Override
                                 public void run(@NonNull UserView view) {

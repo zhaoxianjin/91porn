@@ -1,6 +1,5 @@
 package com.u91porn.ui.main;
 
-import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
@@ -28,6 +27,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
@@ -55,9 +56,8 @@ import com.u91porn.utils.AppManager;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
-import com.yanzhenjie.permission.AndPermission;
+import com.u91porn.utils.SwitchPlaybackEngine;
 
-import java.io.File;
 import java.util.Calendar;
 
 import butterknife.BindView;
@@ -102,17 +102,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(ContextCompat.getColor(this, android.R.color.transparent));
         }
-        File file = new File(Constants.DOWNLOAD_PATH);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        AndPermission.with(this)
-                .requestCode(300)
-                .permission(
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
-                .start();
         setSupportActionBar(toolbar);
         toolbar.setContentInsetStartWithNavigation(0);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -141,6 +130,8 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
         checkUpdate();
 
+        //统计人数
+        //Bugsnag.notify(new Throwable("count people"), Severity.INFO);
         //testVersionUpdate();
     }
 
@@ -317,7 +308,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
     private void showPlaybackEngineChoiceDialog() {
         final String[] items = new String[]{"Google Exoplayer Engine(Beta)", "JiaoZiPlayer Engine",};
-        final int checkedIndex = (int) SPUtils.get(this, Keys.KEY_SP_PLAYBACK_ENGINE, 1);
+        final int checkedIndex = (int) SPUtils.get(this, Keys.KEY_SP_PLAYBACK_ENGINE, SwitchPlaybackEngine.DEFAULT_PLAYER_ENGINE);
         new QMUIDialog.CheckableDialogBuilder(this)
                 .setTitle("播放引擎选择")
                 .setCheckedIndex(checkedIndex)
@@ -570,7 +561,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 //        });
 //        builder.show();
         new QMUIDialog.MessageDialogBuilder(this)
-                .setTitle("发现新版本")
+                .setTitle("发现新版本--v" + updateVersion.getVersionName())
                 .setMessage(updateVersion.getUpdateMessage())
                 .addAction("立即更新", new QMUIDialogAction.ActionListener() {
                     @Override

@@ -234,29 +234,37 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                         return new Gson().fromJson(s, VideoCommentResult.class);
                     }
                 })
+                .map(new Function<VideoCommentResult, String>() {
+                    @Override
+                    public String apply(VideoCommentResult videoCommentResult) throws Exception {
+                        String msg = "评论错误，未知错误";
+                        if (videoCommentResult.getA().size() == 0) {
+                            throw new VideoException("评论错误，未知错误");
+                        } else if (videoCommentResult.getA().get(0).getData() == VideoCommentResult.COMMENT_SUCCESS) {
+                            msg = "留言已经提交，审核后通过";
+                        } else if (videoCommentResult.getA().get(0).getData() == VideoCommentResult.COMMENT_ALLREADY) {
+                            throw new VideoException("你已经在这个视频下留言过");
+                        } else if (videoCommentResult.getA().get(0).getData() == VideoCommentResult.COMMENT_NO_PERMISION) {
+                            throw new VideoException("不允许留言!");
+                        }
+                        return msg;
+                    }
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<VideoCommentResult>bindUntilEvent(ActivityEvent.DESTROY))
-                .subscribe(new CallBackWrapper<VideoCommentResult>() {
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
+                .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {
 
                     }
 
                     @Override
-                    public void onSuccess(final VideoCommentResult videoCommentResult) {
+                    public void onSuccess(final String result) {
                         ifViewAttached(new ViewAction<PlayVideoView>() {
                             @Override
                             public void run(@NonNull PlayVideoView view) {
-                                if (videoCommentResult.getA().size() == 0) {
-                                    view.commentVideoError("评论错误，未知错误");
-                                } else if (videoCommentResult.getA().get(0).getData() == VideoCommentResult.COMMENT_SUCCESS) {
-                                    view.commentVideoSuccess("留言已经提交，审核后通过");
-                                } else if (videoCommentResult.getA().get(0).getData() == VideoCommentResult.COMMENT_ALLREADY) {
-                                    view.commentVideoError("你已经在这个视频下留言过.");
-                                } else if (videoCommentResult.getA().get(0).getData() == VideoCommentResult.COMMENT_NO_PERMISION) {
-                                    view.commentVideoError("不允许留言!");
-                                }
+                                view.commentVideoSuccess(result);
                             }
                         });
                     }
@@ -319,27 +327,6 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
      */
     private void resetWatchTime(final boolean forceReset) {
         List<Cookie> cookieList = sharedPrefsCookiePersistor.loadAll();
-//        for (Cookie cookie : cookieList) {
-//            if ("watch_times".equals(cookie.name())) {
-//                if (TextUtils.isDigitsOnly(cookie.value())) {
-//                    int watchTime = Integer.parseInt(cookie.value());
-//                    if (watchTime >= 10) {
-//                        Logger.t(TAG).d("已经观看10次，重置cookies");
-//                        sharedPrefsCookiePersistor.delete(cookie);
-//                        setCookieCache.delete(cookie);
-//                    } else {
-//                        Logger.t(TAG).d("当前已经看了：" + cookie.value() + " 次");
-//                    }
-//                } else if ("10".equals(cookie.value())) {
-//                    Logger.t(TAG).d("已经观看10次，重置cookies");
-//                    sharedPrefsCookiePersistor.delete(cookie);
-//                    setCookieCache.delete(cookie);
-//                } else {
-//                    Logger.t(TAG).d("当前已经看了：" + cookie.value() + " 次");
-//                }
-//            }
-//        }
-
 
         Observable
                 .fromIterable(cookieList)

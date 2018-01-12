@@ -12,7 +12,7 @@ public interface IFavorite extends IBaseFavorite {
 
     void loadRemoteFavoriteData(boolean pullToRefresh,String referer);
 
-    void deleteFavorite(int position, UnLimit91PornItem unLimit91PornItem);
+    void deleteFavorite(String rvid);
 
     void exportData(boolean onlyUrl);
 }

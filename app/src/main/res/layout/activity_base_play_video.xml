@@ -123,7 +123,7 @@
         android:layout_margin="@dimen/fab_margin"
         app:layout_behavior="@string/scale_down_show_behavior"
         app:srcCompat="@drawable/ic_add_black_24dp"
-        app:tint="@color/white" />
+        android:tint="@color/white" />
 
     <LinearLayout
         android:id="@+id/et_comment_input_layout"
