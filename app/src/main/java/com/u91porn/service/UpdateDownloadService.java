@@ -21,6 +21,7 @@ import com.orhanobut.logger.Logger;
 import com.u91porn.BuildConfig;
 import com.u91porn.R;
 import com.u91porn.data.model.UpdateVersion;
+import com.u91porn.utils.Constants;
 
 import java.io.File;
 
@@ -38,7 +39,7 @@ public class UpdateDownloadService extends Service {
     private static final int ACTION_CANCEL = 3;
     private static final String TAG = UpdateDownloadService.class.getSimpleName();
     private int progress = 1;
-    private int id = 1;
+    private int id = Constants.APK_DOWNLOAD_NOTIFICATION_ID;
     private int downloadId;
     private String path;
     private UpdateVersion updateVersion;
@@ -60,12 +61,12 @@ public class UpdateDownloadService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         if (intent == null) {
-            return super.onStartCommand(intent, flags, startId);
+            return START_NOT_STICKY;
         }
         int action = intent.getIntExtra(KEY_ACTION, 0);
         if (action == ACTION_PAUSE) {
             FileDownloader.getImpl().pauseAll();
-            return super.onStartCommand(intent, flags, startId);
+            return START_NOT_STICKY;
         } else if (action == ACTION_GO_ON) {
             //直接过去就好
         } else if (action == ACTION_CANCEL) {
@@ -78,13 +79,13 @@ public class UpdateDownloadService extends Service {
                 FileDownloader.getImpl().pauseAll();
                 isPause = true;
             }
-            return super.onStartCommand(intent, flags, startId);
+            return START_NOT_STICKY;
         }
 
         if (updateVersion == null) {
             updateVersion = (UpdateVersion) intent.getSerializableExtra("updateVersion");
             if (updateVersion == null) {
-                return super.onStartCommand(intent, flags, startId);
+                return START_NOT_STICKY;
             }
         }
         path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Environment.DIRECTORY_DOWNLOADS + "/91porn_" + updateVersion.getVersionName() + ".apk";
@@ -195,7 +196,7 @@ public class UpdateDownloadService extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         stopForeground(true);
+        super.onDestroy();
     }
 }

@@ -11,14 +11,13 @@ import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.drawee.interfaces.DraweeController;
-import com.facebook.drawee.view.SimpleDraweeView;
-import com.facebook.imagepipeline.core.ImagePipeline;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.util.QMUIKeyboardHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
@@ -27,6 +26,7 @@ import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.AppManager;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
+import com.u91porn.utils.GlideApp;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.RandomIPAdderssUtils;
@@ -38,7 +38,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.rx_cache2.Reply;
 import okhttp3.Cookie;
 
 /**
@@ -59,7 +58,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     @BindView(R.id.et_captcha)
     EditText etCaptcha;
     @BindView(R.id.wb_captcha)
-    SimpleDraweeView wbCaptcha;
+    ImageView wbCaptcha;
     @BindView(R.id.bt_user_signup)
     Button btUserSignup;
     private NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
@@ -158,6 +157,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         String submitX = "45";
         String submitY = "13";
         String ipAddress = RandomIPAdderssUtils.getRandomIPAdderss();
+        QMUIKeyboardHelper.hideKeyboard(getCurrentFocus());
         presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignup, submitX, submitY, ipAddress, HeaderUtils.getUserHeader("signup"));
     }
 
@@ -181,24 +181,25 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
 
         Logger.t(TAG).d("验证码链接：" + url);
         Uri uri = Uri.parse(url);
-        ImagePipeline imagePipeline = Fresco.getImagePipeline();
-
-        imagePipeline.evictFromCache(uri);
-        wbCaptcha.setImageURI(uri);
-
-        //创建DraweeController
-        DraweeController controller = Fresco.newDraweeControllerBuilder()
-                //加载的图片URI地址
-                .setUri(uri)
-                //设置点击重试是否开启
-                .setTapToRetryEnabled(true)
-                //设置旧的Controller
-                .setOldController(wbCaptcha.getController())
-                //构建
-                .build();
-
-        //设置DraweeController
-        wbCaptcha.setController(controller);
+        GlideApp.with(this).load(uri).placeholder(R.drawable.placeholder).transition(new DrawableTransitionOptions().crossFade(300)).diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).into(wbCaptcha);
+//        ImagePipeline imagePipeline = Fresco.getImagePipeline();
+//
+//        imagePipeline.evictFromCache(uri);
+//        wbCaptcha.setImageURI(uri);
+//
+//        //创建DraweeController
+//        DraweeController controller = Fresco.newDraweeControllerBuilder()
+//                //加载的图片URI地址
+//                .setUri(uri)
+//                //设置点击重试是否开启
+//                .setTapToRetryEnabled(true)
+//                //设置旧的Controller
+//                .setOldController(wbCaptcha.getController())
+//                //构建
+//                .build();
+//
+//        //设置DraweeController
+//        wbCaptcha.setController(controller);
     }
 
     @Override

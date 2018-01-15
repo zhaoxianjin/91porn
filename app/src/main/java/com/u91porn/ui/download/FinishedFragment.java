@@ -21,15 +21,21 @@ import android.view.ViewGroup;
 
 import com.aitsuki.swipe.SwipeItemLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.DownloadVideoAdapter;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpFragment;
+import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DownloadManager;
+import com.u91porn.utils.Keys;
+import com.u91porn.utils.SPUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,7 +44,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import io.objectbox.Box;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -53,7 +58,7 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     Unbinder unbinder;
 
     private DownloadVideoAdapter mDownloadAdapter;
-    private Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+    private boolean isFoucesRefresh = false;
 
     public FinishedFragment() {
         // Required empty public constructor
@@ -69,8 +74,9 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     @Override
     public DownloadPresenter createPresenter() {
         DownloadActivity downloadActivity = (DownloadActivity) getActivity();
-        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
-        return new DownloadPresenter(unLimit91PornItemBox, downloadActivity.provider);
+        HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
+        File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
+        return new DownloadPresenter(GreenDaoHelper.getInstance(), downloadActivity.provider, cacheServer, videoCacheDir);
     }
 
     @Override
@@ -173,7 +179,14 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                presenter.downloadVideo(unLimit91PornItem);
+                boolean isDownloadNeedWifi = (boolean) SPUtils.get(getContext(), Keys.KEY_SP_DOWNLOAD_VIDEO_NEED_WIFI, false);
+                unLimit91PornItem.setDownloadId(0);
+                unLimit91PornItem.setSoFarBytes(0);
+                GreenDaoHelper.getInstance().update(unLimit91PornItem);
+                presenter.downloadVideo(unLimit91PornItem, isDownloadNeedWifi, true);
+                isFoucesRefresh = true;
+                Intent intent = new Intent(getContext(), DownloadVideoService.class);
+                getContext().startService(intent);
             }
         });
         builder.show();
@@ -212,7 +225,8 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
 
     @Override
     public void update(BaseDownloadTask task) {
-        if (task.getStatus() == FileDownloadStatus.completed) {
+        if (task.getStatus() == FileDownloadStatus.completed || isFoucesRefresh) {
+            isFoucesRefresh = false;
             presenter.loadFinishedData();
         }
     }

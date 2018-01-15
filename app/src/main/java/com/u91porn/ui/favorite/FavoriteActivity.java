@@ -17,12 +17,12 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.FavoriteAdapter;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
@@ -37,8 +37,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.Box;
-import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
@@ -103,11 +101,11 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
                 swipeItemLayout.close();
                 if (view.getId() == R.id.right_menu_delete) {
                     UnLimit91PornItem unLimit91PornItem = (UnLimit91PornItem) adapter.getItem(position);
-                    if (unLimit91PornItem == null || unLimit91PornItem.getVideoResult() == null || unLimit91PornItem.getVideoResult().getTarget() == null) {
+                    if (unLimit91PornItem == null || unLimit91PornItem.getVideoResult() == null ) {
                         showMessage("信息错误，无法删除", TastyToast.WARNING);
                         return;
                     }
-                    presenter.deleteFavorite(unLimit91PornItem.getVideoResult().getTarget().getVideoId());
+                    presenter.deleteFavorite(unLimit91PornItem.getVideoResult().getVideoId());
                 }
             }
         });
@@ -135,10 +133,10 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     @NonNull
     @Override
     public FavoritePresenter createPresenter() {
-        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+        GreenDaoHelper greenDaoHelper= GreenDaoHelper.getInstance();
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         User user = MyApplication.getInstace().getUser();
-        return new FavoritePresenter(unLimit91PornItemBox, noLimit91PornServiceApi, cacheProviders, user, provider);
+        return new FavoritePresenter(greenDaoHelper, noLimit91PornServiceApi, cacheProviders, user, provider);
     }
 
 
@@ -189,9 +187,7 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     @Override
     public void setFavoriteData(List<UnLimit91PornItem> unLimit91PornItemList) {
         SPUtils.put(this, Keys.KEY_SP_USER_FAVORITE_NEED_REFRESH, false);
-        mUnLimit91Adapter.loadMoreComplete();
         mUnLimit91Adapter.setNewData(unLimit91PornItemList);
-        mUnLimit91Adapter.disableLoadMoreIfNotFullPage(recyclerView);
     }
 
     @Override

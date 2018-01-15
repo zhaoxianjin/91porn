@@ -14,7 +14,7 @@ import java.util.List;
 
 public interface IndexView extends BaseView {
 
-    void loadData(boolean pullToRefresh);
+    void loadData(boolean pullToRefresh,boolean cleanCache);
 
     void setData(List<UnLimit91PornItem> data);
 }

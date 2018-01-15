@@ -38,13 +38,12 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewStub;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-
-import com.bumptech.glide.Glide;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
@@ -210,7 +209,7 @@ public class ExoVideoView extends RelativeLayout {
      */
     public void setPreviewImage(@Nullable Uri uri) {
         if (previewImageView != null) {
-            Glide.with(getContext()).load(uri).into(previewImageView);
+            previewImageView.setImageURI(uri);
         }
     }
 
@@ -980,22 +979,26 @@ public class ExoVideoView extends RelativeLayout {
      */
     protected class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
         private final AudioManager mAudioManager;
-        protected GestureDetector gestureDetector;
-        protected boolean pausedForSeek = false;
-        protected int stepTime = 0;
-        protected float stepVolume = 0;
-        protected float stepLight = 0;
+        private final int mTouchSlop;
+        private GestureDetector gestureDetector;
+        private boolean pausedForSeek = false;
+        private int stepTime = 0;
+        private float stepVolume = 0;
+        private float stepLight = 0;
         /**
          * false volume true light
          */
-        protected boolean isVolume = false;
-        protected boolean isLight = false;
-        protected boolean isblockY = false;
-        protected boolean isblockX = false;
+        private boolean isVolume = false;
+        private boolean isLight = false;
+        private boolean isblockY = false;
+        private boolean isblockX = false;
+        private float oX;
+        private float oY;
 
         public TouchListener(Context context) {
             gestureDetector = new GestureDetector(context, this);
             mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         }
 
         @Override
@@ -1022,6 +1025,8 @@ public class ExoVideoView extends RelativeLayout {
                 pausedForSeek = false;
                 isblockY = false;
                 isblockX = false;
+                oX = event.getX();
+                oY = event.getY();
                 if (stepVolume == 0) {
                     int max = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
                     int current = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -1039,6 +1044,47 @@ public class ExoVideoView extends RelativeLayout {
                     isVolume = true;
                 }
                 Log.d("AAA", event.getX() + "::::" + per + ":::::" + threePer + "::::::" + getWidth() + ":::::" + isVolume);
+            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                if (videoControls == null) {
+                    return true;
+                }
+                float distanceX = event.getX() - oX;
+                float distanceY = event.getY() - oY;
+                if (!isblockY && Math.abs(distanceX) > Math.abs(distanceY)) {
+                    isblockX = true;
+                } else if (!isblockX && Math.abs(distanceY) > Math.abs(distanceX)) {
+                    isblockY = true;
+                }
+                Log.d("AAAAAAAAAA", distanceX + "--------" + distanceY + "-----" + mTouchSlop);
+                if (distanceX > mTouchSlop && isblockX) {
+                    oX = event.getX();
+                    stepTime = stepTime + 1000;
+                    updateUI(stepTime);
+                } else if (distanceX < -mTouchSlop && isblockX) {
+                    oX = event.getX();
+                    stepTime = stepTime - 1000;
+                    updateUI(stepTime);
+                } else if (isblockY && distanceY > mTouchSlop) {
+                    //TODO 音量和屏幕亮度
+                    oY = event.getY();
+                    if (isLight) {
+                        stepLight -= 0.01;
+                        updateLight(stepLight);
+                    } else if (isVolume) {
+                        stepVolume -= 0.01;
+                        updateVolume(stepVolume);
+                    }
+                } else if (isblockY && distanceY < -mTouchSlop) {
+                    //TODO 音量和屏幕亮度
+                    oY = event.getY();
+                    if (isLight) {
+                        stepLight += 0.01;
+                        updateLight(stepLight);
+                    } else if (isVolume) {
+                        stepVolume += 0.01;
+                        updateVolume(stepVolume);
+                    }
+                }
             }
             gestureDetector.onTouchEvent(event);
             return true;
@@ -1053,43 +1099,6 @@ public class ExoVideoView extends RelativeLayout {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            if (videoControls == null) {
-                return true;
-            }
-            float dx = Math.abs(distanceX);
-            float dy = Math.abs(distanceY);
-
-            if (dx > dy && !isblockY) {
-                isblockX = true;
-            } else if (dx < dy && !isblockX) {
-                isblockY = true;
-            }
-
-            if (distanceX > 0 && isblockX) {
-                stepTime = stepTime - 250;
-                updateUI(stepTime);
-            } else if (distanceX < 0 && isblockX) {
-                stepTime = stepTime + 250;
-                updateUI(stepTime);
-            } else if (isblockY && distanceY > 0) {
-                //TODO 音量和屏幕亮度
-                if (isLight) {
-                    stepLight += 0.005;
-                    updateLight(stepLight);
-                } else if (isVolume) {
-                    stepVolume += 0.005;
-                    updateVolume(stepVolume);
-                }
-            } else if (isblockY && distanceY < 0) {
-                //TODO 音量和屏幕亮度
-                if (isLight) {
-                    stepLight -= 0.005;
-                    updateLight(stepLight);
-                } else if (isVolume) {
-                    stepVolume -= 0.005;
-                    updateVolume(stepVolume);
-                }
-            }
 
             return true;
         }

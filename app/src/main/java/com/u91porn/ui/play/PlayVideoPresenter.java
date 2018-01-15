@@ -11,12 +11,12 @@ import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.MyApplication;
 import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoComment;
 import com.u91porn.data.model.VideoCommentResult;
@@ -24,24 +24,16 @@ import com.u91porn.data.model.VideoResult;
 import com.u91porn.exception.VideoException;
 import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
-import com.u91porn.utils.BoxQureyHelper;
-import com.u91porn.utils.CallBackWrapper;
-import com.u91porn.utils.Keys;
+import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.utils.ParseUtils;
 import com.u91porn.utils.RandomIPAdderssUtils;
-import com.u91porn.utils.SPUtils;
+import com.u91porn.rxjava.RetryWhenProcess;
+import com.u91porn.rxjava.RxSchedulersHelper;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import io.objectbox.Box;
-
-import io.objectbox.relation.RelationInfo;
-import io.objectbox.relation.ToOne;
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
@@ -70,8 +62,9 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     private LifecycleProvider<ActivityEvent> provider;
     private int commentPerPage = 20;
     private int start = 1;
+    private GreenDaoHelper greenDaoHelper;
 
-    public PlayVideoPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, FavoritePresenter favoritePresenter, DownloadPresenter downloadPresenter, SharedPrefsCookiePersistor sharedPrefsCookiePersistor, SetCookieCache setCookieCache, CacheProviders cacheProviders, LifecycleProvider<ActivityEvent> provider) {
+    public PlayVideoPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, FavoritePresenter favoritePresenter, DownloadPresenter downloadPresenter, SharedPrefsCookiePersistor sharedPrefsCookiePersistor, SetCookieCache setCookieCache, CacheProviders cacheProviders, LifecycleProvider<ActivityEvent> provider, GreenDaoHelper greenDaoHelper) {
         this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
         this.favoritePresenter = favoritePresenter;
         this.downloadPresenter = downloadPresenter;
@@ -79,6 +72,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
         this.setCookieCache = setCookieCache;
         this.cacheProviders = cacheProviders;
         this.provider = provider;
+        this.greenDaoHelper = greenDaoHelper;
     }
 
     @Override
@@ -104,24 +98,26 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                         }
                         return responseBodyReply.getData();
                     }
-                }).map(new Function<String, VideoResult>() {
-            @Override
-            public VideoResult apply(String s) throws VideoException {
-                VideoResult videoResult = ParseUtils.parseVideoPlayUrl(s);
-                if (TextUtils.isEmpty(videoResult.getVideoUrl())) {
-                    if (videoResult.getId() == VideoResult.OUT_OF_WATCH_TIMES) {
-                        //尝试强行重置，并上报异常
-                        resetWatchTime(true);
-                        Bugsnag.notify(new Throwable(TAG + ":warning, ten videos each day"), Severity.WARNING);
-                        throw new VideoException("观看次数达到上限了！");
-                    } else {
-                        throw new VideoException("解析视频链接失败了");
+                })
+                .map(new Function<String, VideoResult>() {
+                    @Override
+                    public VideoResult apply(String s) throws VideoException {
+                        VideoResult videoResult = ParseUtils.parseVideoPlayUrl(s);
+                        if (TextUtils.isEmpty(videoResult.getVideoUrl())) {
+                            if (VideoResult.OUT_OF_WATCH_TIMES.equals(videoResult.getId())) {
+                                //尝试强行重置，并上报异常
+                                resetWatchTime(true);
+                                Bugsnag.notify(new Throwable(TAG + ":ten videos each day host:" + MyApplication.getInstace().getHost()), Severity.WARNING);
+                                throw new VideoException("观看次数达到上限了！");
+                            } else {
+                                throw new VideoException("解析视频链接失败了");
+                            }
+                        }
+                        return videoResult;
                     }
-                }
-                return videoResult;
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                })
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<VideoResult>ioMainThread())
                 .compose(provider.<VideoResult>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<VideoResult>() {
                     @Override
@@ -169,56 +165,57 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                         return ParseUtils.parseVideoComment(s);
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<List<VideoComment>>bindUntilEvent(ActivityEvent.DESTROY)).subscribe(new CallBackWrapper<List<VideoComment>>() {
-            @Override
-            public void onBegin(Disposable d) {
-                ifViewAttached(new ViewAction<PlayVideoView>() {
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<List<VideoComment>>ioMainThread())
+                .compose(provider.<List<VideoComment>>bindUntilEvent(ActivityEvent.DESTROY))
+                .subscribe(new CallBackWrapper<List<VideoComment>>() {
                     @Override
-                    public void run(@NonNull PlayVideoView view) {
-                        if (start == 1 && pullToRefresh) {
-                            view.showLoading(pullToRefresh);
-                        }
+                    public void onBegin(Disposable d) {
+                        ifViewAttached(new ViewAction<PlayVideoView>() {
+                            @Override
+                            public void run(@NonNull PlayVideoView view) {
+                                if (start == 1 && pullToRefresh) {
+                                    view.showLoading(pullToRefresh);
+                                }
+                            }
+                        });
                     }
-                });
-            }
 
-            @Override
-            public void onSuccess(final List<VideoComment> videoCommentList) {
-                ifViewAttached(new ViewAction<PlayVideoView>() {
                     @Override
-                    public void run(@NonNull PlayVideoView view) {
-                        if (start == 1) {
-                            view.setVideoCommentData(videoCommentList, pullToRefresh);
-                        } else {
-                            view.setMoreVideoCommentData(videoCommentList);
-                        }
-                        if (videoCommentList.size() == 0 && start == 1) {
-                            view.noMoreVideoCommentData("暂无评论");
-                        } else if (videoCommentList.size() == 0 && start > 1) {
-                            view.noMoreVideoCommentData("没有更多评论了");
-                        }
-                        start++;
-                        view.showContent();
+                    public void onSuccess(final List<VideoComment> videoCommentList) {
+                        ifViewAttached(new ViewAction<PlayVideoView>() {
+                            @Override
+                            public void run(@NonNull PlayVideoView view) {
+                                if (start == 1) {
+                                    view.setVideoCommentData(videoCommentList, pullToRefresh);
+                                } else {
+                                    view.setMoreVideoCommentData(videoCommentList);
+                                }
+                                if (videoCommentList.size() == 0 && start == 1) {
+                                    view.noMoreVideoCommentData("暂无评论");
+                                } else if (videoCommentList.size() == 0 && start > 1) {
+                                    view.noMoreVideoCommentData("没有更多评论了");
+                                }
+                                start++;
+                                view.showContent();
+                            }
+                        });
                     }
-                });
-            }
 
-            @Override
-            public void onError(final String msg, int code) {
-                ifViewAttached(new ViewAction<PlayVideoView>() {
                     @Override
-                    public void run(@NonNull PlayVideoView view) {
-                        if (start == 1) {
-                            view.loadVideoCommentError(msg);
-                        } else {
-                            view.loadMoreVideoCommentError(msg);
-                        }
+                    public void onError(final String msg, int code) {
+                        ifViewAttached(new ViewAction<PlayVideoView>() {
+                            @Override
+                            public void run(@NonNull PlayVideoView view) {
+                                if (start == 1) {
+                                    view.loadVideoCommentError(msg);
+                                } else {
+                                    view.loadMoreVideoCommentError(msg);
+                                }
+                            }
+                        });
                     }
                 });
-            }
-        });
     }
 
     @Override
@@ -250,8 +247,8 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                         return msg;
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<String>ioMainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
@@ -284,8 +281,8 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     @Override
     public void replyComment(String comment, String username, String vid, String commentId, String referer) {
         mNoLimit91PornServiceApi.replyComment(comment, username, vid, commentId, referer)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<String>ioMainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
@@ -383,26 +380,16 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
 
     @Override
     public void saveVideoUrl(VideoResult videoResult, UnLimit91PornItem unLimit91PornItem) {
-        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
-        Box<VideoResult> videoResultBox = MyApplication.getInstace().getBoxStore().boxFor(VideoResult.class);
-        UnLimit91PornItem tmp = BoxQureyHelper.findByViewKey(unLimit91PornItem.getViewKey());
-        if (tmp == null) {
-            unLimit91PornItem.setFavorite(UnLimit91PornItem.FAVORITE_NO);
-            unLimit91PornItem.videoResult.setTarget(videoResult);
-            unLimit91PornItem.setViewHistoryDate(new Date());
-            unLimit91PornItemBox.put(unLimit91PornItem);
-        } else {
-            videoResult.setId(tmp.getId());
-            tmp.setViewHistoryDate(new Date());
-            tmp.videoResult.setTarget(videoResult);
-            unLimit91PornItemBox.put(tmp);
-            videoResultBox.put(videoResult);
-        }
+        greenDaoHelper.insertOrReplaceInTx(videoResult);
+        unLimit91PornItem.setVideoResult(videoResult);
+        unLimit91PornItem.setViewHistoryDate(new Date());
+        greenDaoHelper.insertOrReplaceInTx(unLimit91PornItem);
+
     }
 
     @Override
-    public void downloadVideo(UnLimit91PornItem unLimit91PornItem) {
-        downloadPresenter.downloadVideo(unLimit91PornItem, new DownloadPresenter.DownloadListener() {
+    public void downloadVideo(UnLimit91PornItem unLimit91PornItem, boolean isDownloadNeedWifi, boolean isForceReDownload) {
+        downloadPresenter.downloadVideo(unLimit91PornItem, isDownloadNeedWifi, isForceReDownload, new DownloadPresenter.DownloadListener() {
             @Override
             public void onSuccess(final String message) {
                 ifViewAttached(new ViewAction<PlayVideoView>() {

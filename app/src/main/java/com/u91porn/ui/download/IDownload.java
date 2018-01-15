@@ -11,7 +11,7 @@ import java.util.List;
  */
 
 public interface IDownload extends IBaseDownload {
-    void downloadVideo(UnLimit91PornItem unLimit91PornItem, DownloadPresenter.DownloadListener downloadListener);
+    void downloadVideo(UnLimit91PornItem unLimit91PornItem,boolean isDownloadNeedWifi,boolean isForceReDownload, DownloadPresenter.DownloadListener downloadListener);
 
     void loadDownloadingData();
 

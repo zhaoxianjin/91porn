@@ -1,8 +1,8 @@
 package com.u91porn.ui.index;
 
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -23,11 +23,8 @@ import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpFragment;
-import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.Keys;
 import com.u91porn.utils.LoadHelperUtils;
-import com.u91porn.utils.SwitchPlaybackEngine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +60,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         return new IndexFragment();
     }
 
+    @NonNull
     @Override
     public IndexPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
@@ -102,15 +100,15 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         helper.setListener(new OnLoadViewListener() {
             @Override
             public void onRetryClick() {
-                loadData(false);
+                loadData(false, true);
             }
         });
-        loadData(false);
+        loadData(false, false);
     }
 
     @Override
     public void onRefresh() {
-        loadData(true);
+        loadData(true, true);
     }
 
     @Override
@@ -128,8 +126,8 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     }
 
     @Override
-    public void loadData(boolean pullToRefresh) {
-        presenter.loadIndexData(pullToRefresh, HeaderUtils.getIndexHeader());
+    public void loadData(boolean pullToRefresh, boolean cleanCache) {
+        presenter.loadIndexData(pullToRefresh, cleanCache);
     }
 
     @Override

@@ -2,19 +2,15 @@ package com.u91porn.ui.history;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.trello.rxlifecycle2.LifecycleTransformer;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
-import com.u91porn.adapter.FavoriteAdapter;
 import com.u91porn.adapter.HistoryAdapter;
-import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpActivity;
 
@@ -23,8 +19,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.Box;
-import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
@@ -85,8 +79,7 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
     @NonNull
     @Override
     public HistoryPresenter createPresenter() {
-        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
-        return new HistoryPresenter(unLimit91PornItemBox);
+        return new HistoryPresenter(GreenDaoHelper.getInstance());
     }
 
     @Override
@@ -105,8 +98,8 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
     }
 
     @Override
-    public void showMessage(String msg,int type) {
-        super.showMessage(msg,type);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 
 

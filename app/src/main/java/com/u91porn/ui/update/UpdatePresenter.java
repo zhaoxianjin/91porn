@@ -2,15 +2,17 @@ package com.u91porn.ui.update;
 
 import android.support.annotation.NonNull;
 
+import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.u91porn.MyApplication;
+import com.u91porn.BuildConfig;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
-import com.u91porn.utils.CallBackWrapper;
+import com.u91porn.rxjava.CallBackWrapper;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -103,6 +105,14 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
                                 }
                             });
                         }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        if (!BuildConfig.DEBUG) {
+                            Bugsnag.notify(e, Severity.WARNING);
+                        }
+                        super.onError(e);
                     }
                 });
     }

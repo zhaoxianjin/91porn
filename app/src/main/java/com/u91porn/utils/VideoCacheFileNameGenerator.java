@@ -10,7 +10,7 @@ import com.danikula.videocache.file.FileNameGenerator;
  * @describe
  */
 
-public class MyFileNameGenerator implements FileNameGenerator {
+public class VideoCacheFileNameGenerator implements FileNameGenerator {
     // Urls contain mutable parts (parameter 'sessionToken') and stable video's id (parameter 'videoId').
     // e. g. http://example.com?videoId=abcqaz&sessionToken=xyz987
     //http://185.38.13.159//mp43/243907.mp4?st=Jsr4cwsuIoZ5aDVLckLamA&e=1511443397

@@ -209,18 +209,18 @@ public class ParseUtils {
         Document doc = Jsoup.parse(html);
         String videoUrl = doc.select("video").first().select("source").first().attr("src");
         videoResult.setVideoUrl(videoUrl);
-        Logger.d("视频链接：" + videoUrl);
+        Logger.t(TAG).d("视频链接：" + videoUrl);
 
         int startIndex = videoUrl.lastIndexOf("/");
         int endIndex = videoUrl.indexOf(".mp4");
         String videoId = videoUrl.substring(startIndex + 1, endIndex);
         videoResult.setVideoId(videoId);
-        Logger.d("视频Id：" + videoId);
+        Logger.t(TAG).d("视频Id：" + videoId);
 
         String ownnerUrl = doc.select("a[href*=UID]").first().attr("href");
         String ownnerId = ownnerUrl.substring(ownnerUrl.indexOf("=") + 1, ownnerUrl.length());
         videoResult.setOwnnerId(ownnerId);
-        Logger.d("作者Id：" + ownnerId);
+        Logger.t(TAG).d("作者Id：" + ownnerId);
 
         String ownnerName = doc.select("a[href*=UID]").first().text();
         videoResult.setOwnnerName(ownnerName);
@@ -237,7 +237,11 @@ public class ParseUtils {
 
         String thumImg = doc.getElementById("vid").attr("poster");
         videoResult.setThumbImgUrl(thumImg);
-        Logger.d("缩略图：" + thumImg);
+        Logger.t(TAG).d("缩略图：" + thumImg);
+
+        String videoName=doc.getElementById("viewvideo-title").text();
+        videoResult.setVideoName(videoName);
+        Logger.t(TAG).d("视频标题：" + videoName);
 
         return videoResult;
     }
@@ -328,8 +332,9 @@ public class ParseUtils {
             String rvid = element.select("input").first().attr("value");
             Logger.t(TAG).d("rvid::" + rvid);
             VideoResult videoResult = new VideoResult();
+            videoResult.setId(VideoResult.OUT_OF_WATCH_TIMES);
             videoResult.setVideoId(rvid);
-            unLimit91PornItem.getVideoResult().setTarget(videoResult);
+            unLimit91PornItem.setVideoResult(videoResult);
 
             unLimit91PornItemList.add(unLimit91PornItem);
         }

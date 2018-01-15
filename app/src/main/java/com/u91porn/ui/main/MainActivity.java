@@ -1,10 +1,12 @@
 package com.u91porn.ui.main;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.ColorInt;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -14,6 +16,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -27,13 +30,14 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.bugsnag.android.Bugsnag;
-import com.bugsnag.android.Severity;
 import com.google.gson.Gson;
+import com.jaeger.library.StatusBarUtil;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.sdsmdg.tastytoast.TastyToast;
+import com.u91porn.BuildConfig;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
@@ -55,10 +59,21 @@ import com.u91porn.utils.ApkVersionUtils;
 import com.u91porn.utils.AppManager;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
+import com.u91porn.utils.PermissionConstants;
+import com.u91porn.utils.PlaybackEngine;
+import com.u91porn.utils.RegexUtils;
 import com.u91porn.utils.SPUtils;
-import com.u91porn.utils.SwitchPlaybackEngine;
+import com.u91porn.widget.IpInputEditText;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.PermissionListener;
+import com.yanzhenjie.permission.Rationale;
+import com.yanzhenjie.permission.RationaleListener;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -93,15 +108,19 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     private CommonFragment lastMonthHotFragment;
     private CommonFragment hdVideoFragment;
     private RecentUpdatesFragment recentUpdatesFragment;
+    private int permisionCode = 300;
+    private int permisionReqCode = 400;
+    private String[] permission = PermissionConstants.getPermissions(PermissionConstants.STORAGE);
+    private List<Fragment> fragments = new ArrayList<>();
+    private String ipAddress;
+    private String portStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(ContextCompat.getColor(this, android.R.color.transparent));
-        }
         setSupportActionBar(toolbar);
         toolbar.setContentInsetStartWithNavigation(0);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -123,16 +142,94 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 startActivityForResultWithAnimotion(intent, Constants.USER_LOGIN_REQUEST_CODE);
             }
         });
+        initIndexFragment();
+
+        checkUpdate();
+
+        //testVersionUpdate();
+        showDebugDBAddressLogToast(this);
+        makeDirAndCheckPermision();
+    }
+
+    private void initIndexFragment() {
         mCurrentFragment = new Fragment();
         indexFragment = IndexFragment.getInstance();
         getSupportFragmentManager().beginTransaction().add(R.id.content, indexFragment).commit();
         mCurrentFragment = indexFragment;
+    }
 
-        checkUpdate();
+    /**
+     * 申请权限并创建下载目录
+     */
+    private void makeDirAndCheckPermision() {
+        if (!AndPermission.hasPermission(MainActivity.this, permission)) {
+            AndPermission.with(this)
+                    .requestCode(permisionCode)
+                    .permission(permission)
+                    .rationale(new RationaleListener() {
+                        @Override
+                        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+                            // 此对话框可以自定义，调用rationale.resume()就可以继续申请。
+                            AndPermission.rationaleDialog(MainActivity.this, rationale).show();
+                        }
+                    })
+                    .callback(listener)
+                    .start();
+        }
+    }
 
-        //统计人数
-        //Bugsnag.notify(new Throwable("count people"), Severity.INFO);
-        //testVersionUpdate();
+    private PermissionListener listener = new PermissionListener() {
+        File file = new File(Constants.DOWNLOAD_PATH);
+
+        @Override
+        public void onSucceed(int requestCode, @NonNull List<String> grantedPermissions) {
+            // 权限申请成功回调。
+
+            // 这里的requestCode就是申请时设置的requestCode。
+            // 和onActivityResult()的requestCode一样，用来区分多个不同的请求。
+            if (requestCode == permisionCode) {
+                // TODO ...
+                if (AndPermission.hasPermission(MainActivity.this, grantedPermissions)) {
+                    if (!file.exists()) {
+                        if (!file.mkdirs()) {
+                            showMessage("创建下载目录失败了", TastyToast.ERROR);
+                        }
+                    }
+                } else {
+                    AndPermission.defaultSettingDialog(MainActivity.this, permisionReqCode).show();
+                }
+            }
+        }
+
+        @Override
+        public void onFailed(int requestCode, @NonNull List<String> deniedPermissions) {
+            // 权限申请失败回调。
+            if (requestCode == permisionCode) {
+                // TODO ...
+                if (!AndPermission.hasPermission(MainActivity.this, deniedPermissions)) {
+                    // 是否有不再提示并拒绝的权限。
+                    if (AndPermission.hasAlwaysDeniedPermission(MainActivity.this, deniedPermissions)) {
+                        // 第一种：用AndPermission默认的提示语。
+                        AndPermission.defaultSettingDialog(MainActivity.this, permisionReqCode).show();
+                    } else {
+                        AndPermission.defaultSettingDialog(MainActivity.this, permisionReqCode).show();
+                    }
+                }
+            }
+        }
+    };
+
+    public void showDebugDBAddressLogToast(Context context) {
+        if (BuildConfig.DEBUG) {
+            try {
+                Class<?> debugDB = Class.forName("com.amitshekhar.DebugDB");
+                Method getAddressLog = debugDB.getMethod("getAddressLog");
+                Object value = getAddressLog.invoke(null);
+                showMessage((String) value, TastyToast.INFO);
+            } catch (Exception ignore) {
+
+            }
+        }
     }
 
     private void checkUpdate() {
@@ -189,12 +286,15 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Constants.USER_LOGIN_REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == permisionReqCode) {
+            if (!AndPermission.hasPermission(MainActivity.this, permission)) {
+                showMessage("你拒绝了读写存储卡权限，这将影响下载视频等功能！", TastyToast.WARNING);
+            }
+        } else if (requestCode == Constants.USER_LOGIN_REQUEST_CODE && resultCode == RESULT_OK) {
             setUpUserInfo(MyApplication.getInstace().getUser());
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
-
     }
 
 
@@ -237,6 +337,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
             if (currentTime - lastClickTime > MIN_CLICK_DELAY_TIME) {
                 lastClickTime = currentTime;
             } else {
+                FileDownloader.getImpl().pauseAll();
                 Intent homeIntent = new Intent(Intent.ACTION_MAIN);
                 homeIntent.addCategory(Intent.CATEGORY_HOME);
                 homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -269,9 +370,10 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            showSettingDialog();
+            showIPAddressSettingDialog();
             return true;
         } else if (id == R.id.action_exit_app) {
+            FileDownloader.getImpl().pauseAll();
             Intent homeIntent = new Intent(Intent.ACTION_MAIN);
             homeIntent.addCategory(Intent.CATEGORY_HOME);
             homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -301,14 +403,66 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
             Intent intent = new Intent(this, SearchActivity.class);
             startActivityWithAnimotion(intent);
             return true;
+        } else if (id == R.id.action_proxy_setting) {
+            showProxyAddressSettingDialog();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void showProxyAddressSettingDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("HTTP代理设置（Beta）");
+        View view = getLayoutInflater().inflate(R.layout.dialog_layout_proxy_setting, null);
+        final IpInputEditText ipAddressEditText = view.findViewById(R.id.et_dialog_proxy_setting_ip_address);
+        final AppCompatEditText portEditText = view.findViewById(R.id.et_dialog_proxy_setting_port);
+        ipAddressEditText.setIpAddressStr(ipAddress);
+        portEditText.setText(portStr);
+        builder.setView(view);
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ipAddress = ipAddressEditText.getIpAddressStr();
+                Logger.t(TAG).d(ipAddress);
+                portStr = portEditText.getText().toString().trim();
+                if (TextUtils.isEmpty(portStr)) {
+                    showProxyAddressSettingDialog();
+                    showMessage("端口或地址不正确", TastyToast.INFO);
+                    return;
+                }
+                int port = Integer.valueOf(portStr);
+                if (RegexUtils.isIP(ipAddress) && port < Constants.PROXY_MAX_PORT) {
+                    MyApplication.getInstace().initRetrofit(ipAddress, port);
+                    getSupportFragmentManager().beginTransaction().remove(indexFragment).commit();
+                    for (Fragment fragment : fragments) {
+                        getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+                    }
+                    initIndexFragment();
+                } else {
+                    showProxyAddressSettingDialog();
+                    showMessage("端口或地址不正确", TastyToast.INFO);
+                }
+            }
+        });
+        builder.setNegativeButton("取消", null);
+        builder.setNeutralButton("清空代理", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                MyApplication.getInstace().initRetrofit("", 0);
+                getSupportFragmentManager().beginTransaction().remove(indexFragment).commit();
+                for (Fragment fragment : fragments) {
+                    getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+                }
+                initIndexFragment();
+            }
+        });
+        builder.show();
+    }
+
+
     private void showPlaybackEngineChoiceDialog() {
-        final String[] items = new String[]{"Google Exoplayer Engine(Beta)", "JiaoZiPlayer Engine",};
-        final int checkedIndex = (int) SPUtils.get(this, Keys.KEY_SP_PLAYBACK_ENGINE, SwitchPlaybackEngine.DEFAULT_PLAYER_ENGINE);
+        final String[] items = new String[]{"Google Exoplayer Engine", "JiaoZiPlayer Engine",};
+        final int checkedIndex = (int) SPUtils.get(this, Keys.KEY_SP_PLAYBACK_ENGINE, PlaybackEngine.DEFAULT_PLAYER_ENGINE);
         new QMUIDialog.CheckableDialogBuilder(this)
                 .setTitle("播放引擎选择")
                 .setCheckedIndex(checkedIndex)
@@ -323,10 +477,10 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 .show();
     }
 
-    private void showSettingDialog() {
+    private void showIPAddressSettingDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("访问地址设置");
-        View view = LayoutInflater.from(this).inflate(R.layout.setting_dialog_layout, null);
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_layout_ip_address_setting, null);
         final RadioGroup radioGroup = view.findViewById(R.id.rg_address);
         RadioButton naverRadioButton = view.findViewById(R.id.rb_never_go_address);
         RadioButton willGoRadioButton = view.findViewById(R.id.rb_will_go_someday);
@@ -360,10 +514,11 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 //优先填入的自定义地址
                 if (!TextUtils.isEmpty(customAddress)) {
                     //简单验证地址是否合法
-                    if (customAddress.contains("http://") && customAddress.endsWith("/")) {
+                    if (RegexUtils.isURL(customAddress)) {
                         MyApplication.getInstace().setHost(customAddress);
                         SPUtils.put(MainActivity.this, Keys.KEY_SP_CUSTOM_ADDRESS, customAddress);
                     } else {
+                        showIPAddressSettingDialog();
                         showMessage("设置失败，输入地址格式不正确", TastyToast.ERROR);
                     }
 
@@ -527,6 +682,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     public void switchContent(Fragment toHide, Fragment toShow) {
         if (mCurrentFragment != toShow) {
             mCurrentFragment = toShow;
+            fragments.add(mCurrentFragment);
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction().setCustomAnimations(
                     android.R.anim.fade_in, android.R.anim.fade_out);
             // 先判断是否被add过
@@ -541,25 +697,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     }
 
     private void showUpdateDialog(final UpdateVersion updateVersion) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle("发现新版本");
-//        builder.setMessage(updateVersion.getUpdateMessage());
-//        builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                showMessage("开始下载", TastyToast.INFO);
-//                Intent intent = new Intent(MainActivity.this, UpdateDownloadService.class);
-//                intent.putExtra("updateVersion", updateVersion);
-//                startService(intent);
-//            }
-//        });
-//        builder.setNegativeButton("稍后更新", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//
-//            }
-//        });
-//        builder.show();
         new QMUIDialog.MessageDialogBuilder(this)
                 .setTitle("发现新版本--v" + updateVersion.getVersionName())
                 .setMessage(updateVersion.getUpdateMessage())
@@ -627,5 +764,11 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public void setStatusBarColor(@ColorInt int color, @IntRange(from = 0, to = 255) int statusBarAlpha) {
+        int mStatusBarColor = ContextCompat.getColor(this, R.color.colorPrimary);
+        StatusBarUtil.setColorForDrawerLayout(this, (DrawerLayout) findViewById(R.id.drawer_layout), mStatusBarColor, StatusBarUtil.DEFAULT_STATUS_BAR_ALPHA);
     }
 }

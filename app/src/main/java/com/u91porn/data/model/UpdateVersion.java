@@ -10,6 +10,9 @@ import java.io.Serializable;
  */
 
 public class UpdateVersion implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private int versionCode;
     private String versionName;
     private String updateMessage;

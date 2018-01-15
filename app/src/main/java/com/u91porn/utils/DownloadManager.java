@@ -7,14 +7,14 @@ import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.orhanobut.logger.Logger;
-import com.u91porn.MyApplication;
+import com.u91porn.BuildConfig;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import io.objectbox.Box;
 
 /**
  * @author flymegoc
@@ -24,7 +24,7 @@ import io.objectbox.Box;
 
 public class DownloadManager {
     private static final String TAG = DownloadManager.class.getSimpleName();
-    private Box<UnLimit91PornItem> box = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
+    private GreenDaoHelper greenDaoHelper = GreenDaoHelper.getInstance();
 
     private final static class HolderClass {
         private final static DownloadManager INSTANCE = new DownloadManager();
@@ -36,21 +36,18 @@ public class DownloadManager {
 
     private ArrayList<DownloadStatusUpdater> updaterList = new ArrayList<>();
 
-    public int startDownload1(final String url, final String path) {
-        return FileDownloader.getImpl().create(url)
-                .setPath(path)
-                .setListener(lis)
-                .setWifiRequired(false)
-                .start();
-    }
 
-
-    public int startDownload(String url, final String path) {
+    public int startDownload(String url, final String path, boolean isDownloadNeedWifi, boolean isForceReDownload) {
+        Logger.t(TAG).d("url::" + url);
+        Logger.t(TAG).d("path::" + path);
+        Logger.t(TAG).d("isDownloadNeedWifi::" + isDownloadNeedWifi);
+        Logger.t(TAG).d("isForceReDownload::" + isForceReDownload);
         int id = FileDownloader.getImpl().create(url)
                 .setPath(path)
                 .setListener(lis)
-                .setWifiRequired(false)
-                .setAutoRetryTimes(1)
+                .setWifiRequired(isDownloadNeedWifi)
+                .setAutoRetryTimes(3)
+                .setForceReDownload(isForceReDownload)
                 .asInQueueTask()
                 .enqueue();
         FileDownloader.getImpl().start(lis, false);
@@ -73,7 +70,6 @@ public class DownloadManager {
         protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
             Logger.t(TAG).d("pending:" + "--status:" + task.getStatus() + "--:soFarBytes：" + soFarBytes + "--:totalBytes：" + totalBytes);
             saveDownloadInfo(task);
-            update(task);
         }
 
         @Override
@@ -81,7 +77,6 @@ public class DownloadManager {
             super.started(task);
             Logger.t(TAG).d("started:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             saveDownloadInfo(task);
-            update(task);
         }
 
         @Override
@@ -89,14 +84,11 @@ public class DownloadManager {
             super.connected(task, etag, isContinue, soFarBytes, totalBytes);
             Logger.t(TAG).d("connected:" + "--status:" + task.getStatus() + "--:soFarBytes：" + soFarBytes + "--:totalBytes：" + totalBytes);
             saveDownloadInfo(task);
-            update(task);
         }
 
         @Override
         protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-
             saveDownloadInfo(task);
-            update(task);
         }
 
         @Override
@@ -110,27 +102,24 @@ public class DownloadManager {
             Logger.t(TAG).d("completed:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             Logger.d("completed");
             saveDownloadInfo(task);
-            update(task);
         }
 
         @Override
         protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
             Logger.t(TAG).d("paused:" + "--status:" + task.getStatus() + "--:soFarBytes：" + soFarBytes + "--:totalBytes：" + totalBytes);
             saveDownloadInfo(task);
-            update(task);
         }
 
         @Override
         protected void error(BaseDownloadTask task, Throwable e) {
             Logger.t(TAG).d("error:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
             saveDownloadInfo(task);
-            update(task);
         }
 
         @Override
         protected void warn(BaseDownloadTask task) {
             Logger.t(TAG).d("warn:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
-            update(task);
+            saveDownloadInfo(task);
         }
     };
 
@@ -140,9 +129,11 @@ public class DownloadManager {
      * @param task
      */
     private void saveDownloadInfo(BaseDownloadTask task) {
-        UnLimit91PornItem unLimit91PornItem = BoxQureyHelper.findByVideoUrl(task.getUrl());
+        UnLimit91PornItem unLimit91PornItem = greenDaoHelper.findByDownloadId(task.getId());
         if (unLimit91PornItem == null) {
-            Bugsnag.notify(new Throwable("save download info failure:" + task.getUrl()), Severity.WARNING);
+            if (!BuildConfig.DEBUG) {
+                Bugsnag.notify(new Throwable(TAG + "::save download info failure:" + task.getUrl()), Severity.WARNING);
+            }
             return;
         }
         int soFarBytes = task.getSmallFileSoFarBytes();
@@ -163,7 +154,7 @@ public class DownloadManager {
         }
         unLimit91PornItem.setSpeed(task.getSpeed());
         unLimit91PornItem.setStatus(task.getStatus());
-        box.put(unLimit91PornItem);
+        greenDaoHelper.update(unLimit91PornItem);
         update(task);
     }
 

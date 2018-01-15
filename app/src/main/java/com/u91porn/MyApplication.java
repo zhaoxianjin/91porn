@@ -1,6 +1,6 @@
 package com.u91porn;
 
-import android.os.StrictMode;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDexApplication;
 import android.text.TextUtils;
@@ -8,8 +8,8 @@ import android.text.TextUtils;
 import com.bugsnag.android.Bugsnag;
 import com.bugsnag.android.Severity;
 import com.danikula.videocache.HttpProxyCacheServer;
-import com.facebook.drawee.backends.pipeline.Fresco;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
+import com.github.yuweiguocn.library.greendao.MigrationHelper;
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -22,23 +22,28 @@ import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
-import com.u91porn.data.model.MyObjectBox;
+import com.u91porn.data.dao.DaoMaster;
+import com.u91porn.data.dao.DaoSession;
+import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.MySQLiteOpenHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.UnLimit91PornItem_;
 import com.u91porn.data.model.User;
+import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
-import com.u91porn.utils.MyFileNameGenerator;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.VideoCacheFileNameGenerator;
+
+import org.greenrobot.greendao.database.Database;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.objectbox.Box;
-import io.objectbox.BoxStore;
-import io.objectbox.android.AndroidObjectBrowser;
+import cn.bingoogolapple.swipebacklayout.BGASwipeBackHelper;
 import io.reactivex.annotations.Nullable;
 import io.rx_cache2.internal.RxCache;
 import io.victoralbertos.jolyglot.GsonSpeaker;
@@ -70,10 +75,11 @@ public class MyApplication extends MultiDexApplication {
      */
     private HttpProxyCacheServer proxy;
     private CacheProviders cacheProviders;
-    private BoxStore boxStore;
+
     private SharedPrefsCookiePersistor sharedPrefsCookiePersistor;
     private SetCookieCache setCookieCache;
     private User user;
+    private boolean isShowTips = false;
 
     @Override
     public void onCreate() {
@@ -81,45 +87,35 @@ public class MyApplication extends MultiDexApplication {
         mMyApplication = this;
         host = (String) SPUtils.get(this, Keys.KEY_SP_NOW_ADDRESS, "");
         initLogger();
-        initBoxStore();
+        initGreenDao3(this);
         initLeakCanry();
-        initRetrofit();
-        initCache();
-        Fresco.initialize(this);
+        initRetrofit("", 0);
+        initRxCache();
         initLoadingHelper();
         initFileDownload();
         if (!BuildConfig.DEBUG) {
             //初始化bug收集
             Bugsnag.init(this);
-        } else {
-            enableStrictMode();
         }
+        BGASwipeBackHelper.init(this, null);
     }
 
-    private void enableStrictMode() {
-        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .detectNetwork()
-                .penaltyLog()
-                .build());
+    public boolean isShowTips() {
+        return isShowTips;
+    }
 
-        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                .detectLeakedSqlLiteObjects()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .build());
+    public void setShowTips(boolean showTips) {
+        isShowTips = showTips;
     }
 
     private void initFileDownload() {
         FileDownloader.setup(this);
-        //将上次因为程序以外终止而处于下载状态的任务恢复成暂停状态
-        Box<UnLimit91PornItem> box = boxStore.boxFor(UnLimit91PornItem.class);
-        List<UnLimit91PornItem> list = box.query().equal(UnLimit91PornItem_.status, FileDownloadStatus.progress).build().find();
+        //纠正下载状态
+        List<UnLimit91PornItem> list = GreenDaoHelper.getInstance().findByNotDownloadStatus(FileDownloadStatus.completed);
         for (UnLimit91PornItem unLimit91PornItem : list) {
             unLimit91PornItem.setStatus(FileDownloadStatus.paused);
-            box.put(unLimit91PornItem);
         }
+        GreenDaoHelper.getInstance().updateInTx(list);
     }
 
     /**
@@ -133,22 +129,15 @@ public class MyApplication extends MultiDexApplication {
     }
 
     /**
-     * 初始化boxStore库
+     * 初始化greendDao3库
      */
-    private void initBoxStore() {
-        boxStore = MyObjectBox.builder().androidContext(MyApplication.this).build();
-        if (BuildConfig.DEBUG) {
-            new AndroidObjectBrowser(boxStore).start(this);
-        }
-    }
-
-    /**
-     * 获取boxtore
-     *
-     * @return box
-     */
-    public BoxStore getBoxStore() {
-        return boxStore;
+    private void initGreenDao3(Context context) {
+        //如果你想查看日志信息，请将DEBUG设置为true
+        MigrationHelper.DEBUG = BuildConfig.DEBUG;
+        MySQLiteOpenHelper helper = new MySQLiteOpenHelper(context, Constants.DB_NAME, null);
+        Database db = helper.getWritableDb();
+        DaoSession daoSession = new DaoMaster(db).newSession();
+        GreenDaoHelper.init(daoSession);
     }
 
     /**
@@ -166,8 +155,8 @@ public class MyApplication extends MultiDexApplication {
         if (isUserInfoNotComplete) {
             return null;
         }
-        if (user!=null&&(user.getUserId()==0||TextUtils.isEmpty(user.getUserName()))){
-            Bugsnag.notify(new Throwable("User info: "+user.toString()), Severity.WARNING);
+        if (user != null && (user.getUserId() == 0 || TextUtils.isEmpty(user.getUserName()))) {
+            Bugsnag.notify(new Throwable("User info: " + user.toString()), Severity.WARNING);
         }
         return user;
     }
@@ -213,8 +202,9 @@ public class MyApplication extends MultiDexApplication {
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
                 // 1 Gb for cache
-                .maxCacheSize(1024 * 1024 * 1024)
-                .fileNameGenerator(new MyFileNameGenerator())
+                .maxCacheSize(AppCacheUtils.MAX_VIDEO_CACHE_SIZE)
+                .cacheDirectory(AppCacheUtils.getVideoCacheDir(this))
+                .fileNameGenerator(new VideoCacheFileNameGenerator())
                 .build();
     }
 
@@ -234,7 +224,7 @@ public class MyApplication extends MultiDexApplication {
     /**
      * 初始化Retrifit网络请求
      */
-    private void initRetrofit() {
+    public void initRetrofit(String proxyHost, int port) {
 
         sharedPrefsCookiePersistor = new SharedPrefsCookiePersistor(this);
         setCookieCache = new SetCookieCache();
@@ -280,8 +270,12 @@ public class MyApplication extends MultiDexApplication {
             }
         });
         builder.cookieJar(cookieJar);
-        //设置代理
-        //builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("222.66.22.82", 8090)));
+        //如果代理地址不为空，且端口正确设置Http代理
+        if (!TextUtils.isEmpty(proxyHost) && port < Constants.PROXY_MAX_PORT) {
+            Logger.t(TAG).d("代理设置： host:" + proxyHost + "  端口：" + port);
+            builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, port)));
+        }
+
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
@@ -312,10 +306,9 @@ public class MyApplication extends MultiDexApplication {
     /**
      * 初始化缓存
      */
-    private void initCache() {
-        File cacheDir = getCacheDir();
+    private void initRxCache() {
+        File cacheDir = AppCacheUtils.getRxCacheDir(this);
         cacheProviders = new RxCache.Builder()
-                .useExpiredDataIfLoaderNotAvailable(true)
                 .persistence(cacheDir, new GsonSpeaker())
                 .using(CacheProviders.class);
     }

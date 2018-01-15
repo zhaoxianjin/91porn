@@ -6,21 +6,20 @@ import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.FragmentEvent;
-import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.ui.favorite.FavoritePresenter;
-import com.u91porn.utils.CallBackWrapper;
+import com.u91porn.rxjava.CallBackWrapper;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.ParseUtils;
+import com.u91porn.rxjava.RetryWhenProcess;
+import com.u91porn.rxjava.RxSchedulersHelper;
 
 import java.util.List;
 
 import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 import io.rx_cache2.EvictProvider;
 import io.rx_cache2.Reply;
 
@@ -47,9 +46,9 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
      * @param pullToRefresh 是否刷新
      */
     @Override
-    public void loadIndexData(final boolean pullToRefresh,String referer) {
-        Observable<String> indexPhpObservable = mNoLimit91PornServiceApi.indexPhp(referer);
-        cacheProviders.getIndexPhp(indexPhpObservable, new EvictProvider(pullToRefresh))
+    public void loadIndexData(final boolean pullToRefresh, boolean cleanCache) {
+        Observable<String> indexPhpObservable = mNoLimit91PornServiceApi.indexPhp(HeaderUtils.getIndexHeader());
+        cacheProviders.getIndexPhp(indexPhpObservable, new EvictProvider(cleanCache))
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBodyReply) throws Exception {
@@ -76,8 +75,8 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                         return ParseUtils.parseIndex(s);
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
                 .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(FragmentEvent.DESTROY))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override

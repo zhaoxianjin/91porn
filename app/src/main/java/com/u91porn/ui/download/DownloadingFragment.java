@@ -1,6 +1,7 @@
 package com.u91porn.ui.download;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 
 import com.aitsuki.swipe.SwipeItemLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -22,17 +24,22 @@ import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.DownloadVideoAdapter;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpFragment;
+import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DownloadManager;
+import com.u91porn.utils.Keys;
+import com.u91porn.utils.SPUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import io.objectbox.Box;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,8 +67,11 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     @Override
     public DownloadPresenter createPresenter() {
         DownloadActivity downloadActivity = (DownloadActivity) getActivity();
-        Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
-        return new DownloadPresenter(unLimit91PornItemBox, downloadActivity.provider);
+        GreenDaoHelper greenDaoHelper = GreenDaoHelper.getInstance();
+        HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
+        File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
+        return new DownloadPresenter(greenDaoHelper, downloadActivity.provider, cacheServer, videoCacheDir);
+
     }
 
     @Override
@@ -83,25 +93,34 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
                 if (view.getId() == R.id.right_menu_delete) {
                     SwipeItemLayout swipeItemLayout = (SwipeItemLayout) view.getParent();
                     swipeItemLayout.close();
-                    boolean isSuccess = FileDownloader.getImpl().clear(unLimit91PornItem.getDownloadId(), unLimit91PornItem.getDownLoadPath());
-                    if (isSuccess) {
-                        presenter.deleteDownloadingTask(unLimit91PornItem);
-                        presenter.loadDownloadingData();
-                    } else {
-                        showMessage("删除失败，请重试", TastyToast.ERROR);
-                    }
+                    FileDownloader.getImpl().clear(unLimit91PornItem.getDownloadId(), unLimit91PornItem.getDownLoadPath());
+                    presenter.deleteDownloadingTask(unLimit91PornItem);
+                    presenter.loadDownloadingData();
                 } else if (view.getId() == R.id.iv_download_control) {
-                    if (unLimit91PornItem.getStatus() == FileDownloadStatus.progress && FileDownloader.getImpl().isServiceConnected()) {
-                        FileDownloader.getImpl().pause(unLimit91PornItem.getDownloadId());
-                        ((ImageView) view).setImageResource(R.drawable.start_download);
-                    } else {
-                        DownloadManager.getImpl().startDownload(unLimit91PornItem.getVideoResult().getTarget().getVideoUrl(), unLimit91PornItem.getDownLoadPath());
-                        ((ImageView) view).setImageResource(R.drawable.pause_download);
+                    if (FileDownloader.getImpl().isServiceConnected()) {
+                        if (unLimit91PornItem.getStatus() == FileDownloadStatus.progress) {
+                            FileDownloader.getImpl().pause(unLimit91PornItem.getDownloadId());
+                            ((ImageView) view).setImageResource(R.drawable.start_download);
+                        } else if (unLimit91PornItem.getStatus() == FileDownloadStatus.warn) {
+                            startDownload(unLimit91PornItem, view, true);
+                        } else if (unLimit91PornItem.getStatus() == FileDownloadStatus.paused) {
+                            startDownload(unLimit91PornItem, view, false);
+                        } else if (unLimit91PornItem.getStatus() == FileDownloadStatus.error) {
+                            startDownload(unLimit91PornItem, view, false);
+                        }
                     }
                 }
             }
         });
         presenter.loadDownloadingData();
+    }
+
+    private void startDownload(UnLimit91PornItem unLimit91PornItem, View view, boolean isForceReDownload) {
+        boolean isDownloadNeedWifi = (boolean) SPUtils.get(getContext(), Keys.KEY_SP_DOWNLOAD_VIDEO_NEED_WIFI, false);
+        presenter.downloadVideo(unLimit91PornItem, isDownloadNeedWifi, isForceReDownload);
+        ((ImageView) view).setImageResource(R.drawable.pause_download);
+        Intent intent = new Intent(getContext(), DownloadVideoService.class);
+        getContext().startService(intent);
     }
 
     @Override
@@ -144,6 +163,14 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     @Override
     public void setDownloadingData(List<UnLimit91PornItem> unLimit91PornItems) {
         mDownloadAdapter.setNewData(unLimit91PornItems);
+        if (unLimit91PornItems.size() == 0) {
+            try {
+                Intent intent = new Intent(getContext(), DownloadVideoService.class);
+                getContext().stopService(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -162,8 +189,8 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     }
 
     @Override
-    public void showMessage(String msg,int type) {
-        super.showMessage(msg,type);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 
     @Override

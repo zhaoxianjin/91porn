@@ -25,9 +25,10 @@
         <activity
             android:name=".ui.main.MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/QMUI.Compat.NoActionBar" />
+            android:theme="@style/AboutTheme" />
         <activity
             android:name=".ui.download.DownloadActivity"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.favorite.FavoriteActivity"
@@ -71,10 +72,11 @@
             android:theme="@style/AboutTheme" />
 
         <service android:name=".service.UpdateDownloadService" />
+        <service android:name=".service.DownloadVideoService" />
 
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
-            android:value="73db9899f53aac81c8966375ec1dad33" />
+            android:value="" />
 
         <activity
             android:name=".ui.play.ExoMediaPlayerActivity"
@@ -87,7 +89,8 @@
         <activity
             android:name=".ui.search.SearchActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AboutTheme" />
+            android:theme="@style/AboutTheme"
+            />
         <activity
             android:name=".ui.author.AuthorActivity"
             android:screenOrientation="portrait" />

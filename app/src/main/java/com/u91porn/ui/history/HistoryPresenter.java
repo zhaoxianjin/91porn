@@ -4,12 +4,10 @@ import android.support.annotation.NonNull;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.UnLimit91PornItem_;
 
 import java.util.List;
-
-import io.objectbox.Box;
 
 /**
  * 浏览历史，只有观看视频，并解析出视频地址保存之后才会被记录
@@ -21,12 +19,12 @@ import io.objectbox.Box;
 public class HistoryPresenter extends MvpBasePresenter<HistoryView> implements IHistory {
 
     private static final String TAG = HistoryPresenter.class.getSimpleName();
-    private Box<UnLimit91PornItem> unLimit91PornItemBox;
+    private GreenDaoHelper greenDaoHelper;
     private int page = 1;
     private int pageSize = 10;
 
-    public HistoryPresenter(Box<UnLimit91PornItem> unLimit91PornItemBox) {
-        this.unLimit91PornItemBox = unLimit91PornItemBox;
+    public HistoryPresenter(GreenDaoHelper greenDaoHelper) {
+        this.greenDaoHelper = greenDaoHelper;
     }
 
     @Override
@@ -35,7 +33,7 @@ public class HistoryPresenter extends MvpBasePresenter<HistoryView> implements I
         if (pullToRefresh) {
             page = 1;
         }
-        final List<UnLimit91PornItem> unLimit91PornItemList = unLimit91PornItemBox.query().notNull(UnLimit91PornItem_.viewHistoryDate).orderDesc(UnLimit91PornItem_.viewHistoryDate).build().find((page - 1) * pageSize, pageSize);
+        final List<UnLimit91PornItem> unLimit91PornItemList = greenDaoHelper.loadHistoryData(page, pageSize);
         ifViewAttached(new ViewAction<HistoryView>() {
             @Override
             public void run(@NonNull HistoryView view) {

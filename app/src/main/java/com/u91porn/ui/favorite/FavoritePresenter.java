@@ -11,37 +11,29 @@ import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.trello.rxlifecycle2.navi.NaviLifecycle;
-import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.Favorite;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.UnLimit91PornItem_;
 import com.u91porn.data.model.User;
 import com.u91porn.exception.ApiException;
 import com.u91porn.exception.FavoriteException;
-import com.u91porn.utils.BoxQureyHelper;
-import com.u91porn.utils.CallBackWrapper;
+import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.ParseUtils;
-
-import org.greenrobot.essentials.io.FileUtils;
+import com.u91porn.rxjava.RetryWhenProcess;
+import com.u91porn.rxjava.RxSchedulersHelper;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Date;
 import java.util.List;
 
-import io.objectbox.Box;
+import de.greenrobot.common.io.FileUtils;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
@@ -58,7 +50,7 @@ import io.rx_cache2.Reply;
 
 public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements IFavorite {
     private static final String TAG = FavoriteListener.class.getSimpleName();
-    private Box<UnLimit91PornItem> unLimit91PornItemBox;
+    private GreenDaoHelper greenDaoHelper;
     private NoLimit91PornServiceApi noLimit91PornServiceApi;
     private CacheProviders cacheProviders;
     private User user;
@@ -71,8 +63,8 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
     private boolean cleanCache = false;
     private String uploadMsg;
 
-    public FavoritePresenter(Box<UnLimit91PornItem> unLimit91PornItemBox, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
-        this.unLimit91PornItemBox = unLimit91PornItemBox;
+    public FavoritePresenter(GreenDaoHelper greenDaoHelper, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
+        this.greenDaoHelper = greenDaoHelper;
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
         this.user = user;
@@ -120,8 +112,8 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                         return msg;
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<String>ioMainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
@@ -229,8 +221,8 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                         return baseResult.getUnLimit91PornItemList();
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
                 .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
@@ -304,8 +296,8 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                         return baseResult;
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<BaseResult>ioMainThread())
                 .compose(provider.<BaseResult>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<BaseResult>() {
                     @Override
@@ -351,7 +343,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         Observable.create(new ObservableOnSubscribe<List<UnLimit91PornItem>>() {
             @Override
             public void subscribe(ObservableEmitter<List<UnLimit91PornItem>> e) throws Exception {
-                List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().equal(UnLimit91PornItem_.favorite, UnLimit91PornItem.FAVORITE_YES).orderDesc(UnLimit91PornItem_.favoriteDate).build().find();
+                List<UnLimit91PornItem> unLimit91PornItems = greenDaoHelper.loadAllLimit91PornItems();
                 e.onNext(unLimit91PornItems);
                 e.onComplete();
             }
@@ -370,21 +362,21 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 }
                 if (onlyUrl) {
                     for (UnLimit91PornItem unLimit91PornItem : unLimit91PornItems) {
-                        CharSequence data = unLimit91PornItem.getVideoResult().getTarget().getVideoUrl() + "\r\n\r\n";
+                        CharSequence data = unLimit91PornItem.getVideoResult().getVideoUrl() + "\r\n\r\n";
                         if (TextUtils.isEmpty(data)) {
                             continue;
                         }
-                        FileUtils.writeChars(file, "UTF-8", data, true);
+                        FileUtils.writeChars(file, "UTF-8", data);
                     }
                 } else {
                     for (UnLimit91PornItem unLimit91PornItem : unLimit91PornItems) {
                         String title = unLimit91PornItem.getTitle();
-                        String videoUrl = unLimit91PornItem.getVideoResult().getTarget().getVideoUrl();
+                        String videoUrl = unLimit91PornItem.getVideoResult().getVideoUrl();
                         CharSequence data = title + "\r\n" + videoUrl + "\r\n\r\n";
                         if (TextUtils.isEmpty(data)) {
                             continue;
                         }
-                        FileUtils.writeChars(file, "UTF-8", data, true);
+                        FileUtils.writeChars(file, "UTF-8", data);
                     }
                 }
                 return "导出成功";

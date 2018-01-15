@@ -10,7 +10,7 @@ import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.Keys;
-import com.u91porn.utils.SwitchPlaybackEngine;
+import com.u91porn.utils.PlaybackEngine;
 
 /**
  * @author flymegoc
@@ -30,7 +30,7 @@ public abstract class BaseFragment extends NaviFragment {
     }
 
     protected void goToPlayVideo(UnLimit91PornItem unLimit91PornItem) {
-        Intent intent = SwitchPlaybackEngine.getPlaybackEngineIntent(getContext());
+        Intent intent = PlaybackEngine.getPlaybackEngineIntent(getContext());
         intent.putExtra(Keys.KEY_INTENT_UNLIMIT91PORNITEM, unLimit91PornItem);
         MainActivity mainActivity = (MainActivity) getActivity();
         if (mainActivity != null) {

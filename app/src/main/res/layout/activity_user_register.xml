@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:fresco="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
     android:orientation="vertical"
+    android:background="@color/white"
     tools:context="com.u91porn.ui.user.UserLoginActivity">
 
     <include layout="@layout/toolbar_layout" />
@@ -63,17 +61,14 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1000"
                 android:singleLine="true"
+                android:maxLength="6"
                 android:hint="验证码" />
 
-            <com.facebook.drawee.view.SimpleDraweeView
+            <ImageView
                 android:id="@+id/wb_captcha"
-                android:layout_width="150dp"
+                android:layout_width="110dp"
                 android:layout_height="match_parent"
-                fresco:progressBarAutoRotateInterval="5000"
-                fresco:progressBarImage="@drawable/icon_progress_bar"
-                fresco:progressBarImageScaleType="centerInside"
-                fresco:retryImage="@drawable/retry"
-                fresco:retryImageScaleType="centerCrop" />
+                />
         </LinearLayout>
 
 

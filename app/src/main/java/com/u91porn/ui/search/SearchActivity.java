@@ -59,6 +59,7 @@ public class SearchActivity extends MvpActivity<SearchView, SearchPresenter> imp
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);

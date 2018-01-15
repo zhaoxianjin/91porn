@@ -1,36 +1,25 @@
 package com.u91porn.ui.search;
 
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 
-import com.bugsnag.android.Bugsnag;
-import com.bugsnag.android.Severity;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
-import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.u91porn.cookie.SetCookieCache;
-import com.u91porn.cookie.SharedPrefsCookiePersistor;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.VideoCommentResult;
 import com.u91porn.exception.VideoException;
-import com.u91porn.ui.recentupdates.RecentUpdatesView;
-import com.u91porn.utils.CallBackWrapper;
+import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.ParseUtils;
 import com.u91porn.utils.RandomIPAdderssUtils;
+import com.u91porn.rxjava.RetryWhenProcess;
+import com.u91porn.rxjava.RxSchedulersHelper;
 
 import java.util.List;
 
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.Cookie;
 
 /**
  * @author flymegoc
@@ -72,8 +61,8 @@ public class SearchPresenter extends MvpBasePresenter<SearchView> implements ISe
                         return baseResult.getUnLimit91PornItemList();
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
                 .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override

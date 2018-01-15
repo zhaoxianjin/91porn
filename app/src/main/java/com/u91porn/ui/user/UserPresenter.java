@@ -9,12 +9,12 @@ import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.User;
-import com.u91porn.utils.CallBackWrapper;
+import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.utils.ParseUtils;
+import com.u91porn.rxjava.RetryWhenProcess;
+import com.u91porn.rxjava.RxSchedulersHelper;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * 用户登录
@@ -39,8 +39,8 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
 
     public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y, String referer, final LoginListener loginListener) {
         noLimit91PornServiceApi.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y, referer)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<String>ioMainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
@@ -107,8 +107,8 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
     @Override
     public void register(String next, String username, String password1, String password2, String email, String captchaInput, String fingerprint, String vip, String actionSignup, String submitX, String submitY, String ipAddress, String referer) {
         noLimit91PornServiceApi.register(next, username, password1, password2, email, captchaInput, fingerprint, vip, actionSignup, submitX, submitY, referer, ipAddress)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .retryWhen(new RetryWhenProcess(2))
+                .compose(RxSchedulersHelper.<String>ioMainThread())
                 .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override

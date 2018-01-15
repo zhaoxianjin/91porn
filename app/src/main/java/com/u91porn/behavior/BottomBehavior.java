@@ -24,12 +24,12 @@ public class BottomBehavior extends CoordinatorLayout.Behavior<LinearLayout> {
     /**
      * 视频控件的高度即为整个appbarlayout 可移动的距离
      */
-    private final int height;
+    private int height;
     private float oLy;
     private boolean isFirst = true;
+
     public BottomBehavior(Context context, AttributeSet attrs) {
         super(context, attrs);
-        height = QMUIDisplayHelper.getScreenWidth(context) * 9 / 16;
     }
 
     @Override
@@ -56,8 +56,17 @@ public class BottomBehavior extends CoordinatorLayout.Behavior<LinearLayout> {
             if (oLy == 0) {
                 oLy = child.getY() + child.getHeight();
             }
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                View view = parent.getChildAt(i);
+                if (view instanceof AppBarLayout) {
+                    height = view.getMeasuredHeight();
+                    break;
+                }
+            }
+
             child.setY(oLy);
         }
+
         return true;
     }
 }

@@ -1,6 +1,5 @@
-package com.u91porn.utils;
+package com.u91porn.rxjava;
 
-import com.orhanobut.logger.Logger;
 import com.u91porn.exception.ApiException;
 
 import io.reactivex.Observer;

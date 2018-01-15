@@ -1,12 +1,14 @@
 package com.u91porn.ui.play;
 
-import android.Manifest;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -23,6 +25,7 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -30,6 +33,7 @@ import com.danikula.videocache.HttpProxyCacheServer;
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.jaeger.library.StatusBarUtil;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.sdsmdg.tastytoast.TastyToast;
@@ -40,26 +44,23 @@ import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
+import com.u91porn.data.dao.GreenDaoHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.data.model.VideoComment;
 import com.u91porn.data.model.VideoResult;
+import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.author.AuthorActivity;
 import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.ui.user.UserLoginActivity;
-import com.u91porn.utils.BoxQureyHelper;
-import com.u91porn.utils.Constants;
+import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.LoadHelperUtils;
 import com.u91porn.utils.SPUtils;
-import com.yanzhenjie.permission.AndPermission;
-import com.yanzhenjie.permission.PermissionListener;
-import com.yanzhenjie.permission.Rationale;
-import com.yanzhenjie.permission.RationaleListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -68,7 +69,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.objectbox.Box;
 
 /**
  * @author flymegoc
@@ -116,28 +116,21 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
     HttpProxyCacheServer proxy = MyApplication.getInstace().getProxy();
     private LoadViewHelper helper;
 
-    private UnLimit91PornItem unLimit91PornItem;
+    protected UnLimit91PornItem unLimit91PornItem;
     private NoLimit91PornServiceApi mNoLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-    private Box<UnLimit91PornItem> unLimit91PornItemBox = MyApplication.getInstace().getBoxStore().boxFor(UnLimit91PornItem.class);
-    private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-    private FavoritePresenter favoritePresenter = new FavoritePresenter(unLimit91PornItemBox, mNoLimit91PornServiceApi, cacheProviders, MyApplication.getInstace().getUser(), provider);
-    private DownloadPresenter downloadPresenter = new DownloadPresenter(unLimit91PornItemBox, provider);
-    private SharedPrefsCookiePersistor sharedPrefsCookiePersistor = MyApplication.getInstace().getSharedPrefsCookiePersistor();
-    private SetCookieCache setCookieCache = MyApplication.getInstace().getSetCookieCache();
+    private GreenDaoHelper greenDaoHelper = GreenDaoHelper.getInstance();
+
 
     private VideoCommentAdapter videoCommentAdapter;
     private boolean isVideoError = true;
     private boolean isComment = true;
     private VideoComment videoComment;
-    private int permisionCode = 300;
-    private int permisionReqCode = 400;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_base_play_video);
         ButterKnife.bind(this);
-        ViewCompat.setElevation(etCommentInputLayout, 12);
         setVideoViewHeight(videoplayerContainer);
         initPlayerView();
         unLimit91PornItem = (UnLimit91PornItem) getIntent().getSerializableExtra(Keys.KEY_INTENT_UNLIMIT91PORNITEM);
@@ -169,11 +162,11 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
         commentSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (unLimit91PornItem.getVideoResult() == null || unLimit91PornItem.getVideoResult().getTarget() == null) {
+                if (unLimit91PornItem.getVideoResult() == null || unLimit91PornItem.getVideoResult() == null) {
                     commentSwipeRefreshLayout.setRefreshing(false);
                     return;
                 }
-                String videoId = unLimit91PornItem.getVideoResult().getTarget().getVideoId();
+                String videoId = unLimit91PornItem.getVideoResult().getVideoId();
                 presenter.loadVideoComment(videoId, true, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
             }
         });
@@ -204,7 +197,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
             goToLogin();
             return;
         }
-        String vid = unLimit91PornItem.getVideoResult().getTarget().getVideoId();
+        String vid = unLimit91PornItem.getVideoResult().getVideoId();
         String uid = String.valueOf(user.getUserId());
         if (isComment) {
             commentVideoDialog.show();
@@ -222,28 +215,33 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
     }
 
     private void initData() {
-        UnLimit91PornItem tmp = BoxQureyHelper.findByViewKey(unLimit91PornItem.getViewKey());
-        if (tmp == null || tmp.getVideoResult().getTarget() == null || TextUtils.isEmpty(tmp.getVideoResult().getTarget().getVideoUrl()) || TextUtils.isEmpty(tmp.getVideoResult().getTarget().getOwnnerName())) {
+        UnLimit91PornItem tmp = greenDaoHelper.findByViewKey(unLimit91PornItem.getViewKey());
+        if (tmp == null || tmp.getVideoResult() == null) {
             presenter.loadVideoUrl(unLimit91PornItem.getViewKey(), HeaderUtils.getIndexHeader());
         } else {
+            unLimit91PornItem = tmp;
             videoplayerContainer.setVisibility(View.VISIBLE);
             Logger.t(TAG).d("使用已有播放地址");
-            //showMessage("使用已有播放地址", TastyToast.SUCCESS);
             //浏览历史
-            tmp.setViewHistoryDate(new Date());
-            unLimit91PornItemBox.put(tmp);
-
-            unLimit91PornItem.setVideoResult(tmp.getVideoResult());
+            unLimit91PornItem.setViewHistoryDate(new Date());
+            greenDaoHelper.update(unLimit91PornItem);
+            VideoResult videoResult = unLimit91PornItem.getVideoResult();
+            unLimit91PornItem.setVideoResult(videoResult);
             setToolBarLayoutInfo(unLimit91PornItem);
-            playVideo(unLimit91PornItem.getTitle(), unLimit91PornItem.getVideoResult().getTarget().getVideoUrl(), "", "");
+            playVideo(unLimit91PornItem.getTitle(), videoResult.getVideoUrl(), videoResult.getVideoName(), videoResult.getThumbImgUrl());
             //加载评论
-            presenter.loadVideoComment(tmp.getVideoResult().getTarget().getVideoId(), true, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
+            presenter.loadVideoComment(videoResult.getVideoId(), true, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
         }
     }
 
     private void setToolBarLayoutInfo(final UnLimit91PornItem unLimit91PornItem) {
-        tvPlayVideoTitle.setText(unLimit91PornItem.getTitle());
-        VideoResult videoResult = unLimit91PornItem.getVideoResult().getTarget();
+        String searchTitleTag = "...";
+        VideoResult videoResult = unLimit91PornItem.getVideoResult();
+        if (unLimit91PornItem.getTitle().contains(searchTitleTag) || unLimit91PornItem.getTitle().endsWith(searchTitleTag)) {
+            tvPlayVideoTitle.setText(videoResult.getVideoName());
+        } else {
+            tvPlayVideoTitle.setText(unLimit91PornItem.getTitle());
+        }
         tvPlayVideoAuthor.setText(videoResult.getOwnnerName());
         tvPlayVideoAddDate.setText(videoResult.getAddDate());
         tvPlayVideoInfo.setText(videoResult.getUserOtherInfo());
@@ -256,12 +254,12 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
                     showMessage("请先登录", TastyToast.INFO);
                     return;
                 }
-                if (unLimit91PornItem.getVideoResult() == null || unLimit91PornItem.getVideoResult().getTarget() == null) {
+                if (unLimit91PornItem.getVideoResult() == null) {
                     showMessage("视频还未解析成功！", TastyToast.INFO);
                     return;
                 }
                 Intent intent = new Intent(BasePlayVideo.this, AuthorActivity.class);
-                intent.putExtra(Keys.KEY_INTENT_UID, unLimit91PornItem.getVideoResult().getTarget().getOwnnerId());
+                intent.putExtra(Keys.KEY_INTENT_UID, unLimit91PornItem.getVideoResult().getOwnnerId());
                 startActivityForResultWithAnimotion(intent, 1);
             }
         });
@@ -276,7 +274,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
                     presenter.loadVideoUrl(unLimit91PornItem.getViewKey(), HeaderUtils.getIndexHeader());
                 } else {
                     //加载评论
-                    presenter.loadVideoComment(unLimit91PornItem.getVideoResult().getTarget().getVideoId(), true, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
+                    presenter.loadVideoComment(unLimit91PornItem.getVideoResult().getVideoId(), true, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
                 }
             }
         });
@@ -302,7 +300,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
                 appBarLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 int height = appBarLayout.getMeasuredHeight();
                 int screenHeight = QMUIDisplayHelper.getScreenHeight(BasePlayVideo.this);
-                int remainHeight = screenHeight - height;
+                int remainHeight = screenHeight - height - QMUIDisplayHelper.getScreenWidth(BasePlayVideo.this) * 9 / 16;
                 if (remainHeight != height) {
                     SPUtils.put(BasePlayVideo.this, Keys.KEY_SP_APPBARLAYOUT_HEIGHT, remainHeight);
                     setLoadingViewHeight(remainHeight);
@@ -319,6 +317,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
         ViewGroup.LayoutParams layoutParams = flLoadHolder.getLayoutParams();
         layoutParams.height = height;
         flLoadHolder.setLayoutParams(layoutParams);
+        flLoadHolder.postInvalidate();
     }
 
     private void initVideoComments() {
@@ -333,7 +332,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
             @Override
             public void onLoadMoreRequested() {
                 //加载评论
-                presenter.loadVideoComment(unLimit91PornItem.getVideoResult().getTarget().getVideoId(), false, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
+                presenter.loadVideoComment(unLimit91PornItem.getVideoResult().getVideoId(), false, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
             }
         }, recyclerViewVideoComment);
         videoCommentAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -372,7 +371,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
      * 根据屏幕宽度信息重设videoview宽高为16：9比例
      */
     protected void setVideoViewHeight(View playerView) {
-        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) playerView.getLayoutParams();
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) playerView.getLayoutParams();
         layoutParams.height = QMUIDisplayHelper.getScreenWidth(this) * 9 / 16;
         playerView.setLayoutParams(layoutParams);
     }
@@ -383,7 +382,14 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
     @NonNull
     @Override
     public PlayVideoPresenter createPresenter() {
-        return new PlayVideoPresenter(mNoLimit91PornServiceApi, favoritePresenter, downloadPresenter, sharedPrefsCookiePersistor, setCookieCache, cacheProviders, provider);
+        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+        FavoritePresenter favoritePresenter = new FavoritePresenter(greenDaoHelper, mNoLimit91PornServiceApi, cacheProviders, MyApplication.getInstace().getUser(), provider);
+        HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
+        File videoCacheDir = AppCacheUtils.getVideoCacheDir(this);
+        DownloadPresenter downloadPresenter = new DownloadPresenter(greenDaoHelper, provider, cacheServer, videoCacheDir);
+        SharedPrefsCookiePersistor sharedPrefsCookiePersistor = MyApplication.getInstace().getSharedPrefsCookiePersistor();
+        SetCookieCache setCookieCache = MyApplication.getInstace().getSetCookieCache();
+        return new PlayVideoPresenter(mNoLimit91PornServiceApi, favoritePresenter, downloadPresenter, sharedPrefsCookiePersistor, setCookieCache, cacheProviders, provider, greenDaoHelper);
     }
 
     @Override
@@ -401,11 +407,14 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
         //showMessage("解析成功，开始播放", TastyToast.SUCCESS);
         presenter.saveVideoUrl(videoResult, unLimit91PornItem);
         helper.showContent();
-        unLimit91PornItem.videoResult.setTarget(videoResult);
+        unLimit91PornItem.setVideoResult(videoResult);
         setToolBarLayoutInfo(unLimit91PornItem);
         playVideo(unLimit91PornItem.getTitle(), videoResult.getVideoUrl(), "", videoResult.getThumbImgUrl());
         presenter.loadVideoComment(videoResult.getVideoId(), true, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
-        showTopMessage("Tips：目前大多数视频需要挂代理才能观看的！");
+        if (!MyApplication.getInstace().isShowTips()) {
+            MyApplication.getInstace().setShowTips(true);
+            showTopMessage("Tips：目前大多数视频需要挂代理才能观看的！");
+        }
     }
 
     @Override
@@ -482,7 +491,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
     private void reFreshData() {
         //刷新
         commentSwipeRefreshLayout.setRefreshing(true);
-        String videoId = unLimit91PornItem.getVideoResult().getTarget().getVideoId();
+        String videoId = unLimit91PornItem.getVideoResult().getVideoId();
         presenter.loadVideoComment(videoId, true, HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
     }
 
@@ -555,45 +564,16 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.menu_play_collect) {
-            if (unLimit91PornItem == null || unLimit91PornItem.getVideoResult() == null) {
-                showMessage("还未成功解析视频链接，不能收藏！", TastyToast.INFO);
-                return true;
-            }
-            VideoResult videoResult = unLimit91PornItem.getVideoResult().getTarget();
-            if (videoResult == null) {
-                showMessage("还未成功解析视频链接，不能收藏！", TastyToast.INFO);
-                return true;
-            }
-            User user = MyApplication.getInstace().getUser();
-            if (user == null) {
-                goToLogin();
-                showMessage("请先登录", TastyToast.SUCCESS);
-                return true;
-            }
-            if (Integer.parseInt(videoResult.getOwnnerId()) == user.getUserId()) {
-                showMessage("不能收藏自己的视频", TastyToast.WARNING);
-                return true;
-            }
-            favoriteDialog.show();
-            presenter.favorite("addToFavorites", String.valueOf(user.getUserId()), videoResult.getVideoId(), videoResult.getOwnnerId(), "json", HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
+            favoriteVideo();
             return true;
         } else if (id == R.id.menu_play_download) {
-            makeDirAndCheckPermision();
+            boolean isDownloadNeedWifi = (boolean) SPUtils.get(this, Keys.KEY_SP_DOWNLOAD_VIDEO_NEED_WIFI, false);
+            presenter.downloadVideo(unLimit91PornItem, isDownloadNeedWifi, false);
+            Intent intent = new Intent(this, DownloadVideoService.class);
+            startService(intent);
             return true;
         } else if (id == R.id.menu_play_share) {
-            if (unLimit91PornItem.getVideoResult() == null || unLimit91PornItem.getVideoResult().getTarget() == null) {
-                showMessage("还未成功解析视频链接，不能分享！", TastyToast.INFO);
-                return true;
-            }
-            String url = unLimit91PornItem.getVideoResult().getTarget().getVideoUrl();
-            if (TextUtils.isEmpty(url)) {
-                showMessage("还未成功解析视频链接，不能分享！", TastyToast.INFO);
-                return true;
-            }
-            Intent textIntent = new Intent(Intent.ACTION_SEND);
-            textIntent.setType("text/plain");
-            textIntent.putExtra(Intent.EXTRA_TEXT, "链接：" + url);
-            startActivity(Intent.createChooser(textIntent, "分享视频地址"));
+            shareVideoUrl();
             return true;
         } else if (id == R.id.menu_play_comment) {
             showMessage("向下滑动即可评论", TastyToast.INFO);
@@ -606,6 +586,42 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
         return super.onOptionsItemSelected(item);
     }
 
+    private void favoriteVideo() {
+        if (unLimit91PornItem == null || unLimit91PornItem.getVideoResult() == null) {
+            showMessage("还未成功解析视频链接，不能收藏！", TastyToast.INFO);
+            return;
+        }
+        VideoResult videoResult = unLimit91PornItem.getVideoResult();
+        User user = MyApplication.getInstace().getUser();
+        if (user == null) {
+            goToLogin();
+            showMessage("请先登录", TastyToast.SUCCESS);
+            return;
+        }
+        if (Integer.parseInt(videoResult.getOwnnerId()) == user.getUserId()) {
+            showMessage("不能收藏自己的视频", TastyToast.WARNING);
+            return;
+        }
+        favoriteDialog.show();
+        presenter.favorite("addToFavorites", String.valueOf(user.getUserId()), videoResult.getVideoId(), videoResult.getOwnnerId(), "json", HeaderUtils.getPlayVideoReferer(unLimit91PornItem.getViewKey()));
+    }
+
+    private void shareVideoUrl() {
+        if (unLimit91PornItem.getVideoResult() == null || unLimit91PornItem.getVideoResult() == null) {
+            showMessage("还未成功解析视频链接，不能分享！", TastyToast.INFO);
+            return;
+        }
+        String url = unLimit91PornItem.getVideoResult().getVideoUrl();
+        if (TextUtils.isEmpty(url)) {
+            showMessage("还未成功解析视频链接，不能分享！", TastyToast.INFO);
+            return;
+        }
+        Intent textIntent = new Intent(Intent.ACTION_SEND);
+        textIntent.setType("text/plain");
+        textIntent.putExtra(Intent.EXTRA_TEXT, "链接：" + url);
+        startActivity(Intent.createChooser(textIntent, "分享视频地址"));
+    }
+
     private void goToLogin() {
         Intent intent = new Intent(this, UserLoginActivity.class);
         startActivityWithAnimotion(intent);
@@ -613,13 +629,6 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == permisionReqCode) {
-            if (AndPermission.hasPermission(BasePlayVideo.this, permission)) {
-                presenter.downloadVideo(unLimit91PornItem);
-            } else {
-                showMessage("你拒绝了读写存储卡权限，无法下载！！", TastyToast.WARNING);
-            }
-        }
         if (resultCode == AuthorActivity.AUTHORACTIVITY_RESULT_CODE) {
             unLimit91PornItem = (UnLimit91PornItem) data.getSerializableExtra(Keys.KEY_INTENT_UNLIMIT91PORNITEM);
             recyclerViewVideoComment.smoothScrollToPosition(0);
@@ -631,73 +640,14 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
         }
     }
 
-    /**
-     * 申请权限并创建下载目录
-     */
-    private void makeDirAndCheckPermision() {
-        if (AndPermission.hasPermission(BasePlayVideo.this, permission)) {
-            presenter.downloadVideo(unLimit91PornItem);
-        } else {
-            AndPermission.with(this)
-                    .requestCode(permisionCode)
-                    .permission(permission)
-                    .rationale(new RationaleListener() {
-                        @Override
-                        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
-                            // 此对话框可以自定义，调用rationale.resume()就可以继续申请。
-                            AndPermission.rationaleDialog(BasePlayVideo.this, rationale).show();
-                        }
-                    })
-                    .callback(listener)
-                    .start();
-
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE || newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
+            //这里没必要，因为我们使用的是setColorForSwipeBack，并不会有这个虚拟的view，而是设置的padding
+            StatusBarUtil.hideFakeStatusBarView(this);
+        } else if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+            setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
         }
     }
-
-    private String[] permission = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-
-    private PermissionListener listener = new PermissionListener() {
-        File file = new File(Constants.DOWNLOAD_PATH);
-
-        @Override
-        public void onSucceed(int requestCode, @NonNull List<String> grantedPermissions) {
-            // 权限申请成功回调。
-
-            // 这里的requestCode就是申请时设置的requestCode。
-            // 和onActivityResult()的requestCode一样，用来区分多个不同的请求。
-            if (requestCode == permisionCode) {
-                // TODO ...
-                if (AndPermission.hasPermission(BasePlayVideo.this, grantedPermissions)) {
-                    if (!file.exists()) {
-                        if (file.mkdirs()) {
-                            presenter.downloadVideo(unLimit91PornItem);
-                        } else {
-                            showMessage("创建下载目录失败了", TastyToast.ERROR);
-                        }
-                    } else {
-                        presenter.downloadVideo(unLimit91PornItem);
-                    }
-                } else {
-                    AndPermission.defaultSettingDialog(BasePlayVideo.this, permisionReqCode).show();
-                }
-            }
-        }
-
-        @Override
-        public void onFailed(int requestCode, @NonNull List<String> deniedPermissions) {
-            // 权限申请失败回调。
-            if (requestCode == permisionCode) {
-                // TODO ...
-                if (!AndPermission.hasPermission(BasePlayVideo.this, deniedPermissions)) {
-                    // 是否有不再提示并拒绝的权限。
-                    if (AndPermission.hasAlwaysDeniedPermission(BasePlayVideo.this, deniedPermissions)) {
-                        // 第一种：用AndPermission默认的提示语。
-                        AndPermission.defaultSettingDialog(BasePlayVideo.this, permisionReqCode).show();
-                    } else {
-                        AndPermission.defaultSettingDialog(BasePlayVideo.this, permisionReqCode).show();
-                    }
-                }
-            }
-        }
-    };
 }

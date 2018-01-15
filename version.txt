@@ -1,10 +1,12 @@
 {
-"apkDownloadUrl": "https://bitbucket.org/techGay/91porn/downloads/app-beta-v1.0.9.apk",
-"updateMessage": "注意：自动更新升级错误的请到自己手机存储卡的下载目录（download）找到安装包手动安装升级到新版本即可\n
-                  1. 完善exoplayer播放引擎，支持手势操作\n
-                  2. 修复收藏失败崩溃的bug\n
-                  3. 我的收藏现在支持删除了\n
-                  4. 其他细节优化及bug修复",
-"versionCode": 10,
-"versionName": "1.0.9"
+"apkDownloadUrl": "https://bitbucket.org/techGay/91porn/downloads/app-beta-v1.1.0.apk",
+"updateMessage": "1. 更换底层数据库以及缓存策略等，所以建议卸载旧版本全新安装（卸载前确认记好自己的帐号密码，安装包下载完成后在存储卡下载（download）目录）\n
+                  2. 访问超时自动重试，减少网络访问超时失败出现几率\n
+                  3. 在关于页面中，增加缓存查看和清除（基于最新的缓存策略，之前版本可用系统或其他软件清理一次即可）\n
+                  4. 优化视频下载功能，完善exoplayer播放引擎，微调播放及列表界面\n
+                  5. 加入类似微信手势滑动关闭界面\n
+                  6. 增加HTTP代理设置，出现观看次数上限的可尝试设置\n
+                  7. 其他细节优化及bug修复",
+"versionCode": 11,
+"versionName": "1.1.0"
 }

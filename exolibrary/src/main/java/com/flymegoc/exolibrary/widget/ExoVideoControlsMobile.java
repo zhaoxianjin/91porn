@@ -24,10 +24,14 @@ import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
@@ -303,11 +307,13 @@ public class ExoVideoControlsMobile extends ExoVideoControls {
     protected void goFullScreen() {
         isFullScreen = true;
         fullScreenImageView.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.discover_video_fs_exit_fullscr));
-        //setUiFlags(true);
-        hideSystemUI();
+        setUiFlags(true);
+        //hideSystemUI();
         ActivityUtils.setRequestedOrientation(getContext(), ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         ViewGroup viewGroup = ActivityUtils.getWindow(getContext()).getDecorView().findViewById(android.R.id.content);
+        //就是这里了,有些statusbar库为了模拟状态栏，可能设置了padding,会在视频上方出现一条横幅，看上去好像状态栏没隐藏，其实已经隐藏了，这个是假的，错觉，所以重新设置padding为0即可
+        viewGroup.setPadding(0, 0, 0, 0);
         parentViewGroup = (ViewGroup) videoView.getParent();
         parentViewGroup.removeView(videoView);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
@@ -352,7 +358,9 @@ public class ExoVideoControlsMobile extends ExoVideoControls {
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
         }
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            flags |= View.SYSTEM_UI_FLAG_IMMERSIVE;
+        }
         return flags;
     }
 
@@ -388,7 +396,7 @@ public class ExoVideoControlsMobile extends ExoVideoControls {
         @Override
         public void onSystemUiVisibilityChange(int visibility) {
             if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
-                if (videoView.getVideoControls() != null) {
+                if (videoView != null && videoView.getVideoControls() != null) {
                     videoView.showControls();
                 }
 

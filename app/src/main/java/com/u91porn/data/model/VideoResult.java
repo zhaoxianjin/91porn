@@ -1,8 +1,12 @@
 package com.u91porn.data.model;
 
-import io.objectbox.annotation.Entity;
-import io.objectbox.annotation.Id;
-import io.objectbox.annotation.Index;
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Index;
+import org.greenrobot.greendao.annotation.Generated;
+import org.greenrobot.greendao.annotation.Transient;
+
+import java.io.Serializable;
 
 /**
  * 视频信息
@@ -11,32 +15,45 @@ import io.objectbox.annotation.Index;
  * @date 2017/12/20
  */
 @Entity
-public class VideoResult {
+public class VideoResult implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     /**
      * 游客超过每天观看次数
      */
-    public static final int OUT_OF_WATCH_TIMES = -1;
+    @Transient
+    public static final Long OUT_OF_WATCH_TIMES = -1L;
     @Id
-    public long id;
-
+    public Long id;
     private String videoUrl;
 
     @Index
     private String videoId;
     private String ownnerId;
     private String thumbImgUrl;
-
+    private String videoName;
     private String ownnerName;
     private String addDate;
     private String userOtherInfo;
 
-    public long getId() {
-        return id;
+    @Generated(hash = 567305003)
+    public VideoResult(Long id, String videoUrl, String videoId, String ownnerId, String thumbImgUrl,
+            String videoName, String ownnerName, String addDate, String userOtherInfo) {
+        this.id = id;
+        this.videoUrl = videoUrl;
+        this.videoId = videoId;
+        this.ownnerId = ownnerId;
+        this.thumbImgUrl = thumbImgUrl;
+        this.videoName = videoName;
+        this.ownnerName = ownnerName;
+        this.addDate = addDate;
+        this.userOtherInfo = userOtherInfo;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    @Generated(hash = 121136283)
+    public VideoResult() {
     }
+
 
     public String getVideoUrl() {
         return videoUrl;
@@ -125,5 +142,21 @@ public class VideoResult {
                 ", addDate='" + addDate + '\'' +
                 ", userOtherInfo='" + userOtherInfo + '\'' +
                 '}';
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getVideoName() {
+        return this.videoName;
+    }
+
+    public void setVideoName(String videoName) {
+        this.videoName = videoName;
     }
 }

@@ -14,20 +14,21 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.drawee.interfaces.DraweeController;
-import com.facebook.drawee.view.SimpleDraweeView;
-import com.facebook.imagepipeline.core.ImagePipeline;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.util.QMUIKeyboardHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.trello.rxlifecycle2.LifecycleTransformer;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
+import com.u91porn.utils.GlideApp;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.SPUtils;
@@ -35,7 +36,6 @@ import com.u91porn.utils.UserHelper;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.rx_cache2.Reply;
 
 /**
  * @author flymegoc
@@ -50,7 +50,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     @BindView(R.id.et_captcha)
     EditText etCaptcha;
     @BindView(R.id.wb_captcha)
-    SimpleDraweeView simpleDraweeView;
+    ImageView simpleDraweeView;
     @BindView(R.id.bt_user_login)
     Button btUserLogin;
     @BindView(R.id.toolbar)
@@ -159,6 +159,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
             showMessage("请填写验证码", TastyToast.INFO);
             return;
         }
+        QMUIKeyboardHelper.hideKeyboard(getCurrentFocus());
         presenter.login(username, password, f, f2, captcha, acl, x, y, HeaderUtils.getUserHeader("login"));
     }
 
@@ -175,24 +176,25 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
 
         Logger.t(TAG).d("验证码链接：" + url);
         Uri uri = Uri.parse(url);
-        ImagePipeline imagePipeline = Fresco.getImagePipeline();
-
-        imagePipeline.evictFromCache(uri);
-        simpleDraweeView.setImageURI(uri);
-
-        //创建DraweeController
-        DraweeController controller = Fresco.newDraweeControllerBuilder()
-                //加载的图片URI地址
-                .setUri(uri)
-                //设置点击重试是否开启
-                .setTapToRetryEnabled(true)
-                //设置旧的Controller
-                .setOldController(simpleDraweeView.getController())
-                //构建
-                .build();
-
-        //设置DraweeController
-        simpleDraweeView.setController(controller);
+        GlideApp.with(this).load(uri).placeholder(R.drawable.placeholder).transition(new DrawableTransitionOptions().crossFade(300)).diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).into(simpleDraweeView);
+//        ImagePipeline imagePipeline = Fresco.getImagePipeline();
+//
+//        imagePipeline.evictFromCache(uri);
+//        simpleDraweeView.setImageURI(uri);
+//
+//        //创建DraweeController
+//        DraweeController controller = Fresco.newDraweeControllerBuilder()
+//                //加载的图片URI地址
+//                .setUri(uri)
+//                //设置点击重试是否开启
+//                .setTapToRetryEnabled(true)
+//                //设置旧的Controller
+//                .setOldController(simpleDraweeView.getController())
+//                //构建
+//                .build();
+//
+//        //设置DraweeController
+//        simpleDraweeView.setController(controller);
     }
 
     @NonNull

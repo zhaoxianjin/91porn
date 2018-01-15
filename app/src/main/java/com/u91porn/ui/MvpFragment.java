@@ -51,6 +51,7 @@ public abstract class MvpFragment<V extends MvpView, P extends MvpPresenter<V>> 
      * {@link #setRetainInstance(boolean)} is set to true. This method will be called from
      * {@link #onViewCreated(View, Bundle)}
      */
+    @NonNull
     public abstract P createPresenter();
 
     /**

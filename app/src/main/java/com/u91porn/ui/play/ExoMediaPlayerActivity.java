@@ -2,13 +2,19 @@ package com.u91porn.ui.play;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.flymegoc.exolibrary.widget.ExoVideoControlsMobile;
 import com.flymegoc.exolibrary.widget.ExoVideoView;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.u91porn.R;
+import com.u91porn.utils.GlideApp;
+
+import java.io.File;
 
 /**
  * @author flymegoc
@@ -35,6 +41,7 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
 
     @Override
     public void playVideo(String title, String videoUrl, String name, String thumImgUrl) {
+
         if (isPauseByActivityEvent) {
             isPauseByActivityEvent = false;
             videoplayer.reset();
@@ -45,9 +52,22 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
                 onBackPressed();
             }
         });
-        videoplayer.setPreviewImage(Uri.parse(thumImgUrl));
-        String proxyUrl = proxy.getProxyUrl(videoUrl);
-        videoplayer.setVideoURI(Uri.parse(proxyUrl));
+        if (!TextUtils.isEmpty(thumImgUrl)) {
+            GlideApp.with(this).load(Uri.parse(thumImgUrl)).transition(new DrawableTransitionOptions().crossFade(300)).into(videoplayer.getPreviewImageView());
+        }
+        //加载本地下载好的视频
+        if (unLimit91PornItem.getStatus() == FileDownloadStatus.completed) {
+            File downloadFile = new File(unLimit91PornItem.getDownLoadPath());
+            if (downloadFile.exists()) {
+                videoplayer.setVideoPath(downloadFile.getAbsolutePath());
+            } else {
+                String proxyUrl = proxy.getProxyUrl(videoUrl);
+                videoplayer.setVideoURI(Uri.parse(proxyUrl));
+            }
+        } else {
+            String proxyUrl = proxy.getProxyUrl(videoUrl);
+            videoplayer.setVideoURI(Uri.parse(proxyUrl));
+        }
         videoControlsMobile.setTitle(title);
     }
 

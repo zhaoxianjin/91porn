@@ -38,10 +38,13 @@
     <string name="bottom_behavior">com.u91porn.behavior.BottomBehavior</string>
     <string name="comment_video_hint_tip">切勿回复与视频无关内容，否则禁言</string>
     <string name="about_item_homepage">去GitHub提建议或者Bug反馈</string>
-    <string name="about_item_github">GitHub</string>
+    <string name="about_item_github">GitHub 项目</string>
     <string name="about_copyright">© %1$s TechGay 91PORN All rights reserved.</string>
     <string name="about_check_update">检查更新</string>
     <string name="playback_engine">播放引擎</string>
+    <string name="about_item_clean_cache">清除缓存</string>
+    <string name="proxy_setting">代理设置</string>
+    <string name="point">.</string>
 
     <array name="search">
         <item>视频</item>
