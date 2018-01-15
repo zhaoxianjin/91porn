@@ -91,8 +91,10 @@ rxjava+retrofit+rxcache+mvp+jsoup
 
 ### 下载APK(当然你也可以下载源码自己编译)
 [在apk目录下会上传最新版本，选择下载即可](https://github.com/techGay/91porn/tree/master/apk)
+
 [或者这里也可以下载](https://bitbucket.org/techGay/91porn/downloads)
-注：v1.0.3版本之后已经增加了自动更新功能，不必手动下载升级了
+
+**注：v1.0.3版本之后已经增加了自动更新功能，不必手动下载升级了**
 
 
 ### 建议或者bug反馈
