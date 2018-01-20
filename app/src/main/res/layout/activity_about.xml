@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/setting_bg"
     tools:context="com.u91porn.ui.about.AboutActivity">
 
-    <include layout="@layout/toolbar_layout" />
+    <include layout="@layout/layout_toolbar" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/qmui_topbar_height"
-        android:background="@color/qmui_config_color_white"
         android:fillViewport="true">
 
         <LinearLayout
@@ -35,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="15dp"
-                android:textColor="?attr/qmui_config_color_gray_3"
+                android:textColor="@color/setting_list_title_text_color"
                 android:textSize="16sp"/>
 
             <com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView

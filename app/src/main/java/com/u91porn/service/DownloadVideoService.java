@@ -7,12 +7,11 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.text.format.Formatter;
-import android.widget.RemoteViews;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.u91porn.R;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.download.DownloadActivity;
 import com.u91porn.utils.Constants;
@@ -26,7 +25,7 @@ import java.util.List;
 public class DownloadVideoService extends Service implements DownloadManager.DownloadStatusUpdater {
 
     private int id = Constants.VIDEO_DOWNLOAD_NOTIFICATION_ID;
-    private GreenDaoHelper greenDaoHelper;
+    private DataBaseManager dataBaseManager;
 
     public DownloadVideoService() {
 
@@ -41,7 +40,7 @@ public class DownloadVideoService extends Service implements DownloadManager.Dow
     @Override
     public void onCreate() {
         super.onCreate();
-        greenDaoHelper = GreenDaoHelper.getInstance();
+        dataBaseManager = dataBaseManager.getInstance();
         DownloadManager.getImpl().addUpdater(this);
     }
 
@@ -85,10 +84,10 @@ public class DownloadVideoService extends Service implements DownloadManager.Dow
     private void updateNotification(BaseDownloadTask task, int soFarBytes, int totalBytes) {
         int progress = (int) (((float) soFarBytes / totalBytes) * 100);
         String fileSize = Formatter.formatFileSize(DownloadVideoService.this, soFarBytes).replace("MB", "") + "/ " + Formatter.formatFileSize(DownloadVideoService.this, totalBytes);
-        UnLimit91PornItem unLimit91PornItem = greenDaoHelper.findByDownloadId(task.getId());
+        UnLimit91PornItem unLimit91PornItem = dataBaseManager.findByDownloadId(task.getId());
         if (unLimit91PornItem != null) {
             if (task.getStatus() == FileDownloadStatus.completed) {
-                List<UnLimit91PornItem> unLimit91PornItemList = greenDaoHelper.findByDownloadStatus(FileDownloadStatus.progress);
+                List<UnLimit91PornItem> unLimit91PornItemList = dataBaseManager.findByDownloadStatus(FileDownloadStatus.progress);
                 if (unLimit91PornItemList.size() == 0) {
                     stopForeground(true);
                 }
@@ -96,7 +95,7 @@ public class DownloadVideoService extends Service implements DownloadManager.Dow
                 startNotification(unLimit91PornItem.getTitle(), progress, fileSize, task.getSpeed());
             }
         } else {
-            List<UnLimit91PornItem> unLimit91PornItemList = greenDaoHelper.loadDownloadingData();
+            List<UnLimit91PornItem> unLimit91PornItemList = dataBaseManager.loadDownloadingData();
             if (unLimit91PornItemList.size() == 0) {
                 stopForeground(true);
             }

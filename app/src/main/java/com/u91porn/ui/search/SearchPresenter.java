@@ -11,7 +11,7 @@ import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.exception.VideoException;
 import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.ParseUtils;
+import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.utils.RandomIPAdderssUtils;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
@@ -51,14 +51,14 @@ public class SearchPresenter extends MvpBasePresenter<SearchView> implements ISe
                 .map(new Function<String, List<UnLimit91PornItem>>() {
                     @Override
                     public List<UnLimit91PornItem> apply(String s) throws Exception {
-                        BaseResult baseResult = ParseUtils.parseSearchVideos(s);
+                        BaseResult<List<UnLimit91PornItem>> baseResult = Parse91PronVideo.parseSearchVideos(s);
                         if (baseResult.getCode() == BaseResult.ERROR_CODE) {
                             throw new VideoException(baseResult.getMessage());
                         }
                         if (page == 1) {
                             totalPage = baseResult.getTotalPage();
                         }
-                        return baseResult.getUnLimit91PornItemList();
+                        return baseResult.getData();
                     }
                 })
                 .retryWhen(new RetryWhenProcess(2))

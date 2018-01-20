@@ -314,6 +314,7 @@ public class ExoVideoControlsMobile extends ExoVideoControls {
         ViewGroup viewGroup = ActivityUtils.getWindow(getContext()).getDecorView().findViewById(android.R.id.content);
         //就是这里了,有些statusbar库为了模拟状态栏，可能设置了padding,会在视频上方出现一条横幅，看上去好像状态栏没隐藏，其实已经隐藏了，这个是假的，错觉，所以重新设置padding为0即可
         viewGroup.setPadding(0, 0, 0, 0);
+        //这里还可以写的更完美些，因为我这里知道我的视图的parent只有一个child，所以不用管其他的，只需add和removed即可，其他情况则要获取LayoutParams以及其他子view的属性
         parentViewGroup = (ViewGroup) videoView.getParent();
         parentViewGroup.removeView(videoView);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
@@ -323,6 +324,7 @@ public class ExoVideoControlsMobile extends ExoVideoControls {
 
         RelativeLayout parent = (RelativeLayout) controlsContainer.getParent();
         ViewGroup.LayoutParams layoutParams = parent.getLayoutParams();
+        //旋转之后有虚拟导航栏的话可能布局会铺不满，强制加长
         layoutParams.width = getWidth() + 1000;
         parent.setLayoutParams(layoutParams);
     }

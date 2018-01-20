@@ -3,6 +3,7 @@ package com.u91porn;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDexApplication;
+import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 
 import com.bugsnag.android.Bugsnag;
@@ -20,24 +21,27 @@ import com.orhanobut.logger.PrettyFormatStrategy;
 import com.squareup.leakcanary.LeakCanary;
 import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
+import com.u91porn.data.Api;
+import com.u91porn.data.GitHubServiceApi;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.dao.DaoMaster;
 import com.u91porn.data.dao.DaoSession;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.dao.MySQLiteOpenHelper;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.utils.AppCacheUtils;
+import com.u91porn.utils.CommonHeaderInterceptor;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.Keys;
+import com.u91porn.utils.RegexUtils;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.VideoCacheFileNameGenerator;
 
 import org.greenrobot.greendao.database.Database;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.List;
@@ -47,10 +51,8 @@ import cn.bingoogolapple.swipebacklayout.BGASwipeBackHelper;
 import io.reactivex.annotations.Nullable;
 import io.rx_cache2.internal.RxCache;
 import io.victoralbertos.jolyglot.GsonSpeaker;
-import okhttp3.HttpUrl;
-import okhttp3.Interceptor;
+import me.jessyan.retrofiturlmanager.RetrofitUrlManager;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -67,6 +69,7 @@ public class MyApplication extends MultiDexApplication {
 
     private static final String TAG = MyApplication.class.getSimpleName();
     private NoLimit91PornServiceApi mNoLimit91PornServiceApi;
+    private GitHubServiceApi mGitHubServiceApi;
     private static MyApplication mMyApplication;
     private PersistentCookieJar cookieJar;
     private volatile String host;
@@ -80,16 +83,19 @@ public class MyApplication extends MultiDexApplication {
     private SetCookieCache setCookieCache;
     private User user;
     private boolean isShowTips = false;
+    private DaoSession daoSession;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mMyApplication = this;
+        initNightMode();
         host = (String) SPUtils.get(this, Keys.KEY_SP_NOW_ADDRESS, "");
         initLogger();
         initGreenDao3(this);
         initLeakCanry();
-        initRetrofit("", 0);
+        initGitHubRetrofitService();
+        init91PornRetrofitService();
         initRxCache();
         initLoadingHelper();
         initFileDownload();
@@ -98,6 +104,11 @@ public class MyApplication extends MultiDexApplication {
             Bugsnag.init(this);
         }
         BGASwipeBackHelper.init(this, null);
+    }
+
+    private void initNightMode() {
+        boolean isNightMode = (boolean) SPUtils.get(this, Keys.KEY_SP_OPEN_NIGHT_MODE, false);
+        AppCompatDelegate.setDefaultNightMode(isNightMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
     }
 
     public boolean isShowTips() {
@@ -111,11 +122,11 @@ public class MyApplication extends MultiDexApplication {
     private void initFileDownload() {
         FileDownloader.setup(this);
         //纠正下载状态
-        List<UnLimit91PornItem> list = GreenDaoHelper.getInstance().findByNotDownloadStatus(FileDownloadStatus.completed);
+        List<UnLimit91PornItem> list = DataBaseManager.getInstance().findByNotDownloadStatus(FileDownloadStatus.completed);
         for (UnLimit91PornItem unLimit91PornItem : list) {
             unLimit91PornItem.setStatus(FileDownloadStatus.paused);
         }
-        GreenDaoHelper.getInstance().updateInTx(list);
+        DataBaseManager.getInstance().updateInTx(list);
     }
 
     /**
@@ -136,8 +147,12 @@ public class MyApplication extends MultiDexApplication {
         MigrationHelper.DEBUG = BuildConfig.DEBUG;
         MySQLiteOpenHelper helper = new MySQLiteOpenHelper(context, Constants.DB_NAME, null);
         Database db = helper.getWritableDb();
-        DaoSession daoSession = new DaoMaster(db).newSession();
-        GreenDaoHelper.init(daoSession);
+        daoSession = new DaoMaster(db).newSession();
+        DataBaseManager.init(daoSession);
+    }
+
+    public DaoSession getDaoSession() {
+        return daoSession;
     }
 
     /**
@@ -175,7 +190,7 @@ public class MyApplication extends MultiDexApplication {
      */
     public String getHost() {
         if (TextUtils.isEmpty(host)) {
-            return Constants.BASE_URL;
+            return Api.APP_DEFAULT_DOMAIN;
         }
         return host;
     }
@@ -224,59 +239,24 @@ public class MyApplication extends MultiDexApplication {
     /**
      * 初始化Retrifit网络请求
      */
-    public void initRetrofit(String proxyHost, int port) {
+    public void init91PornRetrofitService() {
 
         sharedPrefsCookiePersistor = new SharedPrefsCookiePersistor(this);
         setCookieCache = new SetCookieCache();
         cookieJar = new PersistentCookieJar(setCookieCache, sharedPrefsCookiePersistor);
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.addInterceptor(new Interceptor() {
-            @Override
-            public okhttp3.Response intercept(@NonNull Chain chain) throws IOException {
-                //统一设置请求头
-                Request original = chain.request();
 
-                Request.Builder requestBuilder = original.newBuilder();
-                requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299");
-                requestBuilder.header("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5");
-                requestBuilder.header("Proxy-Connection", "keep-alive");
-                requestBuilder.header("Cache-Control", "max-age=0");
-                // requestBuilder.header("X-Forwarded-For","114.114.114.117")
-                requestBuilder.method(original.method(), original.body());
-                String host = MyApplication.this.host;
-                //切换服务器地址
-                if (!TextUtils.isEmpty(host)) {
-                    host = host.substring(host.indexOf("//") + 2, host.lastIndexOf("/"));
-                    Logger.d("host:" + host);
-                    if (!TextUtils.isEmpty(host)) {
-                        HttpUrl newUrl = original.url().newBuilder()
-                                .host(host)
-                                .build();
-                        requestBuilder.url(newUrl);
-                        if (!"github.com".equals(original.url().host())) {
-                            requestBuilder.header("Host", host);
-                        }
-                    }
-                } else {
-                    if (!"github.com".equals(original.url().host())) {
-                        host = Constants.BASE_URL.substring(Constants.BASE_URL.indexOf("//") + 2, Constants.BASE_URL.lastIndexOf("/"));
-                        requestBuilder.header("Host", host);
-                    }
-                }
-
-                Request request = requestBuilder.build();
-                return chain.proceed(request);
-            }
-        });
         builder.cookieJar(cookieJar);
         //如果代理地址不为空，且端口正确设置Http代理
-        if (!TextUtils.isEmpty(proxyHost) && port < Constants.PROXY_MAX_PORT) {
+        boolean isOpenPxoxy = (boolean) SPUtils.get(this, Keys.KEY_SP_OPEN_HTTP_PROXY, false);
+        String proxyHost = (String) SPUtils.get(this, Keys.KEY_SP_PROXY_IP_ADDRESS, "");
+        int port = (int) SPUtils.get(this, Keys.KEY_SP_PROXY_PORT, 0);
+        if (isOpenPxoxy && RegexUtils.isIP(proxyHost) && port < Constants.PROXY_MAX_PORT && port > 0) {
             Logger.t(TAG).d("代理设置： host:" + proxyHost + "  端口：" + port);
             builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, port)));
         }
-
-
+        builder.addInterceptor(new CommonHeaderInterceptor());
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
             public void log(@NonNull String message) {
@@ -289,14 +269,31 @@ public class MyApplication extends MultiDexApplication {
         builder.writeTimeout(5, TimeUnit.SECONDS);
         builder.connectTimeout(5, TimeUnit.SECONDS);
 
+        //动态切换baseUrl 配置
+        OkHttpClient okHttpClient = RetrofitUrlManager.getInstance().with(builder)
+                .build();
+
         Retrofit retrofit = new Retrofit.Builder()
-                .client(builder.build())
-                .baseUrl(Constants.BASE_URL)
+                .client(okHttpClient)
+                .baseUrl(getHost())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build();
 
         mNoLimit91PornServiceApi = retrofit.create(NoLimit91PornServiceApi.class);
+    }
+
+    private void initGitHubRetrofitService() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Api.APP_GITHUB_DOMAIN)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .build();
+        mGitHubServiceApi = retrofit.create(GitHubServiceApi.class);
+    }
+
+    public GitHubServiceApi getGitHubServiceApi() {
+        return mGitHubServiceApi;
     }
 
     public SharedPrefsCookiePersistor getSharedPrefsCookiePersistor() {

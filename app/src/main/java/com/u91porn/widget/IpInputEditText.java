@@ -234,7 +234,15 @@ public class IpInputEditText extends LinearLayout {
     }
 
     public void setIpAddressStr(String ipAddress) {
-        if (!TextUtils.isEmpty(ipAddress) && RegexUtils.isIP(ipAddress)) {
+        if (TextUtils.isEmpty(ipAddress)) {
+            subIpCompatEditText1.setText("");
+            subIpCompatEditText2.setText("");
+            subIpCompatEditText3.setText("");
+            subIpCompatEditText4.setText("");
+            subIpCompatEditText1.requestFocus();
+            return;
+        }
+        if (RegexUtils.isIP(ipAddress)) {
             String[] ipArr = ipAddress.split("\\.");
             for (int i = 0; i < ipArr.length; i++) {
                 switch (i) {

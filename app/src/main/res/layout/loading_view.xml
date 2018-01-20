@@ -17,6 +17,7 @@
         android:id="@+id/tv_loading_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/setting_list_title_text_color"
         android:layout_marginTop="12dp"
         android:text="@string/load_Is_in_loading" />
 </LinearLayout>

@@ -14,19 +14,25 @@
             android:id="@+id/rb_never_go_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:theme="@style/MyRadioButton"
+            android:textColor="@color/common_black_white_text_color"
             android:text="http://91porn.com/(永久可用地址,但需要挂VPN代理)" />
 
         <RadioButton
             android:id="@+id/rb_will_go_someday"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:theme="@style/MyRadioButton"
             android:checked="true"
+            android:textColor="@color/common_black_white_text_color"
             android:text="http://91.91p18.space/(不需翻墙，但会被封杀)" />
 
         <RadioButton
             android:id="@+id/rb_now_custom_adress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/common_black_white_text_color"
+            android:theme="@style/MyRadioButton"
             android:text="当前自定义地址（无）" />
     </RadioGroup>
 
@@ -34,11 +40,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="5dp"
+        android:textColor="@color/common_black_white_text_color"
         android:text="如上面无需翻墙地址不可用了，请在下面填入当前可用地址（格式请参照上面两个地址）" />
 
     <EditText
         android:id="@+id/et_custom_ip_address"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:theme="@style/MyEditText"
         android:hint="请输入当前可访问的地址" />
 </LinearLayout>

@@ -45,7 +45,7 @@ public class VideoCommentAdapter extends BaseQuickAdapter<VideoComment, BaseView
         if (helper.getLayoutPosition() == clickPosition) {
             helper.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
         } else {
-            helper.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
+            helper.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.common_background));
         }
     }
 

@@ -10,7 +10,8 @@ import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.utils.ParseUtils;
+import com.u91porn.utils.HeaderUtils;
+import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
 
@@ -41,7 +42,7 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
     /**
      * 本次强制刷新过那下面的请求也一起刷新
      */
-    private boolean cleanCache = false;
+    private boolean isLoadMoreCleanCache = false;
 
     public RecentUpdatesPresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, String next, LifecycleProvider<FragmentEvent> provider) {
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
@@ -50,17 +51,21 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
         this.provider = provider;
     }
 
+    public void setNoLimit91PornServiceApi(NoLimit91PornServiceApi noLimit91PornServiceApi) {
+        this.noLimit91PornServiceApi = noLimit91PornServiceApi;
+    }
+
     @Override
-    public void loadRecentUpdatesData(final boolean pullToRefresh, String next,String referer) {
+    public void loadRecentUpdatesData(final boolean pullToRefresh, boolean cleanCache, String next) {
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
-            cleanCache = true;
+            isLoadMoreCleanCache = true;
         }
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(next, page);
-        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
+        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache || isLoadMoreCleanCache);
 
-        Observable<String> categoryPage = noLimit91PornServiceApi.recentUpdates(next, page,referer);
+        Observable<String> categoryPage = noLimit91PornServiceApi.recentUpdates(next, page, HeaderUtils.getIndexHeader());
         cacheProviders.getRecentUpdates(categoryPage, dynamicKeyGroup, evictDynamicKey)
                 .map(new Function<Reply<String>, String>() {
                     @Override
@@ -71,11 +76,11 @@ public class RecentUpdatesPresenter extends MvpBasePresenter<RecentUpdatesView> 
                 .map(new Function<String, List<UnLimit91PornItem>>() {
                     @Override
                     public List<UnLimit91PornItem> apply(String s) throws Exception {
-                        BaseResult baseResult = ParseUtils.parseHot(s);
+                        BaseResult<List<UnLimit91PornItem>> baseResult = Parse91PronVideo.parseHot(s);
                         if (page == 1) {
                             totalPage = baseResult.getTotalPage();
                         }
-                        return baseResult.getUnLimit91PornItemList();
+                        return baseResult.getData();
                     }
                 })
                 .retryWhen(new RetryWhenProcess(2))

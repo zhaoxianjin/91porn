@@ -71,16 +71,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_register);
         ButterKnife.bind(this);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-        toolbar.setContentInsetStartWithNavigation(0);
-        setTitle("用户注册");
+        initToolBar(toolbar);
         loadCaptcha();
 
         btUserSignup.setOnClickListener(new View.OnClickListener() {
@@ -172,34 +163,10 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
      * 加载验证码，目前似乎是非必须，不填也是可以登录的
      */
     private void loadCaptcha() {
-        String url;
-        if (TextUtils.isEmpty(MyApplication.getInstace().getHost())) {
-            url = Constants.BASE_URL + "captcha2.php";
-        } else {
-            url = MyApplication.getInstace().getHost() + "captcha2.php";
-        }
-
+        String url = MyApplication.getInstace().getHost() + "captcha2.php";
         Logger.t(TAG).d("验证码链接：" + url);
         Uri uri = Uri.parse(url);
         GlideApp.with(this).load(uri).placeholder(R.drawable.placeholder).transition(new DrawableTransitionOptions().crossFade(300)).diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).into(wbCaptcha);
-//        ImagePipeline imagePipeline = Fresco.getImagePipeline();
-//
-//        imagePipeline.evictFromCache(uri);
-//        wbCaptcha.setImageURI(uri);
-//
-//        //创建DraweeController
-//        DraweeController controller = Fresco.newDraweeControllerBuilder()
-//                //加载的图片URI地址
-//                .setUri(uri)
-//                //设置点击重试是否开启
-//                .setTapToRetryEnabled(true)
-//                //设置旧的Controller
-//                .setOldController(wbCaptcha.getController())
-//                //构建
-//                .build();
-//
-//        //设置DraweeController
-//        wbCaptcha.setController(controller);
     }
 
     @Override

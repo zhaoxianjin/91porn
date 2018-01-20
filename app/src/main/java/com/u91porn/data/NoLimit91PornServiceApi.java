@@ -134,15 +134,6 @@ public interface NoLimit91PornServiceApi {
     Observable<String> favoriteVideo(@Query("cpaint_function") String cpaintFunction, @Query("cpaint_argument[]") String uId, @Query("cpaint_argument[]") String videoId, @Query("cpaint_argument[]") String ownerId, @Query("cpaint_response_type") String responseType, @Header("Referer") String referer);
 
     /**
-     * 检查更新
-     *
-     * @param url 链接
-     * @return ob
-     */
-    @GET
-    Observable<String> checkUpdate(@Url String url);
-
-    /**
      * //http://91.91p18.space/show_comments2.php?VID=247965&start=1&comment_per_page=20
      * 获取视频评论
      *

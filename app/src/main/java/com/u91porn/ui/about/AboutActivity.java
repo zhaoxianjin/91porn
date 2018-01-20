@@ -21,6 +21,7 @@ import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.GitHubServiceApi;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.service.UpdateDownloadService;
@@ -61,33 +62,21 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     private AlertDialog alertDialog;
     private AlertDialog cleanCacheDialog;
     private QMUIGroupListView.Section aboutSection;
+    private QMUICommonListItemView cleanCacheQMUICommonListItemView;
 
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
         ButterKnife.bind(this);
 
-        setSupportActionBar(toolbar);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-        toolbar.setContentInsetStartWithNavigation(0);
+        initToolBar(toolbar);
 
         setTitle("关于");
+        initAboutSection();
 
         mVersionTextView.setText("v" + QMUIPackageHelper.getAppVersion(this));
-
-        aboutSection = initAboutSection();
-        aboutSection.addTo(mAboutGroupListView);
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy", Locale.CHINA);
         String currentYear = dateFormat.format(new java.util.Date());
@@ -96,18 +85,11 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
         alertDialog = DialogUtils.initLodingDialog(this, "正在检查更新，请稍后...");
     }
 
-    private QMUIGroupListView.Section initAboutSection() {
-        boolean isDownloadNeedWifi = (boolean) SPUtils.get(this, Keys.KEY_SP_DOWNLOAD_VIDEO_NEED_WIFI, false);
-        QMUICommonListItemView itemWithSwitch = mAboutGroupListView.createItemView("非Wi-Fi环境下下载视频");
-        itemWithSwitch.setAccessoryType(QMUICommonListItemView.ACCESSORY_TYPE_SWITCH);
-        itemWithSwitch.getSwitch().setChecked(!isDownloadNeedWifi);
-        itemWithSwitch.getSwitch().setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SPUtils.put(AboutActivity.this, Keys.KEY_SP_DOWNLOAD_VIDEO_NEED_WIFI, !isChecked);
-            }
-        });
-        return QMUIGroupListView.newSection(this)
+    private void initAboutSection() {
+        mAboutGroupListView.setSeparatorStyle(QMUIGroupListView.SEPARATOR_STYLE_NORMAL);
+        cleanCacheQMUICommonListItemView = mAboutGroupListView.createItemView(getCleanCacheTitle());
+
+        QMUIGroupListView.newSection(this)
 
                 .addItemView(mAboutGroupListView.createItemView(getResources().getString(R.string.about_item_github)), new View.OnClickListener() {
                     @Override
@@ -127,8 +109,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
                         startActivity(intent);
                     }
                 })
-                .addItemView(itemWithSwitch, null)
-                .addItemView(mAboutGroupListView.createItemView(getCleanCacheTitle()), new View.OnClickListener() {
+                .addItemView(cleanCacheQMUICommonListItemView, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         showChoiceCacheCleanDialog();
@@ -145,7 +126,8 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
                         alertDialog.show();
                         presenter.checkUpdate(versionCode);
                     }
-                });
+                })
+                .addTo(mAboutGroupListView);
 
     }
 
@@ -216,8 +198,8 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     @NonNull
     @Override
     public AboutPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
-        return new AboutPresenter(new UpdatePresenter(noLimit91PornServiceApi, new Gson(), provider), provider);
+        GitHubServiceApi gitHubServiceApi=MyApplication.getInstace().getGitHubServiceApi();
+        return new AboutPresenter(new UpdatePresenter(gitHubServiceApi, new Gson(), provider), provider);
     }
 
     private void showUpdateDialog(final UpdateVersion updateVersion) {
@@ -287,9 +269,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     @Override
     public void cleanCacheSuccess(String message) {
         dismissDialog();
-        aboutSection.removeFrom(mAboutGroupListView);
-        aboutSection = initAboutSection();
-        aboutSection.addTo(mAboutGroupListView);
+        cleanCacheQMUICommonListItemView.setText(getCleanCacheTitle());
         showMessage(message, TastyToast.SUCCESS);
     }
 

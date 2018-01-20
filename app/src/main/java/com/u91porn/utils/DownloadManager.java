@@ -8,7 +8,7 @@ import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.orhanobut.logger.Logger;
 import com.u91porn.BuildConfig;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import java.util.List;
 
 public class DownloadManager {
     private static final String TAG = DownloadManager.class.getSimpleName();
-    private GreenDaoHelper greenDaoHelper = GreenDaoHelper.getInstance();
+    private DataBaseManager dataBaseManager = DataBaseManager.getInstance();
 
     private final static class HolderClass {
         private final static DownloadManager INSTANCE = new DownloadManager();
@@ -129,7 +129,7 @@ public class DownloadManager {
      * @param task
      */
     private void saveDownloadInfo(BaseDownloadTask task) {
-        UnLimit91PornItem unLimit91PornItem = greenDaoHelper.findByDownloadId(task.getId());
+        UnLimit91PornItem unLimit91PornItem = dataBaseManager.findByDownloadId(task.getId());
         if (unLimit91PornItem == null) {
             if (!BuildConfig.DEBUG) {
                 Bugsnag.notify(new Throwable(TAG + "::save download info failure:" + task.getUrl()), Severity.WARNING);
@@ -154,7 +154,7 @@ public class DownloadManager {
         }
         unLimit91PornItem.setSpeed(task.getSpeed());
         unLimit91PornItem.setStatus(task.getStatus());
-        greenDaoHelper.update(unLimit91PornItem);
+        dataBaseManager.update(unLimit91PornItem);
         update(task);
     }
 

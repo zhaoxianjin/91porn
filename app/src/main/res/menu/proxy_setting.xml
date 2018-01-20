@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_done_proxy_setting"
+        android:icon="@drawable/ic_done_black_24dp"
+        android:orderInCategory="100"
+        android:title="@string/done"
+        app:iconTint="@color/common_always_white_text_color"
+        app:showAsAction="ifRoom" />
+</menu>

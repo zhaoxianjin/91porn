@@ -5,35 +5,35 @@
         android:id="@+id/menu_play_comment"
         android:orderInCategory="100"
         android:title="@string/comments"
-        app:iconTint="@color/white"
+        app:iconTint="@color/common_primary_white_text_color"
         android:icon="@drawable/ic_mode_edit_black_24dp"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_play_collect"
         android:orderInCategory="100"
         android:title="@string/collect"
-        app:iconTint="@color/white"
+        app:iconTint="@color/common_primary_white_text_color"
         android:icon="@drawable/ic_favorite_black_24dp"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_play_download"
         android:orderInCategory="100"
         android:title="@string/download"
-        app:iconTint="@color/white"
+        app:iconTint="@color/common_primary_white_text_color"
         android:icon="@drawable/ic_file_download_black_24dp"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_play_share"
         android:orderInCategory="100"
         android:title="@string/share"
-        app:iconTint="@color/white"
+        app:iconTint="@color/common_primary_white_text_color"
         android:icon="@drawable/ic_share_black_24dp"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_play_close"
         android:orderInCategory="100"
         android:title="@string/close"
-        app:iconTint="@color/white"
+        app:iconTint="@color/common_primary_white_text_color"
         android:icon="@drawable/ic_close_black_24dp"
         app:showAsAction="never" />
 </menu>

@@ -16,7 +16,7 @@ import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoComment;
 import com.u91porn.data.model.VideoCommentResult;
@@ -25,7 +25,8 @@ import com.u91porn.exception.VideoException;
 import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.utils.ParseUtils;
+import com.u91porn.parse.Parse91PronVideo;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.RandomIPAdderssUtils;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
@@ -62,9 +63,9 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
     private LifecycleProvider<ActivityEvent> provider;
     private int commentPerPage = 20;
     private int start = 1;
-    private GreenDaoHelper greenDaoHelper;
+    private DataBaseManager dataBaseManager;
 
-    public PlayVideoPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, FavoritePresenter favoritePresenter, DownloadPresenter downloadPresenter, SharedPrefsCookiePersistor sharedPrefsCookiePersistor, SetCookieCache setCookieCache, CacheProviders cacheProviders, LifecycleProvider<ActivityEvent> provider, GreenDaoHelper greenDaoHelper) {
+    public PlayVideoPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, FavoritePresenter favoritePresenter, DownloadPresenter downloadPresenter, SharedPrefsCookiePersistor sharedPrefsCookiePersistor, SetCookieCache setCookieCache, CacheProviders cacheProviders, LifecycleProvider<ActivityEvent> provider, DataBaseManager dataBaseManager) {
         this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
         this.favoritePresenter = favoritePresenter;
         this.downloadPresenter = downloadPresenter;
@@ -72,14 +73,14 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
         this.setCookieCache = setCookieCache;
         this.cacheProviders = cacheProviders;
         this.provider = provider;
-        this.greenDaoHelper = greenDaoHelper;
+        this.dataBaseManager = dataBaseManager;
     }
 
     @Override
-    public void loadVideoUrl(String viewKey, String referer) {
-
+    public void loadVideoUrl(final UnLimit91PornItem unLimit91PornItem) {
+        String viewKey = unLimit91PornItem.getViewKey();
         String ip = RandomIPAdderssUtils.getRandomIPAdderss();
-        cacheProviders.getVideoPlayPage(mNoLimit91PornServiceApi.getVideoPlayPage(viewKey, ip, referer), new DynamicKey(viewKey), new EvictDynamicKey(false))
+        cacheProviders.getVideoPlayPage(mNoLimit91PornServiceApi.getVideoPlayPage(viewKey, ip, HeaderUtils.getIndexHeader()), new DynamicKey(viewKey), new EvictDynamicKey(false))
                 .map(new Function<Reply<String>, String>() {
                     @Override
                     public String apply(Reply<String> responseBodyReply) throws Exception {
@@ -102,7 +103,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 .map(new Function<String, VideoResult>() {
                     @Override
                     public VideoResult apply(String s) throws VideoException {
-                        VideoResult videoResult = ParseUtils.parseVideoPlayUrl(s);
+                        VideoResult videoResult = Parse91PronVideo.parseVideoPlayUrl(s);
                         if (TextUtils.isEmpty(videoResult.getVideoUrl())) {
                             if (VideoResult.OUT_OF_WATCH_TIMES.equals(videoResult.getId())) {
                                 //尝试强行重置，并上报异常
@@ -136,7 +137,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                         ifViewAttached(new ViewAction<PlayVideoView>() {
                             @Override
                             public void run(@NonNull PlayVideoView view) {
-                                view.playVideo(videoResult);
+                                view.playVideo(saveVideoUrl(videoResult, unLimit91PornItem));
                             }
                         });
                     }
@@ -162,7 +163,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 .map(new Function<String, List<VideoComment>>() {
                     @Override
                     public List<VideoComment> apply(String s) throws Exception {
-                        return ParseUtils.parseVideoComment(s);
+                        return Parse91PronVideo.parseVideoComment(s);
                     }
                 })
                 .retryWhen(new RetryWhenProcess(2))
@@ -378,13 +379,12 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 });
     }
 
-    @Override
-    public void saveVideoUrl(VideoResult videoResult, UnLimit91PornItem unLimit91PornItem) {
-        greenDaoHelper.insertOrReplaceInTx(videoResult);
+    private UnLimit91PornItem saveVideoUrl(VideoResult videoResult, UnLimit91PornItem unLimit91PornItem) {
+        dataBaseManager.insertOrReplaceInTx(videoResult);
         unLimit91PornItem.setVideoResult(videoResult);
         unLimit91PornItem.setViewHistoryDate(new Date());
-        greenDaoHelper.insertOrReplaceInTx(unLimit91PornItem);
-
+        dataBaseManager.insertOrReplaceInTx(unLimit91PornItem);
+        return unLimit91PornItem;
     }
 
     @Override

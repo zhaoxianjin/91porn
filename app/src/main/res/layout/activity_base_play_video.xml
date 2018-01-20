@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/common_background"
     tools:context="com.u91porn.ui.play.BasePlayVideo">
 
     <FrameLayout
@@ -40,7 +40,7 @@
                     android:ellipsize="middle"
                     android:lines="2"
                     android:text="---"
-                    android:textColor="@color/white"
+                    android:textColor="@color/play_head_video_info_text_color"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -56,7 +56,7 @@
                         android:paddingBottom="5dp"
                         android:paddingTop="5dp"
                         android:text="作者："
-                        android:textColor="@color/white" />
+                        android:textColor="@color/play_head_video_info_text_color" />
 
                     <TextView
                         android:id="@+id/tv_play_video_author"
@@ -74,7 +74,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:text="添加时间: 20XX-XX-XX  ***精品视频加分+0000"
-                    android:textColor="@color/white"
+                    android:textColor="@color/play_head_video_info_text_color"
                     app:autoSizeMaxTextSize="20sp"
                     app:autoSizeMinTextSize="10sp"
                     app:autoSizeStepGranularity="1sp"
@@ -86,7 +86,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:text="注册:xxx天前  级别:1  积分:00000  视频:00   粉丝:00000  关注:0"
-                    android:textColor="@color/white"
+                    android:textColor="@color/play_head_video_info_text_color"
                     app:autoSizeMaxTextSize="20sp"
                     app:autoSizeMinTextSize="10sp"
                     app:autoSizeStepGranularity="1sp"
@@ -120,7 +120,9 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_gravity="bottom|end"
-            app:floatingMenu="@menu/playvideo" />
+            android:background="@color/common_always_white_text_color"
+            app:floatingItemBackground="@drawable/button_selector_play"
+            app:floatingMenu="@menu/play_video" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"
@@ -128,14 +130,15 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom"
             android:layout_margin="@dimen/fab_margin"
-            android:tint="@color/white"
+            android:tint="@color/colorPrimary"
+            app:backgroundTint="@color/floating_action_button_tine_bg_color"
             app:layout_behavior="@string/scale_down_show_behavior"
             app:srcCompat="@drawable/ic_add_black_24dp" />
 
         <LinearLayout
             android:id="@+id/et_comment_input_layout"
             android:layout_width="match_parent"
-            android:layout_height="?android:attr/actionBarSize"
+            android:layout_height="?attr/actionBarSize"
             android:layout_gravity="end|bottom"
             android:background="@drawable/background"
             android:orientation="horizontal"

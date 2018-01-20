@@ -1,6 +1,9 @@
 package com.u91porn.data.model;
 
-import java.util.List;
+import android.support.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * @author flymegoc
@@ -8,19 +11,28 @@ import java.util.List;
  * @describe
  */
 
-public class BaseResult {
-    public final static int SUCCESS_CODE=1;
-    public final static int ERROR_CODE=2;
-    private List<UnLimit91PornItem> unLimit91PornItemList;
-    private Integer totalPage;
-    private int code;
-    private String message;
-    public List<UnLimit91PornItem> getUnLimit91PornItemList() {
-        return unLimit91PornItemList;
+public class BaseResult<T> {
+    public final static int SUCCESS_CODE = 1;
+    public final static int ERROR_CODE = 2;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({SUCCESS_CODE, ERROR_CODE})
+    @interface ResultCode {
+
     }
 
-    public void setUnLimit91PornItemList(List<UnLimit91PornItem> unLimit91PornItemList) {
-        this.unLimit91PornItemList = unLimit91PornItemList;
+    private T data;
+    private Integer totalPage;
+    @ResultCode
+    private int code;
+    private String message;
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
     }
 
     public Integer getTotalPage() {

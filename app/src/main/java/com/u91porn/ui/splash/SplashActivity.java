@@ -38,6 +38,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
             //结束你的activity
             Logger.t(TAG).d("重复打开了....");
             finish();
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             return;
         }
         User user = MyApplication.getInstace().getUser();
@@ -71,7 +72,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
 
     private void startMain() {
         Intent intent = new Intent(this, MainActivity.class);
-        startActivityWithAnimotion(intent);
+        startActivity(intent);
         finish();
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }

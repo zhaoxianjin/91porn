@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:background="@color/common_background"
     android:orientation="vertical">
 
     <ImageView
@@ -18,7 +19,7 @@
         android:gravity="center"
         android:padding="16dp"
         android:text="请确认当前地址可访问，点击重试！"
-        android:textColor="#656565"
+        android:textColor="@color/common_black_white_text_color"
         android:textSize="16sp" />
 
 </LinearLayout>

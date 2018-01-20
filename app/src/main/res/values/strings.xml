@@ -1,11 +1,7 @@
 <resources>
     <string name="app_name">91Porn</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="action_settings">地址设置</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="coming_soon">敬请期待...</string>
     <string name="hot">当前最热</string>
     <string name="recent_updates">最近更新</string>
     <string name="index">主页</string>
@@ -22,13 +18,14 @@
     <string name="other">其他</string>
     <string name="my_collect">我的收藏</string>
     <string name="my_download">我的下载</string>
+    <string name="more_setting">更多设置</string>
     <string name="about_me">关于</string>
     <string name="lala_lu">请登录</string>
     <string name="nav_tip">小撸怡情，大撸伤身，强撸灰飞烟灭</string>
     <string name="no_data">暂无数据</string>
     <string name="collect">收藏</string>
     <string name="download">下载</string>
-    <string name="history_views">浏览历史</string>
+    <string name="history_views">最近浏览</string>
     <string name="register">注册</string>
     <string name="exit_app">退出程序</string>
     <string name="share">分享</string>
@@ -42,9 +39,22 @@
     <string name="about_copyright">© %1$s TechGay 91PORN All rights reserved.</string>
     <string name="about_check_update">检查更新</string>
     <string name="playback_engine">播放引擎</string>
+    <string name="address_91porn">设置91地址</string>
+    <string name="address_forum_91porn">设置91论坛地址</string>
+    <string name="address_t66y">设置草榴地址</string>
     <string name="about_item_clean_cache">清除缓存</string>
-    <string name="proxy_setting">代理设置</string>
+    <string name="proxy_setting">HTTP代理</string>
+    <string name="night_mode">夜间模式</string>
     <string name="point">.</string>
+
+
+    <string name="title_video">视频</string>
+    <string name="title_dashboard">草榴</string>
+    <string name="title_forum">论坛</string>
+    <string name="title_music">音乐</string>
+    <string name="title_photo">图片</string>
+    <string name="title_me">我的</string>
+    <string name="exit_login_account">退出登录</string>
 
     <array name="search">
         <item>视频</item>
@@ -58,4 +68,16 @@
         <item>观看次数</item>
         <item>影片时长</item>
     </array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="activity_proxy_setting">HTTP代理设置</string>
+    <string name="done">完成</string>
+    <string name="tip_proxy_setting">Tip：这个设置只是HTTP代理设置，仅代理网页请求(百度免费HTTP代理即可,但可用性一般不高)，并不会提高你观看视频的速度，只为解决部分用户无法访问或者观看次数超限问题，如果你的观看次数不受影响，请不要设置。</string>
+    <string name="port">端口号(port)</string>
+    <string name="test">测试</string>
+    <string name="clean">清空</string>
+    <string name="delete">删除</string>
+    <string name="title_user_login">用户登录（仅本次有效）</string>
+    <string name="title_user_register">用户注册</string>
 </resources>

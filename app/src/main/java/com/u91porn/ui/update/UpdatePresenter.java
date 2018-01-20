@@ -10,6 +10,7 @@ import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.BuildConfig;
+import com.u91porn.data.GitHubServiceApi;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.rxjava.CallBackWrapper;
@@ -29,13 +30,13 @@ import io.reactivex.schedulers.Schedulers;
 
 public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUpdate {
 
-    private NoLimit91PornServiceApi noLimit91PornServiceApi;
+    private GitHubServiceApi gitHubServiceApi;
     private final static String CHECK_UPDATE_URL = "https://github.com/techGay/91porn/blob/master/version.txt";
     private Gson gson;
     private LifecycleProvider<ActivityEvent> provider;
 
-    public UpdatePresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, Gson gson, LifecycleProvider<ActivityEvent> provider) {
-        this.noLimit91PornServiceApi = noLimit91PornServiceApi;
+    public UpdatePresenter(GitHubServiceApi gitHubServiceApi, Gson gson, LifecycleProvider<ActivityEvent> provider) {
+        this.gitHubServiceApi = gitHubServiceApi;
         this.gson = gson;
         this.provider = provider;
     }
@@ -46,7 +47,7 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
     }
 
     public void checkUpdate(final int versionCode, final UpdateListener updateListener) {
-        noLimit91PornServiceApi.checkUpdate(CHECK_UPDATE_URL)
+        gitHubServiceApi.checkUpdate(CHECK_UPDATE_URL)
                 .map(new Function<String, UpdateVersion>() {
                     @Override
                     public UpdateVersion apply(String s) throws Exception {

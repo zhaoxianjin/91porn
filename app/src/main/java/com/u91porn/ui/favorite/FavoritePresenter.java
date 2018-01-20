@@ -13,7 +13,7 @@ import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.Favorite;
 import com.u91porn.data.model.UnLimit91PornItem;
@@ -21,11 +21,11 @@ import com.u91porn.data.model.User;
 import com.u91porn.exception.ApiException;
 import com.u91porn.exception.FavoriteException;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.utils.Constants;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.ParseUtils;
+import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
+import com.u91porn.utils.SDCardUtils;
 
 import java.io.File;
 import java.util.List;
@@ -50,7 +50,7 @@ import io.rx_cache2.Reply;
 
 public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements IFavorite {
     private static final String TAG = FavoriteListener.class.getSimpleName();
-    private GreenDaoHelper greenDaoHelper;
+    private DataBaseManager dataBaseManager;
     private NoLimit91PornServiceApi noLimit91PornServiceApi;
     private CacheProviders cacheProviders;
     private User user;
@@ -63,8 +63,8 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
     private boolean cleanCache = false;
     private String uploadMsg;
 
-    public FavoritePresenter(GreenDaoHelper greenDaoHelper, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
-        this.greenDaoHelper = greenDaoHelper;
+    public FavoritePresenter(DataBaseManager dataBaseManager, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
+        this.dataBaseManager = dataBaseManager;
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
         this.user = user;
@@ -214,11 +214,11 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 .map(new Function<String, List<UnLimit91PornItem>>() {
                     @Override
                     public List<UnLimit91PornItem> apply(String s) throws Exception {
-                        BaseResult baseResult = ParseUtils.parseMyFavorite(s);
+                        BaseResult<List<UnLimit91PornItem>> baseResult = Parse91PronVideo.parseMyFavorite(s);
                         if (page == 1) {
                             totalPage = baseResult.getTotalPage();
                         }
-                        return baseResult.getUnLimit91PornItemList();
+                        return baseResult.getData();
                     }
                 })
                 .retryWhen(new RetryWhenProcess(2))
@@ -279,27 +279,30 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
 
     @Override
     public void deleteFavorite(String rvid) {
-        String removFavour = "Remove Favorite";
-        noLimit91PornServiceApi.deleteMyFavorite(rvid, removFavour, 45, 19, HeaderUtils.getFavHeader())
-                .map(new Function<String, BaseResult>() {
+        String removeFavour = "Remove Favorite";
+        noLimit91PornServiceApi.deleteMyFavorite(rvid, removeFavour, 45, 19, HeaderUtils.getFavHeader())
+                .map(new Function<String, BaseResult<List<UnLimit91PornItem>>>() {
                     @Override
-                    public BaseResult apply(String s) throws Exception {
-                        return ParseUtils.parseMyFavorite(s);
+                    public BaseResult<List<UnLimit91PornItem>> apply(String s) throws Exception {
+                        return Parse91PronVideo.parseMyFavorite(s);
                     }
                 })
-                .map(new Function<BaseResult, BaseResult>() {
+                .map(new Function<BaseResult<List<UnLimit91PornItem>>, List<UnLimit91PornItem>>() {
                     @Override
-                    public BaseResult apply(BaseResult baseResult) throws Exception {
+                    public List<UnLimit91PornItem> apply(BaseResult<List<UnLimit91PornItem>> baseResult) throws Exception {
                         if (baseResult.getCode() == BaseResult.ERROR_CODE) {
                             throw new FavoriteException(baseResult.getMessage());
                         }
-                        return baseResult;
+                        if (baseResult.getCode() != BaseResult.SUCCESS_CODE || TextUtils.isEmpty(baseResult.getMessage())) {
+                            throw new FavoriteException("删除失败了");
+                        }
+                        return baseResult.getData();
                     }
                 })
                 .retryWhen(new RetryWhenProcess(2))
-                .compose(RxSchedulersHelper.<BaseResult>ioMainThread())
-                .compose(provider.<BaseResult>bindUntilEvent(ActivityEvent.STOP))
-                .subscribe(new CallBackWrapper<BaseResult>() {
+                .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.STOP))
+                .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {
                         ifViewAttached(new ViewAction<FavoriteView>() {
@@ -311,15 +314,14 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                     }
 
                     @Override
-                    public void onSuccess(final BaseResult baseResult) {
+                    public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItemList) {
                         ifViewAttached(new ViewAction<FavoriteView>() {
                             @Override
                             public void run(@NonNull FavoriteView view) {
-                                if (baseResult.getCode() == BaseResult.SUCCESS_CODE && !TextUtils.isEmpty(baseResult.getMessage())) {
-                                    //顺序很重要，涉及缓存
-                                    view.setFavoriteData(baseResult.getUnLimit91PornItemList());
-                                    view.deleteFavoriteSucc(baseResult.getMessage());
-                                }
+                                //顺序很重要，涉及缓存
+                                view.setFavoriteData(unLimit91PornItemList);
+                                view.deleteFavoriteSucc("删除成功");
+
                             }
                         });
 
@@ -343,14 +345,14 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         Observable.create(new ObservableOnSubscribe<List<UnLimit91PornItem>>() {
             @Override
             public void subscribe(ObservableEmitter<List<UnLimit91PornItem>> e) throws Exception {
-                List<UnLimit91PornItem> unLimit91PornItems = greenDaoHelper.loadAllLimit91PornItems();
+                List<UnLimit91PornItem> unLimit91PornItems = dataBaseManager.loadAllLimit91PornItems();
                 e.onNext(unLimit91PornItems);
                 e.onComplete();
             }
         }).map(new Function<List<UnLimit91PornItem>, String>() {
             @Override
             public String apply(List<UnLimit91PornItem> unLimit91PornItems) throws Exception {
-                File file = new File(Constants.EXPORT_FILE);
+                File file = new File(SDCardUtils.EXPORT_FILE);
                 if (file.exists()) {
                     if (!file.delete()) {
                         throw new Exception("导出失败,因为删除原文件失败了");

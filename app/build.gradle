@@ -7,28 +7,35 @@ android {
         applicationId "com.u91porn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 11
-        versionName "1.1.0"
+        versionCode 12
+        versionName "1.1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
     }
-    dexOptions {
-        jumboMode true
-    }
 
     buildTypes {
+        debug {
+            ext.enableBugsnag = false
+        }
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro','proguard-fresco.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro', 'proguard-fresco.pro'
         }
     }
 }
 
 greendao {
-    schemaVersion 3//数据库版本号
+    schemaVersion 4//数据库版本号
     daoPackage 'com.u91porn.data.dao'//设置DaoMaster、DaoSession、Dao包名
     targetGenDir 'src/main/java'//设置DaoMaster、DaoSession、Dao目录
+}
+
+bugsnag {
+    autoUpload false //自动上传ProGuard mapping file
+    ndk false //上传ndk mapping
+    autoReportBuilds false //report builds to Bugsnag
+    retryCount 5 //Retrying the file upload
 }
 
 dependencies {
@@ -57,7 +64,7 @@ dependencies {
     compile 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
     compile 'com.orhanobut:logger:2.1.1'
     compile 'com.squareup.okhttp3:logging-interceptor:3.9.0'
-    compile 'cn.jzvd:jiaozivideoplayer:6.2.3'
+    compile 'cn.jzvd:jiaozivideoplayer:6.2.4'
     compile 'com.hannesdorfmann.mosby3:mvp:3.1.0'
     // Plain MVP'
     compile 'com.trello.rxlifecycle2:rxlifecycle:2.2.1'
@@ -79,7 +86,7 @@ dependencies {
     compile 'com.yanzhenjie:permission:1.1.2'
     compile 'com.sdsmdg.tastytoast:tastytoast:0.1.1'
     //https://app.bugsnag.com/accounts/cbs-1/projects/android/integrate bug收集
-    compile 'com.bugsnag:bugsnag-android:4.2.2'
+    compile 'com.bugsnag:bugsnag-android:4.3.0'
     compile 'com.github.rubensousa:floatingtoolbar:1.5.1'
     compile 'com.qmuiteam:qmui:1.0.6'
     compile 'com.androidadvance:topsnackbar:1.1.1'
@@ -91,10 +98,13 @@ dependencies {
     compile 'cn.bingoogolapple:bga-swipebacklayout:1.1.8@aar'
     compile 'com.jaeger.statusbarutil:library:1.4.0'
     debugCompile 'com.amitshekhar.android:debug-db:1.0.2'
-    implementation ("com.github.bumptech.glide:glide:4.5.0") {
+    implementation("com.github.bumptech.glide:glide:4.5.0") {
         exclude group: "com.android.support"
     }
     compile "com.github.bumptech.glide:okhttp3-integration:4.5.0"
     annotationProcessor 'com.github.bumptech.glide:compiler:4.5.0'
+    compile 'com.ashokvarma.android:bottom-navigation-bar:2.0.4'
+    compile 'me.jessyan:retrofit-url-manager:1.1.0'
+    compile 'org.greenrobot:eventbus:3.1.1'
     implementation project(':exolibrary')
 }

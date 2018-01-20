@@ -15,13 +15,16 @@ import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
+import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.LoadHelperUtils;
@@ -60,6 +63,13 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         return new IndexFragment();
     }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mUnLimit91PornItemList = new ArrayList<>();
+        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
+    }
+
     @NonNull
     @Override
     public IndexPresenter createPresenter() {
@@ -83,8 +93,6 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         // Setup contentView == SwipeRefreshView
         contentView.setOnRefreshListener(this);
 
-        mUnLimit91PornItemList = new ArrayList<>();
-        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(mUnLimit91Adapter);
 
@@ -103,6 +111,16 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
                 loadData(false, true);
             }
         });
+    }
+
+    @Override
+    public void onProxySetEvent(ProxySetEvent proxySetEvent) {
+        super.onProxySetEvent(proxySetEvent);
+        presenter.setNoLimit91PornServiceApi(MyApplication.getInstace().getNoLimit91PornService());
+    }
+
+    @Override
+    protected void onLazyLoadOnce() {
         loadData(false, false);
     }
 
@@ -156,5 +174,8 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         unbinder.unbind();
     }
 
-
+    @Override
+    public String getTitle() {
+        return category.getCategoryName();
+    }
 }

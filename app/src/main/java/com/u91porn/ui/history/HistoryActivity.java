@@ -10,7 +10,7 @@ import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.u91porn.R;
 import com.u91porn.adapter.HistoryAdapter;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpActivity;
 
@@ -51,7 +51,7 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
         });
         toolbar.setContentInsetStartWithNavigation(0);
 
-        setTitle("浏览历史");
+        setTitle(R.string.history_views);
 
         mUnLimit91PornItemList = new ArrayList<>();
         mUnLimit91Adapter = new HistoryAdapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
@@ -79,7 +79,7 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
     @NonNull
     @Override
     public HistoryPresenter createPresenter() {
-        return new HistoryPresenter(GreenDaoHelper.getInstance());
+        return new HistoryPresenter(DataBaseManager.getInstance());
     }
 
     @Override

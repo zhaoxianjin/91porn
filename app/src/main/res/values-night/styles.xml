@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MyEditText" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">@color/qmui_config_color_gray_5</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>
+    </style>
+</resources>

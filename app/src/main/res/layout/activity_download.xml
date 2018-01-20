@@ -5,16 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/white"
+    android:background="@color/common_background"
     tools:context="com.u91porn.ui.download.DownloadActivity">
 
-    <include layout="@layout/toolbar_layout" />
+    <include layout="@layout/layout_toolbar" />
 
     <android.support.design.widget.TabLayout
         android:id="@+id/download_tab"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabSelectedTextColor="@color/colorAccent"
+        app:tabIndicatorHeight="2dp"
+        app:tabIndicatorColor="@color/colorPrimary"
+        app:tabSelectedTextColor="@color/colorPrimary"
+        app:tabTextColor="@color/qmui_config_color_gray_5"
         app:tabTextAppearance="@android:style/TextAppearance.DeviceDefault.Medium" />
 
     <android.support.v4.view.ViewPager

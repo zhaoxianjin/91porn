@@ -1,4 +1,4 @@
-package com.u91porn.utils;
+package com.u91porn.parse;
 
 import android.text.TextUtils;
 
@@ -23,9 +23,9 @@ import java.util.List;
  * @describe
  */
 
-public class ParseUtils {
+public class Parse91PronVideo {
 
-    private static final String TAG = ParseUtils.class.getSimpleName();
+    private static final String TAG = Parse91PronVideo.class.getSimpleName();
 
     /**
      * 解析主页
@@ -75,7 +75,7 @@ public class ParseUtils {
      * @param html 类别
      * @return 列表
      */
-    public static BaseResult parseHot(String html) {
+    public static BaseResult<List<UnLimit91PornItem>> parseHot(String html) {
         int totalPage = 1;
         List<UnLimit91PornItem> unLimit91PornItemList = new ArrayList<>();
         Document doc = Jsoup.parse(html);
@@ -124,13 +124,13 @@ public class ParseUtils {
                 //    Logger.d("总页数：" + totalPage);
             }
         }
-        BaseResult baseResult = new BaseResult();
+        BaseResult<List<UnLimit91PornItem>> baseResult = new BaseResult<>();
         baseResult.setTotalPage(totalPage);
-        baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
+        baseResult.setData(unLimit91PornItemList);
         return baseResult;
     }
 
-    public static BaseResult parseSearchVideos(String html) {
+    public static BaseResult<List<UnLimit91PornItem>> parseSearchVideos(String html) {
         int totalPage = 1;
         List<UnLimit91PornItem> unLimit91PornItemList = new ArrayList<>();
         Document doc = Jsoup.parse(html);
@@ -186,9 +186,9 @@ public class ParseUtils {
                 //Logger.d("总页数：" + totalPage);
             }
         }
-        BaseResult baseResult = new BaseResult();
+        BaseResult<List<UnLimit91PornItem>> baseResult = new BaseResult<>();
         baseResult.setTotalPage(totalPage);
-        baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
+        baseResult.setData(unLimit91PornItemList);
         return baseResult;
     }
 
@@ -239,7 +239,7 @@ public class ParseUtils {
         videoResult.setThumbImgUrl(thumImg);
         Logger.t(TAG).d("缩略图：" + thumImg);
 
-        String videoName=doc.getElementById("viewvideo-title").text();
+        String videoName = doc.getElementById("viewvideo-title").text();
         videoResult.setVideoName(videoName);
         Logger.t(TAG).d("视频标题：" + videoName);
 
@@ -292,7 +292,7 @@ public class ParseUtils {
      * @param html html
      * @return list
      */
-    public static BaseResult parseMyFavorite(String html) {
+    public static BaseResult<List<UnLimit91PornItem>> parseMyFavorite(String html) {
         int totalPage = 1;
         List<UnLimit91PornItem> unLimit91PornItemList = new ArrayList<>();
         Document doc = Jsoup.parse(html);
@@ -349,7 +349,7 @@ public class ParseUtils {
                 Logger.d("总页数：" + totalPage);
             }
         }
-        BaseResult baseResult = new BaseResult();
+        BaseResult<List<UnLimit91PornItem>> baseResult = new BaseResult<>();
         //尝试解析删除信息
         Elements msgElements = doc.select("div.msgbox");
         if (msgElements != null) {
@@ -367,7 +367,7 @@ public class ParseUtils {
         }
 
         baseResult.setTotalPage(totalPage);
-        baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
+        baseResult.setData(unLimit91PornItemList);
 
         return baseResult;
     }
@@ -378,7 +378,7 @@ public class ParseUtils {
      * @param html html
      * @return list
      */
-    public static BaseResult parseAuthorVideos(String html) {
+    public static BaseResult<List<UnLimit91PornItem>> parseAuthorVideos(String html) {
         int totalPage = 1;
         List<UnLimit91PornItem> unLimit91PornItemList = new ArrayList<>();
         Document doc = Jsoup.parse(html);
@@ -429,9 +429,9 @@ public class ParseUtils {
             }
         }
 
-        BaseResult baseResult = new BaseResult();
+        BaseResult<List<UnLimit91PornItem>> baseResult = new BaseResult<>();
         baseResult.setTotalPage(totalPage);
-        baseResult.setUnLimit91PornItemList(unLimit91PornItemList);
+        baseResult.setData(unLimit91PornItemList);
 
         return baseResult;
     }

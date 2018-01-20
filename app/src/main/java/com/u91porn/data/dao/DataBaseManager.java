@@ -1,6 +1,7 @@
 package com.u91porn.data.dao;
 
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoResult;
 
@@ -12,28 +13,50 @@ import java.util.List;
  * @describe
  */
 
-public class GreenDaoHelper {
+public class DataBaseManager {
 
-    private static final String TAG = GreenDaoHelper.class.getSimpleName();
-    private static GreenDaoHelper greenDaoHelper;
+    private static final String TAG = DataBaseManager.class.getSimpleName();
+    private static DataBaseManager dataBaseManager;
     private static UnLimit91PornItemDao unLimit91PornItemDao;
     private static VideoResultDao videoResultDao;
+    private static CategoryDao categoryDao;
 
-    private GreenDaoHelper(DaoSession daoSession) {
+    private DataBaseManager(DaoSession daoSession) {
         unLimit91PornItemDao = daoSession.getUnLimit91PornItemDao();
         videoResultDao = daoSession.getVideoResultDao();
+        categoryDao = daoSession.getCategoryDao();
+        initCategory();
     }
 
     public static void init(DaoSession daoSession) {
-        if (greenDaoHelper == null) {
-            synchronized (GreenDaoHelper.class) {
-                greenDaoHelper = new GreenDaoHelper(daoSession);
+        if (dataBaseManager == null) {
+            synchronized (DataBaseManager.class) {
+                dataBaseManager = new DataBaseManager(daoSession);
             }
         }
     }
 
-    public static GreenDaoHelper getInstance() {
-        return greenDaoHelper;
+    public static DataBaseManager getInstance() {
+        return dataBaseManager;
+    }
+
+
+    private void initCategory() {
+        int length = Category.CATEGORY_DEFAULT_91PORN_VALUE.length;
+        List<Category> categoryList = categoryDao.loadAll();
+        if (categoryList.size() == length) {
+            return;
+        }
+        for (int i = 0; i < length; i++) {
+            Category category = new Category();
+            category.setCategoryName(Category.CATEGORY_DEFAULT_91PORN_NAME[i]);
+            category.setCategoryValue(Category.CATEGORY_DEFAULT_91PORN_VALUE[i]);
+            category.setCategoryType(Category.TYPE_91PORN);
+            category.setIsShow(true);
+            category.setSortId(i);
+            categoryList.add(category);
+        }
+        categoryDao.insertOrReplaceInTx(categoryList);
     }
 
     public void update(UnLimit91PornItem unLimit91PornItem) {
@@ -91,5 +114,24 @@ public class GreenDaoHelper {
 
     public void updateInTx(List<UnLimit91PornItem> unLimit91PornItemList) {
         unLimit91PornItemDao.updateInTx(unLimit91PornItemList);
+    }
+
+    public List<Category> loadAllCategoryData() {
+        categoryDao.detachAll();
+        return categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN)).orderAsc(CategoryDao.Properties.SortId).build().list();
+    }
+
+    public List<Category> loadCategoryData() {
+        categoryDao.detachAll();
+        return categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN), CategoryDao.Properties.IsShow.eq(true)).orderAsc(CategoryDao.Properties.SortId).build().list();
+    }
+
+    public void updateCategoryData(List<Category> categoryList) {
+        categoryDao.updateInTx(categoryList);
+    }
+
+    public Category findCategoryById(Long id) {
+        categoryDao.detachAll();
+        return categoryDao.load(id);
     }
 }

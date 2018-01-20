@@ -20,7 +20,9 @@ import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
+import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.HeaderUtils;
 
@@ -40,7 +42,6 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     @BindView(R.id.contentView)
     SwipeRefreshLayout contentView;
     Unbinder unbinder;
-    private String next;
     private UnLimit91Adapter mUnLimit91Adapter;
     private LoadViewHelper helper;
 
@@ -48,12 +49,8 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
         // Required empty public constructor
     }
 
-    public static RecentUpdatesFragment newInstance(String next) {
-        RecentUpdatesFragment fragment = new RecentUpdatesFragment();
-        Bundle args = new Bundle();
-        args.putString("next", next);
-        fragment.setArguments(args);
-        return fragment;
+    public static RecentUpdatesFragment newInstance() {
+        return new RecentUpdatesFragment();
     }
 
     @NonNull
@@ -61,13 +58,14 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     public RecentUpdatesPresenter createPresenter() {
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        return new RecentUpdatesPresenter(noLimit91PornServiceApi, cacheProviders, next,provider);
+        return new RecentUpdatesPresenter(noLimit91PornServiceApi, cacheProviders, category.getCategoryValue(), provider);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        next = getArguments().getString("next");
+        ArrayList<UnLimit91PornItem> mUnLimit91PornItemList = new ArrayList<>();
+        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
     }
 
     @Override
@@ -76,8 +74,6 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
         unbinder = ButterKnife.bind(this, view);
         contentView.setOnRefreshListener(this);
 
-        ArrayList<UnLimit91PornItem> mUnLimit91PornItemList = new ArrayList<>();
-        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
         recyclerViewRecentUpdates.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewRecentUpdates.setAdapter(mUnLimit91Adapter);
         mUnLimit91Adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -90,18 +86,29 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadRecentUpdatesData(false, next, HeaderUtils.getIndexHeader());
+                presenter.loadRecentUpdatesData(false, false, category.getCategoryValue());
             }
-        }, recyclerViewRecentUpdates);
+        });
         helper = new LoadViewHelper(recyclerViewRecentUpdates);
         helper.setListener(new OnLoadViewListener() {
             @Override
             public void onRetryClick() {
-                loadData(false);
+                loadData(false, true);
             }
         });
-        loadData(false);
+        //loadData(false);
 
+    }
+
+    @Override
+    public void onProxySetEvent(ProxySetEvent proxySetEvent) {
+        super.onProxySetEvent(proxySetEvent);
+        presenter.setNoLimit91PornServiceApi(MyApplication.getInstace().getNoLimit91PornService());
+    }
+
+    @Override
+    protected void onLazyLoadOnce() {
+        loadData(false, false);
     }
 
     @Override
@@ -119,14 +126,14 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
 
     @Override
     public void loadMoreFailed() {
-        showMessage("加载更多失败",TastyToast.ERROR);
+        showMessage("加载更多失败", TastyToast.ERROR);
         mUnLimit91Adapter.loadMoreFail();
     }
 
     @Override
     public void noMoreData() {
         mUnLimit91Adapter.loadMoreEnd(true);
-        showMessage("没有更多数据了",TastyToast.INFO);
+        showMessage("没有更多数据了", TastyToast.INFO);
     }
 
     @Override
@@ -135,8 +142,8 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     }
 
     @Override
-    public void loadData(boolean pullToRefresh) {
-        presenter.loadRecentUpdatesData(pullToRefresh, next, HeaderUtils.getIndexHeader());
+    public void loadData(boolean pullToRefresh, boolean cleanCache) {
+        presenter.loadRecentUpdatesData(pullToRefresh, cleanCache, category.getCategoryValue());
     }
 
     @Override
@@ -165,8 +172,8 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     }
 
     @Override
-    public void showMessage(String msg,int type) {
-        super.showMessage(msg,type);
+    public void showMessage(String msg, int type) {
+        super.showMessage(msg, type);
     }
 
     @Override
@@ -177,6 +184,11 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
 
     @Override
     public void onRefresh() {
-        loadData(false);
+        loadData(true, true);
+    }
+
+    @Override
+    public String getTitle() {
+        return category.getCategoryName();
     }
 }

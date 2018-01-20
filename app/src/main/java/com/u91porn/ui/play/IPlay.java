@@ -10,13 +10,11 @@ import com.u91porn.data.model.VideoResult;
  */
 
 public interface IPlay extends IBasePlay {
-    void loadVideoUrl(String viewKey,String referer);
+    void loadVideoUrl(UnLimit91PornItem unLimit91PornItem);
 
     void loadVideoComment(String videoId, boolean pullToRefresh,String referer);
 
     void commentVideo(String comment, String uid, String vid,String referer);
 
     void replyComment(String comment, String username, String vid, String commentId,String referer);
-
-    void saveVideoUrl(VideoResult videoResult, UnLimit91PornItem unLimit91PornItem);
 }

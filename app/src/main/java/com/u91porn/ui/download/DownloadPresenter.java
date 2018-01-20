@@ -10,12 +10,12 @@ import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoResult;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.utils.Constants;
 import com.u91porn.utils.DownloadManager;
+import com.u91porn.utils.SDCardUtils;
 import com.u91porn.utils.VideoCacheFileNameGenerator;
 
 import java.io.File;
@@ -40,13 +40,13 @@ import io.reactivex.schedulers.Schedulers;
 
 public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements IDownload {
 
-    private GreenDaoHelper greenDaoHelper;
+    private DataBaseManager dataBaseManager;
     private LifecycleProvider<ActivityEvent> provider;
     private HttpProxyCacheServer proxy;
     private File videoCacheDir;
 
-    public DownloadPresenter(GreenDaoHelper greenDaoHelper, LifecycleProvider<ActivityEvent> provider, HttpProxyCacheServer proxy, File videoCacheDir) {
-        this.greenDaoHelper = greenDaoHelper;
+    public DownloadPresenter(DataBaseManager dataBaseManager, LifecycleProvider<ActivityEvent> provider, HttpProxyCacheServer proxy, File videoCacheDir) {
+        this.dataBaseManager = dataBaseManager;
         this.provider = provider;
         this.proxy = proxy;
         this.videoCacheDir = videoCacheDir;
@@ -64,7 +64,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
 
     @Override
     public void downloadVideo(UnLimit91PornItem unLimit91PornItem, boolean isDownloadNeedWifi, boolean isForceReDownload, DownloadListener downloadListener) {
-        UnLimit91PornItem tmp = greenDaoHelper.findByViewKey(unLimit91PornItem.getViewKey());
+        UnLimit91PornItem tmp = dataBaseManager.findByViewKey(unLimit91PornItem.getViewKey());
         if (tmp == null || tmp.getVideoResult() == null) {
             if (downloadListener != null) {
                 downloadListener.onError("还未解析成功视频地址");
@@ -128,14 +128,14 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
             return;
         }
         Logger.d("视频连接：" + videoResult.getVideoUrl());
-        String path = Constants.DOWNLOAD_PATH + unLimit91PornItem.getViewKey() + ".mp4";
+        String path = SDCardUtils.DOWNLOAD_PATH + unLimit91PornItem.getViewKey() + ".mp4";
         Logger.d(path);
         int id = DownloadManager.getImpl().startDownload(videoResult.getVideoUrl(), path, isDownloadNeedWifi, isForceReDownload);
         if (tmp.getAddDownloadDate() == null) {
             tmp.setAddDownloadDate(new Date());
         }
         tmp.setDownloadId(id);
-        greenDaoHelper.update(tmp);
+        dataBaseManager.update(tmp);
         if (downloadListener != null) {
             downloadListener.onSuccess("开始下载");
         } else {
@@ -151,7 +151,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
     @Override
     public void loadDownloadingData() {
         //final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().notEqual(UnLimit91PornItem_.status, FileDownloadStatus.completed).and().notEqual(UnLimit91PornItem_.downloadId, 0).orderDesc(UnLimit91PornItem_.addDownloadDate).build().find();
-        final List<UnLimit91PornItem> unLimit91PornItems = greenDaoHelper.loadDownloadingData();
+        final List<UnLimit91PornItem> unLimit91PornItems = dataBaseManager.loadDownloadingData();
         ifViewAttached(new ViewAction<DownloadView>() {
             @Override
             public void run(@NonNull DownloadView view) {
@@ -163,7 +163,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
     @Override
     public void loadFinishedData() {
         //final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().equal(UnLimit91PornItem_.status, FileDownloadStatus.completed).notEqual(UnLimit91PornItem_.downloadId, 0).orderDesc(UnLimit91PornItem_.finshedDownloadDate).build().find();
-        final List<UnLimit91PornItem> unLimit91PornItems = greenDaoHelper.loadFinishedData();
+        final List<UnLimit91PornItem> unLimit91PornItems = dataBaseManager.loadFinishedData();
 
         ifViewAttached(new ViewAction<DownloadView>() {
             @Override
@@ -176,7 +176,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
     @Override
     public void deleteDownloadingTask(UnLimit91PornItem unLimit91PornItem) {
         unLimit91PornItem.setDownloadId(0);
-        greenDaoHelper.update(unLimit91PornItem);
+        dataBaseManager.update(unLimit91PornItem);
     }
 
     @Override
@@ -195,7 +195,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
      */
     private void deleteWithoutFile(UnLimit91PornItem unLimit91PornItem) {
         unLimit91PornItem.setDownloadId(0);
-        greenDaoHelper.update(unLimit91PornItem);
+        dataBaseManager.update(unLimit91PornItem);
     }
 
     /**
@@ -207,7 +207,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         File file = new File(unLimit91PornItem.getDownLoadPath());
         if (file.delete()) {
             unLimit91PornItem.setDownloadId(0);
-            greenDaoHelper.update(unLimit91PornItem);
+            dataBaseManager.update(unLimit91PornItem);
         } else {
             ifViewAttached(new ViewAction<DownloadView>() {
                 @Override
@@ -260,7 +260,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
                 unLimit91PornItem.setProgress(100);
                 unLimit91PornItem.setFinshedDownloadDate(new Date());
                 unLimit91PornItem.setDownloadId(FileDownloadUtils.generateId(unLimit91PornItem.getVideoResult().getVideoUrl(), unLimit91PornItem.getDownLoadPath()));
-                greenDaoHelper.update(unLimit91PornItem);
+                dataBaseManager.update(unLimit91PornItem);
                 return "下载完成";
             }
         })

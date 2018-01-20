@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/white"
+    android:background="@color/common_background"
     tools:context="com.u91porn.ui.favorite.FavoriteActivity">
 
-    <include layout="@layout/toolbar_layout" />
+    <include layout="@layout/layout_toolbar" />
 
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/contentView"

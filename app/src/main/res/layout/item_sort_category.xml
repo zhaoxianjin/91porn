@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="55dp"
+    android:background="@color/common_background"
+    android:orientation="horizontal">
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/iv_drag_handle"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:tint="@color/common_primary_white_text_color"
+        app:srcCompat="@drawable/ic_drag_handle_black_24dp" />
+
+    <TextView
+        android:id="@+id/tv_sort_category_name"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:textColor="@color/common_black_white_text_color"
+        android:gravity="center_vertical"
+        android:textSize="16sp" />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/sw_sort_category"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingLeft="30dp"
+        android:paddingRight="10dp" />
+</LinearLayout>

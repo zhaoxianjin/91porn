@@ -20,7 +20,7 @@ public interface RecentUpdatesView extends BaseView {
 
     void setMoreData(List<UnLimit91PornItem> unLimit91PornItemList);
 
-    void loadData(boolean pullToRefresh);
+    void loadData(boolean pullToRefresh,boolean cleanCache);
 
     void setData(List<UnLimit91PornItem> data);
 }

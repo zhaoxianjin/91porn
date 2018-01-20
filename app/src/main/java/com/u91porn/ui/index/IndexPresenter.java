@@ -11,7 +11,7 @@ import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.ParseUtils;
+import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
 
@@ -38,6 +38,10 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
         this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
         this.provider = provider;
+    }
+
+    public void setNoLimit91PornServiceApi(NoLimit91PornServiceApi mNoLimit91PornServiceApi) {
+        this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
     }
 
     /**
@@ -72,7 +76,7 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                 .map(new Function<String, List<UnLimit91PornItem>>() {
                     @Override
                     public List<UnLimit91PornItem> apply(String s) throws Exception {
-                        return ParseUtils.parseIndex(s);
+                        return Parse91PronVideo.parseIndex(s);
                     }
                 })
                 .retryWhen(new RetryWhenProcess(2))

@@ -8,7 +8,6 @@ import com.github.yuweiguocn.library.greendao.MigrationHelper;
 import org.greenrobot.greendao.database.Database;
 
 /**
- *
  * @author flymegoc
  * @date 2018/1/13
  */
@@ -17,6 +16,7 @@ public class MySQLiteOpenHelper extends DaoMaster.OpenHelper {
     public MySQLiteOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory) {
         super(context, name, factory);
     }
+
     @Override
     public void onUpgrade(Database db, int oldVersion, int newVersion) {
         MigrationHelper.migrate(db, new MigrationHelper.ReCreateAllTableListener() {
@@ -30,7 +30,7 @@ public class MySQLiteOpenHelper extends DaoMaster.OpenHelper {
             public void onDropAllTables(Database db, boolean ifExists) {
                 DaoMaster.dropAllTables(db, ifExists);
             }
-        },UnLimit91PornItemDao.class, VideoResultDao.class);
+        }, UnLimit91PornItemDao.class, VideoResultDao.class, CategoryDao.class);
     }
 }
 

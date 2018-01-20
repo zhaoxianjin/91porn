@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +22,9 @@ import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
+import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.LoadHelperUtils;
@@ -49,7 +52,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     SwipeRefreshLayout contentView;
 
     private UnLimit91Adapter mUnLimit91Adapter;
-    private String category;
+
     private String m;
 
     private LoadViewHelper helper;
@@ -58,20 +61,19 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
         // Required empty public constructor
     }
 
-    public static CommonFragment getInstance(String category, String m) {
-        CommonFragment commonFragment = new CommonFragment();
-        Bundle args = new Bundle();
-        args.putString("category", category);
-        args.putString("m", m);
-        commonFragment.setArguments(args);
-        return commonFragment;
+    public static CommonFragment getInstance() {
+        return new CommonFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        category = getArguments().getString("category");
-        m = getArguments().getString("m");
+        ArrayList<UnLimit91PornItem> mUnLimit91PornItemList = new ArrayList<>();
+        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
+    }
+
+    public void setM(String m) {
+        this.m = m;
     }
 
     @NonNull
@@ -96,9 +98,6 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
         unbinder = ButterKnife.bind(this, view);
         // Setup contentView == SwipeRefreshView
         contentView.setOnRefreshListener(this);
-
-        ArrayList<UnLimit91PornItem> mUnLimit91PornItemList = new ArrayList<>();
-        mUnLimit91Adapter = new UnLimit91Adapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(mUnLimit91Adapter);
         mUnLimit91Adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -113,20 +112,32 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
                 goToPlayVideo(unLimit91PornItems);
             }
         });
+        //使用缓存的FragmentPagerAdapter之后会导致新方法的加载更多失效，暂时切换回过时api，可正常运行
         mUnLimit91Adapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                presenter.loadHotData(false,category, m, HeaderUtils.getIndexHeader());
+                presenter.loadHotData(false, false, category.getCategoryValue(), m);
             }
-        }, recyclerView);
+        });
         helper = new LoadViewHelper(recyclerView);
         helper.setListener(new OnLoadViewListener() {
             @Override
             public void onRetryClick() {
-                loadData(false);
+                loadData(false, true);
             }
         });
-        loadData(false);
+        //loadData(false);
+    }
+
+    @Override
+    public void onProxySetEvent(ProxySetEvent proxySetEvent) {
+        super.onProxySetEvent(proxySetEvent);
+        presenter.setNoLimit91PornServiceApi(MyApplication.getInstace().getNoLimit91PornService());
+    }
+
+    @Override
+    protected void onLazyLoadOnce() {
+        loadData(false, false);
     }
 
     @Override
@@ -143,18 +154,18 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     @Override
     public void showLoading(boolean pullToRefresh) {
         helper.showLoading();
-        LoadHelperUtils.setLoadingText(helper.getLoadIng(),R.id.tv_loading_text,"拼命加载中...");
+        LoadHelperUtils.setLoadingText(helper.getLoadIng(), R.id.tv_loading_text, "拼命加载中...");
         contentView.setEnabled(false);
     }
 
     @Override
-    public void loadData(boolean pullToRefresh) {
-        presenter.loadHotData(pullToRefresh,category, m, HeaderUtils.getIndexHeader());
+    public void loadData(boolean pullToRefresh, boolean cleanCache) {
+        presenter.loadHotData(pullToRefresh, cleanCache, category.getCategoryValue(), m);
     }
 
     @Override
     public void onRefresh() {
-        loadData(true);
+        loadData(true, true);
     }
 
     @Override
@@ -196,5 +207,10 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     @Override
     public void setMoreData(List<UnLimit91PornItem> unLimit91PornItemList) {
         mUnLimit91Adapter.addData(unLimit91PornItemList);
+    }
+
+    @Override
+    public String getTitle() {
+        return category.getCategoryName();
     }
 }

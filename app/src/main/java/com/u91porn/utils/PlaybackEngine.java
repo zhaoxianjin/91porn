@@ -14,6 +14,7 @@ import com.u91porn.ui.play.JiaoZiVideoPlayerActivity;
  */
 
 public class PlaybackEngine {
+    public static final String[] PLAY_ENGINE_ITEMS = new String[]{"Google Exoplayer Engine", "JiaoZiPlayer Engine",};
     public static final int EXOMEDIAPLAYER_ENGINE = 0;
     public static final int JIAOZIVIDEOPLAYER_ENGINE = 1;
     public static final int DEFAULT_PLAYER_ENGINE = EXOMEDIAPLAYER_ENGINE;

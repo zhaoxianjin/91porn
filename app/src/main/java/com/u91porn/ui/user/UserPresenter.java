@@ -10,7 +10,7 @@ import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.User;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.utils.ParseUtils;
+import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
 
@@ -58,7 +58,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                     @Override
                     public void onSuccess(String s) {
                         if (!s.contains("登录") || !s.contains("注册") || s.contains("退出")) {
-                            User user = ParseUtils.parseUserInfo(s);
+                            User user = Parse91PronVideo.parseUserInfo(s);
                             MyApplication.getInstace().setUser(user);
                             if (loginListener != null) {
                                 loginListener.loginSuccess();
@@ -72,7 +72,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                                 });
                             }
                         } else {
-                            final String errorinfo = ParseUtils.parseErrorInfo(s);
+                            final String errorinfo = Parse91PronVideo.parseErrorInfo(s);
                             if (loginListener != null) {
                                 loginListener.loginFailure(errorinfo);
                             } else {
@@ -125,7 +125,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                     public void onSuccess(String s) {
                         Logger.d(s);
                         if (!s.contains("登录") || !s.contains("注册") || s.contains("退出")) {
-                            User user = ParseUtils.parseUserInfo(s);
+                            User user = Parse91PronVideo.parseUserInfo(s);
                             MyApplication.getInstace().setUser(user);
                             ifViewAttached(new ViewAction<UserView>() {
                                 @Override
@@ -135,7 +135,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
                                 }
                             });
                         } else {
-                            final String errorinfo = ParseUtils.parseErrorInfo(s);
+                            final String errorinfo = Parse91PronVideo.parseErrorInfo(s);
                             ifViewAttached(new ViewAction<UserView>() {
                                 @Override
                                 public void run(@NonNull UserView view) {

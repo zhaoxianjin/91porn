@@ -24,8 +24,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.main.MainActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AboutTheme" />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.download.DownloadActivity"
             android:launchMode="singleTop"
@@ -46,6 +45,7 @@
 
         <activity
             android:name=".ui.user.UserLoginActivity"
+            android:label="@string/title_user_login"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.splash.SplashActivity"
@@ -59,6 +59,7 @@
         </activity>
         <activity
             android:name=".ui.user.UserRegisterActivity"
+            android:label="@string/title_user_register"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.upload.UploadVideoActivity"
@@ -68,8 +69,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.about.AboutActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AboutTheme" />
+            android:screenOrientation="portrait" />
 
         <service android:name=".service.UpdateDownloadService" />
         <service android:name=".service.DownloadVideoService" />
@@ -80,19 +80,24 @@
 
         <activity
             android:name=".ui.play.ExoMediaPlayerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.play.JiaoZiVideoPlayerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.search.SearchActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AboutTheme"
-            />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.author.AuthorActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.setting.SettingActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.proxy.ProxySettingActivity"
+            android:label="@string/activity_proxy_setting"
             android:screenOrientation="portrait" />
     </application>
 

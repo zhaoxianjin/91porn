@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:orientation="horizontal"
+    android:background="@color/item_background"
+    android:padding="2dp">
+
+    <TextView
+        android:id="@+id/tv_item_proxy_ip_address"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="4"
+        android:paddingLeft="5dp"
+        android:gravity="center_vertical"
+        android:text="IP"
+        android:textColor="@color/common_black_white_text_color" />
+
+    <TextView
+        android:id="@+id/tv_item_proxy_port"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:gravity="center_vertical"
+        android:text="Port"
+        android:textColor="@color/common_black_white_text_color" />
+
+    <TextView
+        android:id="@+id/tv_item_proxy_delay_time"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:gravity="center_vertical"
+        android:text="延迟"
+        android:textColor="@color/common_black_white_text_color" />
+
+    <TextView
+        android:id="@+id/tv_item_proxy_anonymous"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:gravity="center_vertical"
+        android:text="匿名度"
+        android:textColor="@color/common_black_white_text_color" />
+</LinearLayout>

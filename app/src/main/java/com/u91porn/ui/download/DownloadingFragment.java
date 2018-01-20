@@ -20,11 +20,10 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.orhanobut.logger.Logger;
-import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.DownloadVideoAdapter;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpFragment;
@@ -67,10 +66,10 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     @Override
     public DownloadPresenter createPresenter() {
         DownloadActivity downloadActivity = (DownloadActivity) getActivity();
-        GreenDaoHelper greenDaoHelper = GreenDaoHelper.getInstance();
+        DataBaseManager dataBaseManager = DataBaseManager.getInstance();
         HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
         File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
-        return new DownloadPresenter(greenDaoHelper, downloadActivity.provider, cacheServer, videoCacheDir);
+        return new DownloadPresenter(dataBaseManager, downloadActivity.provider, cacheServer, videoCacheDir);
 
     }
 

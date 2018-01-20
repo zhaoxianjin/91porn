@@ -11,7 +11,8 @@ import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.utils.ParseUtils;
+import com.u91porn.utils.HeaderUtils;
+import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
 
@@ -23,7 +24,6 @@ import io.reactivex.functions.Function;
 import io.rx_cache2.DynamicKeyGroup;
 import io.rx_cache2.EvictDynamicKey;
 import io.rx_cache2.Reply;
-import retrofit2.http.Header;
 
 /**
  * @author flymegoc
@@ -39,7 +39,7 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
     /**
      * 本次强制刷新过那下面的请求也一起刷新
      */
-    private boolean cleanCache = false;
+    private boolean isLoadMoreCleanCache = false;
 
     public CommonPresenter(NoLimit91PornServiceApi mNoLimit91PornServiceApi, CacheProviders cacheProviders, LifecycleProvider<FragmentEvent> provider) {
         this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
@@ -47,13 +47,17 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
         this.provider = provider;
     }
 
+    public void setNoLimit91PornServiceApi(NoLimit91PornServiceApi mNoLimit91PornServiceApi) {
+        this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
+    }
+
     @Override
-    public void loadHotData(final boolean pullToRefresh, String category, String m,@Header("Referer") String referer) {
+    public void loadHotData(final boolean pullToRefresh, boolean cleanCache, String category, String m) {
         String viewType = "basic";
         //如果刷新则重置页数
         if (pullToRefresh) {
             page = 1;
-            cleanCache = true;
+            isLoadMoreCleanCache = true;
         }
         //RxCache条件区别
         String condition;
@@ -63,9 +67,9 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
             condition = category + m;
         }
         DynamicKeyGroup dynamicKeyGroup = new DynamicKeyGroup(condition, page);
-        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache);
+        EvictDynamicKey evictDynamicKey = new EvictDynamicKey(cleanCache || isLoadMoreCleanCache);
 
-        Observable<String> categoryPage = mNoLimit91PornServiceApi.getCategoryPage(category, viewType, page, m,referer);
+        Observable<String> categoryPage = mNoLimit91PornServiceApi.getCategoryPage(category, viewType, page, m, HeaderUtils.getIndexHeader());
         cacheProviders.getCategoryPage(categoryPage, dynamicKeyGroup, evictDynamicKey)
                 .map(new Function<Reply<String>, String>() {
                     @Override
@@ -76,11 +80,11 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                 .map(new Function<String, List<UnLimit91PornItem>>() {
                     @Override
                     public List<UnLimit91PornItem> apply(String s) throws Exception {
-                        BaseResult baseResult = ParseUtils.parseHot(s);
+                        BaseResult<List<UnLimit91PornItem>> baseResult = Parse91PronVideo.parseHot(s);
                         if (page == 1) {
                             totalPage = baseResult.getTotalPage();
                         }
-                        return baseResult.getUnLimit91PornItemList();
+                        return baseResult.getData();
                     }
                 })
                 .retryWhen(new RetryWhenProcess(2))
@@ -128,9 +132,9 @@ public class CommonPresenter extends MvpBasePresenter<CommonView> implements ICo
                         ifViewAttached(new ViewAction<CommonView>() {
                             @Override
                             public void run(@NonNull CommonView view) {
-                                if (page==1){
+                                if (page == 1) {
                                     view.showError(msg);
-                                }else {
+                                } else {
                                     view.loadMoreFailed();
                                 }
                             }

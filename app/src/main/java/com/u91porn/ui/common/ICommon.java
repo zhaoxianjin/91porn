@@ -9,5 +9,5 @@ import retrofit2.http.Header;
  */
 
 public interface ICommon extends IBaseCommon {
-    void loadHotData(final boolean pullToRefresh, String category, String m,@Header("Referer") String referer);
+    void loadHotData(final boolean pullToRefresh,boolean cleanCache, String category, String m);
 }

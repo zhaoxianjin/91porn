@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 
 import java.util.List;
@@ -19,12 +19,12 @@ import java.util.List;
 public class HistoryPresenter extends MvpBasePresenter<HistoryView> implements IHistory {
 
     private static final String TAG = HistoryPresenter.class.getSimpleName();
-    private GreenDaoHelper greenDaoHelper;
+    private DataBaseManager dataBaseManager;
     private int page = 1;
     private int pageSize = 10;
 
-    public HistoryPresenter(GreenDaoHelper greenDaoHelper) {
-        this.greenDaoHelper = greenDaoHelper;
+    public HistoryPresenter(DataBaseManager dataBaseManager) {
+        this.dataBaseManager = dataBaseManager;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class HistoryPresenter extends MvpBasePresenter<HistoryView> implements I
         if (pullToRefresh) {
             page = 1;
         }
-        final List<UnLimit91PornItem> unLimit91PornItemList = greenDaoHelper.loadHistoryData(page, pageSize);
+        final List<UnLimit91PornItem> unLimit91PornItemList = dataBaseManager.loadHistoryData(page, pageSize);
         ifViewAttached(new ViewAction<HistoryView>() {
             @Override
             public void run(@NonNull HistoryView view) {

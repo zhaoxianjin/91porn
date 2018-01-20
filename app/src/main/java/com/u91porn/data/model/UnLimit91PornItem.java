@@ -1,11 +1,9 @@
 package com.u91porn.data.model;
 
-import android.text.format.DateFormat;
-
 import com.u91porn.data.dao.DaoSession;
 import com.u91porn.data.dao.UnLimit91PornItemDao;
 import com.u91porn.data.dao.VideoResultDao;
-import com.u91porn.utils.Constants;
+import com.u91porn.utils.SDCardUtils;
 
 import org.greenrobot.greendao.DaoException;
 import org.greenrobot.greendao.annotation.Entity;
@@ -113,7 +111,7 @@ public class UnLimit91PornItem implements Serializable {
 
 
     public String getDownLoadPath() {
-        return Constants.DOWNLOAD_PATH + getViewKey() + ".mp4";
+        return SDCardUtils.DOWNLOAD_PATH + getViewKey() + ".mp4";
     }
 
     public Date getAddDownloadDate() {
@@ -144,27 +142,6 @@ public class UnLimit91PornItem implements Serializable {
         return getTitle() + "  (" + getDuration() + ")";
     }
 
-    @Override
-    public String toString() {
-        return "UnLimit91PornItem{" +
-                "id=" + id +
-                ", viewKey='" + viewKey + '\'' +
-                ", title='" + title + '\'' +
-                ", imgUrl='" + imgUrl + '\'' +
-                ", duration='" + duration + '\'' +
-                ", info='" + info + '\'' +
-                ", videoResult='" + videoResult.toString() + '\'' +
-                ", downloadId=" + downloadId +
-                ", progress=" + progress +
-                ", speed=" + speed +
-                ", soFarBytes=" + soFarBytes +
-                ", totalFarBytes=" + totalFarBytes +
-                ", status=" + status +
-                ", addDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, addDownloadDate == null ? new Date() : addDownloadDate) +
-                ", finshedDownloadDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, finshedDownloadDate == null ? new Date() : finshedDownloadDate) +
-                ", viewHistoryDate=" + DateFormat.format(Constants.DATE_FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, viewHistoryDate == null ? new Date() : viewHistoryDate) +
-                '}';
-    }
 
     public Long getId() {
         return this.id;
@@ -349,5 +326,31 @@ public class UnLimit91PornItem implements Serializable {
 
     public void setVideoResultId(long videoResultId) {
         this.videoResultId = videoResultId;
+    }
+
+    @Override
+    public String toString() {
+        return "UnLimit91PornItem{" +
+                "id=" + id +
+                ", viewKey='" + viewKey + '\'' +
+                ", title='" + title + '\'' +
+                ", imgUrl='" + imgUrl + '\'' +
+                ", duration='" + duration + '\'' +
+                ", info='" + info + '\'' +
+                ", videoResultId=" + videoResultId +
+                ", videoResult=" + videoResult +
+                ", downloadId=" + downloadId +
+                ", progress=" + progress +
+                ", speed=" + speed +
+                ", soFarBytes=" + soFarBytes +
+                ", totalFarBytes=" + totalFarBytes +
+                ", status=" + status +
+                ", addDownloadDate=" + addDownloadDate +
+                ", finshedDownloadDate=" + finshedDownloadDate +
+                ", viewHistoryDate=" + viewHistoryDate +
+                ", daoSession=" + daoSession +
+                ", myDao=" + myDao +
+                ", videoResult__resolvedKey=" + videoResult__resolvedKey +
+                '}';
     }
 }

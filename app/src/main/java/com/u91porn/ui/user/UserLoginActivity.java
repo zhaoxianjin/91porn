@@ -26,6 +26,8 @@ import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.ui.MvpActivity;
+import com.u91porn.ui.favorite.FavoriteActivity;
+import com.u91porn.ui.search.SearchActivity;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.GlideApp;
@@ -41,6 +43,9 @@ import butterknife.ButterKnife;
  * @author flymegoc
  */
 public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> implements UserView {
+
+    public static final int LOGIN_ACTION_FOR_LOOK_MY_FAVORITE = 1;
+    public static final int LOGIN_ACTION_FOR_SEARCH_91PRON_VIDEO = 2;
 
     private static final String TAG = UserLoginActivity.class.getSimpleName();
     @BindView(R.id.et_account)
@@ -64,22 +69,15 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     private AlertDialog alertDialog;
     private String username;
     private String password;
+    private int loginForAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_login);
         ButterKnife.bind(this);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-        toolbar.setContentInsetStartWithNavigation(0);
-        setTitle("用户登录（仅本次有效）");
+        initToolBar(toolbar);
+        loginForAction = getIntent().getIntExtra(Keys.KEY_INTENT_LOGIN_FOR_ACTION, 0);
         loadCaptcha();
         btUserLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,34 +165,11 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
      * 加载验证码，目前似乎是非必须，不填也是可以登录的
      */
     private void loadCaptcha() {
-        String url;
-        if (TextUtils.isEmpty(MyApplication.getInstace().getHost())) {
-            url = Constants.BASE_URL + "captcha.php";
-        } else {
-            url = MyApplication.getInstace().getHost() + "captcha.php";
-        }
+        String url = MyApplication.getInstace().getHost() + "captcha.php";
 
         Logger.t(TAG).d("验证码链接：" + url);
         Uri uri = Uri.parse(url);
         GlideApp.with(this).load(uri).placeholder(R.drawable.placeholder).transition(new DrawableTransitionOptions().crossFade(300)).diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).into(simpleDraweeView);
-//        ImagePipeline imagePipeline = Fresco.getImagePipeline();
-//
-//        imagePipeline.evictFromCache(uri);
-//        simpleDraweeView.setImageURI(uri);
-//
-//        //创建DraweeController
-//        DraweeController controller = Fresco.newDraweeControllerBuilder()
-//                //加载的图片URI地址
-//                .setUri(uri)
-//                //设置点击重试是否开启
-//                .setTapToRetryEnabled(true)
-//                //设置旧的Controller
-//                .setOldController(simpleDraweeView.getController())
-//                //构建
-//                .build();
-//
-//        //设置DraweeController
-//        simpleDraweeView.setController(controller);
     }
 
     @NonNull
@@ -213,8 +188,22 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     public void loginSuccess() {
         saveUserInfoPrf(username, password);
         showMessage("登录成功", TastyToast.SUCCESS);
-        setResult(RESULT_OK);
-        onBackPressed();
+        switch (loginForAction) {
+            case LOGIN_ACTION_FOR_LOOK_MY_FAVORITE:
+                Intent intent = new Intent(this, FavoriteActivity.class);
+                startActivityWithAnimotion(intent);
+                finish();
+                break;
+            case LOGIN_ACTION_FOR_SEARCH_91PRON_VIDEO:
+                Intent intentSearch = new Intent(this, SearchActivity.class);
+                startActivityWithAnimotion(intentSearch);
+                finish();
+                break;
+            default:
+                setResult(RESULT_OK);
+                onBackPressed();
+        }
+
     }
 
     private void saveUserInfoPrf(String username, String password) {

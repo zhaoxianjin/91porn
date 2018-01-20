@@ -22,7 +22,7 @@ import com.u91porn.R;
 import com.u91porn.adapter.FavoriteAdapter;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
-import com.u91porn.data.dao.GreenDaoHelper;
+import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
@@ -133,10 +133,10 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     @NonNull
     @Override
     public FavoritePresenter createPresenter() {
-        GreenDaoHelper greenDaoHelper= GreenDaoHelper.getInstance();
+        DataBaseManager dataBaseManager = DataBaseManager.getInstance();
         NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
         User user = MyApplication.getInstace().getUser();
-        return new FavoritePresenter(greenDaoHelper, noLimit91PornServiceApi, cacheProviders, user, provider);
+        return new FavoritePresenter(dataBaseManager, noLimit91PornServiceApi, cacheProviders, user, provider);
     }
 
 
