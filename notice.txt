@@ -1,0 +1,7 @@
+{
+  "noticeMessage": "1. 几日啊哈哈哈哈哈啊三大噶\n2. 啊三大三大会更好嘎嘎好嘎嘎\n3. 大世界啊了解和我哦呜好咖喱鸡韩国\n撒哈拉共计啊了解咖喱",
+  "noticeTime": "2018年1月26日 19:36:16",
+   "noticeTitle": "关于xxxxxxxxxx的公告",
+   "noticeer": "Admin",
+   "versionCode": 1
+ }
