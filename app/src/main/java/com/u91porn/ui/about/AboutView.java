@@ -14,4 +14,7 @@ public interface AboutView extends UpdateView {
 
     void cleanCacheFailure(String message);
 
+    void finishCountCacheFileSize(String message);
+
+    void countCacheFileSizeError(String message);
 }

@@ -23,15 +23,98 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".ui.splash.SplashActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppFullScreenTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".ui.main.MainActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.download.DownloadActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/my_download"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.favorite.FavoriteActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/my_collect"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.user.UserLoginActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_user_login"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.user.UserRegisterActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_user_register"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.upload.UploadVideoActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.history.HistoryActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/history_views"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.about.AboutActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/about_me"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.play.ExoMediaPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.play.JiaoZiVideoPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.search.SearchActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.author.AuthorActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_author_video"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.setting.SettingActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_setting"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.proxy.ProxySettingActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/activity_proxy_setting"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.browse91porn.Browse91PornActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/forum_content"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ui.viewimage.PictureViewerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/photo"
+            android:screenOrientation="portrait"
+            >
+
+        </activity>
+        <service android:name=".service.UpdateDownloadService" />
+        <service android:name=".service.DownloadVideoService" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -43,62 +126,10 @@
                 android:resource="@xml/filepaths" />
         </provider>
 
-        <activity
-            android:name=".ui.user.UserLoginActivity"
-            android:label="@string/title_user_login"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.splash.SplashActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppFullScreenTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".ui.user.UserRegisterActivity"
-            android:label="@string/title_user_register"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.upload.UploadVideoActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.history.HistoryActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.about.AboutActivity"
-            android:screenOrientation="portrait" />
-
-        <service android:name=".service.UpdateDownloadService" />
-        <service android:name=".service.DownloadVideoService" />
-
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="" />
 
-        <activity
-            android:name=".ui.play.ExoMediaPlayerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.play.JiaoZiVideoPlayerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.search.SearchActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.author.AuthorActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.setting.SettingActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.proxy.ProxySettingActivity"
-            android:label="@string/activity_proxy_setting"
-            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

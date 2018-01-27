@@ -26,6 +26,7 @@ import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
 import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.parse.Parse91PronVideo;
+import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.RandomIPAdderssUtils;
 import com.u91porn.rxjava.RetryWhenProcess;
@@ -76,6 +77,10 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
         this.dataBaseManager = dataBaseManager;
     }
 
+    public void setNoLimit91PornServiceApi(NoLimit91PornServiceApi mNoLimit91PornServiceApi) {
+        this.mNoLimit91PornServiceApi = mNoLimit91PornServiceApi;
+    }
+
     @Override
     public void loadVideoUrl(final UnLimit91PornItem unLimit91PornItem) {
         String viewKey = unLimit91PornItem.getViewKey();
@@ -108,7 +113,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                             if (VideoResult.OUT_OF_WATCH_TIMES.equals(videoResult.getId())) {
                                 //尝试强行重置，并上报异常
                                 resetWatchTime(true);
-                                Bugsnag.notify(new Throwable(TAG + ":ten videos each day host:" + MyApplication.getInstace().getHost()), Severity.WARNING);
+                                Bugsnag.notify(new Throwable(TAG + ":ten videos each day host:" + AddressHelper.getInstance().getVideo91PornAddress()), Severity.WARNING);
                                 throw new VideoException("观看次数达到上限了！");
                             } else {
                                 throw new VideoException("解析视频链接失败了");
@@ -168,7 +173,7 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                 })
                 .retryWhen(new RetryWhenProcess(2))
                 .compose(RxSchedulersHelper.<List<VideoComment>>ioMainThread())
-                .compose(provider.<List<VideoComment>>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<List<VideoComment>>bindUntilEvent(ActivityEvent.STOP))
                 .subscribe(new CallBackWrapper<List<VideoComment>>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -212,6 +217,21 @@ public class PlayVideoPresenter extends MvpBasePresenter<PlayVideoView> implemen
                                     view.loadVideoCommentError(msg);
                                 } else {
                                     view.loadMoreVideoCommentError(msg);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onCancel(boolean isCancel) {
+                        ifViewAttached(new ViewAction<PlayVideoView>() {
+                            @Override
+                            public void run(@NonNull PlayVideoView view) {
+                                Logger.t(TAG).d("------getVideoComments  onCancel----------------------------");
+                                if (start == 1) {
+                                    view.loadVideoCommentError("取消请求");
+                                } else {
+                                    view.loadMoreVideoCommentError("取消请求");
                                 }
                             }
                         });

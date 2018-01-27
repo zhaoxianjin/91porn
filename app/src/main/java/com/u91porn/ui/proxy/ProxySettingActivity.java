@@ -10,6 +10,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.ProxyAdapter;
 import com.u91porn.data.Api;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.ProxyServiceApi;
 import com.u91porn.data.model.ProxyModel;
 import com.u91porn.eventbus.ProxySetEvent;
@@ -188,7 +190,7 @@ public class ProxySettingActivity extends MvpActivity<ProxyView, ProxyPresenter>
         SPUtils.put(this, Keys.KEY_SP_PROXY_IP_ADDRESS, proxyIpAddress);
         SPUtils.put(this, Keys.KEY_SP_PROXY_PORT, proxyPort);
         //重新实例化接口
-        MyApplication.getInstace().init91PornRetrofitService();
+        ApiManager.getInstance().init91PornRetrofitService(context);
         //通知已经存在的更改为最新的
         EventBus.getDefault().post(new ProxySetEvent(proxyIpAddress, proxyPort));
         showMessage("设置成功", TastyToast.SUCCESS);
@@ -201,7 +203,12 @@ public class ProxySettingActivity extends MvpActivity<ProxyView, ProxyPresenter>
             case R.id.bt_proxy_setting_test:
                 isTestSuccess = false;
                 String proxyIpAddress = etDialogProxySettingIpAddress.getIpAddressStr();
-                int proxyPort = Integer.parseInt(etDialogProxySettingPort.getText().toString());
+                String portStr = etDialogProxySettingPort.getText().toString();
+                if (TextUtils.isEmpty(portStr) || TextUtils.isEmpty(proxyIpAddress) || TextUtils.isDigitsOnly(portStr)) {
+                    showMessage("端口号或IP地址不正确", TastyToast.WARNING);
+                    return;
+                }
+                int proxyPort = Integer.parseInt(portStr);
                 presenter.testProxy(proxyIpAddress, proxyPort);
                 QMUIKeyboardHelper.hideKeyboard(v);
                 break;

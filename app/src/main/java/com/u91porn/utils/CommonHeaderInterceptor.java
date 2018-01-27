@@ -1,5 +1,7 @@
 package com.u91porn.utils;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 
 import okhttp3.Interceptor;
@@ -13,7 +15,7 @@ import okhttp3.Response;
 
 public class CommonHeaderInterceptor implements Interceptor {
     @Override
-    public Response intercept(Chain chain) throws IOException {
+    public Response intercept(@NonNull Chain chain) throws IOException {
         //统一设置请求头
         Request original = chain.request();
 

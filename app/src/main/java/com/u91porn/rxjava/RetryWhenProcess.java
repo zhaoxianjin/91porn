@@ -39,7 +39,7 @@ public class RetryWhenProcess implements Function<Observable<Throwable>, Observa
         return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
             @Override
             public ObservableSource<?> apply(Throwable throwable) throws Exception {
-                Logger.t(TAG).d("ERROR:::" + throwable);
+                Logger.t(TAG).d("Error:::" + throwable);
                 if (throwable instanceof SocketTimeoutException && ++tryTimes <= maxTryTime) {
                     Logger.t(TAG).d("超时重试第【" + (tryTimes - 1) + "】次");
                     return Observable.timer(mInterval, TimeUnit.SECONDS);

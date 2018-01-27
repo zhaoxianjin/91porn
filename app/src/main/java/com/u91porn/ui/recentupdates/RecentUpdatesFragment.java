@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,16 +15,19 @@ import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
+import com.u91porn.utils.AppUtils;
 import com.u91porn.utils.HeaderUtils;
 
 import java.util.ArrayList;
@@ -38,7 +42,7 @@ import butterknife.Unbinder;
  */
 public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, RecentUpdatesPresenter> implements RecentUpdatesView, SwipeRefreshLayout.OnRefreshListener {
     @BindView(R.id.recyclerView_recent_updates)
-    SwipeMenuRecyclerView recyclerViewRecentUpdates;
+    RecyclerView recyclerViewRecentUpdates;
     @BindView(R.id.contentView)
     SwipeRefreshLayout contentView;
     Unbinder unbinder;
@@ -56,7 +60,7 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     @NonNull
     @Override
     public RecentUpdatesPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
         return new RecentUpdatesPresenter(noLimit91PornServiceApi, cacheProviders, category.getCategoryValue(), provider);
     }
@@ -97,13 +101,13 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
             }
         });
         //loadData(false);
-
+        AppUtils.setColorSchemeColors(context,contentView);
     }
 
     @Override
     public void onProxySetEvent(ProxySetEvent proxySetEvent) {
         super.onProxySetEvent(proxySetEvent);
-        presenter.setNoLimit91PornServiceApi(MyApplication.getInstace().getNoLimit91PornService());
+        presenter.setNoLimit91PornServiceApi(ApiManager.getInstance().getNoLimit91PornService(context));
     }
 
     @Override

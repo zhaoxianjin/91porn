@@ -8,6 +8,6 @@ import retrofit2.http.Header;
  * @describe
  */
 
-public interface ICommon extends IBaseCommon {
+public interface ICommon {
     void loadHotData(final boolean pullToRefresh,boolean cleanCache, String category, String m);
 }

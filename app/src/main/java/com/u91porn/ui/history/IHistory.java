@@ -5,6 +5,6 @@ package com.u91porn.ui.history;
  * @date 2017/12/22
  */
 
-public interface IHistory extends IBaseHistory {
+public interface IHistory {
     void loadHistoryData(boolean pullToRefresh);
 }

@@ -20,11 +20,12 @@ import com.qmuiteam.qmui.util.QMUIKeyboardHelper;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.main.MainActivity;
+import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.AppManager;
-import com.u91porn.utils.Constants;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.GlideApp;
 import com.u91porn.utils.HeaderUtils;
@@ -61,7 +62,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     ImageView wbCaptcha;
     @BindView(R.id.bt_user_signup)
     Button btUserSignup;
-    private NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+
     private AlertDialog alertDialog;
     private String username;
     private String password;
@@ -94,8 +95,8 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         });
         alertDialog = DialogUtils.initLodingDialog(this, "注册中，请稍后...");
 
-        MyApplication.getInstace().cleanCookies();
-        List<Cookie> cookieList = MyApplication.getInstace().getSharedPrefsCookiePersistor().loadAll();
+        ApiManager.getInstance().cleanCookies();
+        List<Cookie> cookieList = ApiManager.getInstance().getSharedPrefsCookiePersistor().loadAll();
         for (Cookie cookie : cookieList) {
             Logger.t(TAG).d(cookie.toString());
         }
@@ -155,7 +156,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     @NonNull
     @Override
     public UserPresenter createPresenter() {
-
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         return new UserPresenter(noLimit91PornServiceApi, provider);
     }
 
@@ -163,7 +164,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
      * 加载验证码，目前似乎是非必须，不填也是可以登录的
      */
     private void loadCaptcha() {
-        String url = MyApplication.getInstace().getHost() + "captcha2.php";
+        String url = AddressHelper.getInstance().getVideo91PornAddress() + "captcha2.php";
         Logger.t(TAG).d("验证码链接：" + url);
         Uri uri = Uri.parse(url);
         GlideApp.with(this).load(uri).placeholder(R.drawable.placeholder).transition(new DrawableTransitionOptions().crossFade(300)).diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).into(wbCaptcha);

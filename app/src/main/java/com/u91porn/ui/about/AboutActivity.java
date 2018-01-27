@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.qmuiteam.qmui.util.QMUIPackageHelper;
+import com.qmuiteam.qmui.widget.QMUILoadingView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.grouplist.QMUICommonListItemView;
@@ -21,6 +22,7 @@ import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.GitHubServiceApi;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
@@ -73,7 +75,6 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
 
         initToolBar(toolbar);
 
-        setTitle("关于");
         initAboutSection();
 
         mVersionTextView.setText("v" + QMUIPackageHelper.getAppVersion(this));
@@ -83,11 +84,15 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
         mCopyrightTextView.setText(String.format(getResources().getString(R.string.about_copyright), currentYear));
 
         alertDialog = DialogUtils.initLodingDialog(this, "正在检查更新，请稍后...");
+        presenter.countCacheFileSize(this, getString(R.string.about_item_clean_cache));
     }
 
     private void initAboutSection() {
         mAboutGroupListView.setSeparatorStyle(QMUIGroupListView.SEPARATOR_STYLE_NORMAL);
-        cleanCacheQMUICommonListItemView = mAboutGroupListView.createItemView(getCleanCacheTitle());
+        cleanCacheQMUICommonListItemView = mAboutGroupListView.createItemView(getString(R.string.about_item_clean_cache));
+        cleanCacheQMUICommonListItemView.setAccessoryType(QMUICommonListItemView.ACCESSORY_TYPE_CUSTOM);
+        QMUILoadingView loadingView = new QMUILoadingView(this);
+        cleanCacheQMUICommonListItemView.addAccessoryCustomView(loadingView);
 
         QMUIGroupListView.newSection(this)
 
@@ -198,7 +203,7 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     @NonNull
     @Override
     public AboutPresenter createPresenter() {
-        GitHubServiceApi gitHubServiceApi=MyApplication.getInstace().getGitHubServiceApi();
+        GitHubServiceApi gitHubServiceApi = ApiManager.getInstance().getGitHubServiceApi();
         return new AboutPresenter(new UpdatePresenter(gitHubServiceApi, new Gson(), provider), provider);
     }
 
@@ -277,6 +282,17 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     public void cleanCacheFailure(String message) {
         dismissDialog();
         showMessage(message, TastyToast.ERROR);
+    }
+
+    @Override
+    public void finishCountCacheFileSize(String message) {
+        cleanCacheQMUICommonListItemView.setAccessoryType(QMUICommonListItemView.ACCESSORY_TYPE_NONE);
+        cleanCacheQMUICommonListItemView.setText(message);
+    }
+
+    @Override
+    public void countCacheFileSizeError(String message) {
+
     }
 
     private void dismissDialog() {

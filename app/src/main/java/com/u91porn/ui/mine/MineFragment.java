@@ -22,6 +22,7 @@ import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.model.User;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.BaseFragment;
@@ -39,6 +40,8 @@ import com.u91porn.utils.SPUtils;
 import com.u91porn.widget.ObservableScrollView;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -156,8 +159,8 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
                 Intent intent = new Intent(context, MainActivity.class);
                 intent.putExtra(Keys.KEY_SELECT_INDEX, 4);
                 startActivity(intent);
-                mainActivity.finish();
-                mainActivity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                activity.finish();
+                activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         });
 
@@ -187,7 +190,7 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
                 }
                 SPUtils.put(context, Keys.KEY_SP_OPEN_HTTP_PROXY, isChecked);
                 //重新实例化接口
-                MyApplication.getInstace().init91PornRetrofitService();
+                ApiManager.getInstance().init91PornRetrofitService(context);
                 //通知已经存在的更改为最新的
                 EventBus.getDefault().post(new ProxySetEvent(proxyHost, port));
             }
@@ -237,9 +240,9 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
                 .addTo(mineList);
     }
 
+
     @Override
     public void onProxySetEvent(ProxySetEvent proxySetEvent) {
-        super.onProxySetEvent(proxySetEvent);
         if (!TextUtils.isEmpty(proxySetEvent.getProxyIpAddress()) && proxySetEvent.getProxyPort() > 0) {
             openProxyItemWithSwitch.setDetailText(proxySetEvent.getProxyIpAddress() + " : " + proxySetEvent.getProxyPort());
         }

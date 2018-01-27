@@ -149,6 +149,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:theme="@style/MyEditText"
                 android:hint="@string/comment_video_hint_tip" />
 
             <ImageView

@@ -7,6 +7,7 @@ import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.ActivityEvent;
+import com.u91porn.R;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.utils.AppCacheUtils;
@@ -137,5 +138,51 @@ public class AboutPresenter extends MvpBasePresenter<AboutView> implements IAbou
                         });
                     }
                 });
+    }
+
+    @Override
+    public void countCacheFileSize(final Context context, final String title) {
+        Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                emitter.onNext(getCleanCacheTitle(context, title));
+                emitter.onComplete();
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .delay(500, TimeUnit.MILLISECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
+                .subscribe(new CallBackWrapper<String>() {
+
+                    @Override
+                    public void onSuccess(final String string) {
+                        ifViewAttached(new ViewAction<AboutView>() {
+                            @Override
+                            public void run(@NonNull AboutView view) {
+                                view.finishCountCacheFileSize(string);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String msg, int code) {
+                        ifViewAttached(new ViewAction<AboutView>() {
+                            @Override
+                            public void run(@NonNull AboutView view) {
+                                view.countCacheFileSizeError("计算缓存大小失败了");
+                            }
+                        });
+                    }
+                });
+    }
+
+    private String getCleanCacheTitle(Context context, String title) {
+        String zeroFileSize = "0 B";
+        String fileSizeStr = AppCacheUtils.getAllCacheFileSizeStr(context);
+        if (zeroFileSize.equals(fileSizeStr)) {
+            return title;
+        }
+        return title + "(" + fileSizeStr + ")";
     }
 }

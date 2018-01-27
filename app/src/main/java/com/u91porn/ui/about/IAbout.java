@@ -18,4 +18,6 @@ public interface IAbout extends IBaseAbout {
      * @param fileDirList 缓存目录集
      */
     void cleanCacheFile(List<File> fileDirList, Context context);
+
+    void countCacheFileSize(Context context, String title);
 }

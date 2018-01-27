@@ -2,14 +2,12 @@ package com.u91porn.exception;
 
 import android.net.ParseException;
 
-import com.bugsnag.android.Bugsnag;
-import com.bugsnag.android.Severity;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializer;
-import com.google.gson.JsonSyntaxException;
 import com.orhanobut.logger.Logger;
 
 import org.apache.http.conn.ConnectTimeoutException;
+import org.greenrobot.greendao.DaoException;
 import org.json.JSONException;
 
 import java.io.NotSerializableException;
@@ -27,7 +25,6 @@ import retrofit2.HttpException;
 
 public class ApiException extends Exception {
     private static final String TAG = ApiException.class.getSimpleName();
-    //对应HTTP的状态码
     private static final int BADREQUEST = 400;
     private static final int UNAUTHORIZED = 401;
     private static final int FORBIDDEN = 403;
@@ -39,9 +36,7 @@ public class ApiException extends Exception {
     private static final int SERVICE_UNAVAILABLE = 503;
     private static final int GATEWAY_TIMEOUT = 504;
 
-
     private final int code;
-    private String displayMessage;
 
     public static final int UNKNOWN = 1000;
     public static final int PARSE_ERROR = 1001;
@@ -55,14 +50,6 @@ public class ApiException extends Exception {
 
     public int getCode() {
         return code;
-    }
-
-    public String getDisplayMessage() {
-        return displayMessage;
-    }
-
-    public void setDisplayMessage(String msg) {
-        this.displayMessage = msg + "(code:" + code + ")";
     }
 
 
@@ -84,69 +71,58 @@ public class ApiException extends Exception {
         if (e instanceof HttpException) {
             HttpException httpException = (HttpException) e;
             ex = new ApiException(httpException, httpException.code());
-            /*switch (httpException.code()) {
-                case BADREQUEST:
-                case UNAUTHORIZED:
-                case FORBIDDEN:
-                case NOT_FOUND:
-                case REQUEST_TIMEOUT:
-                case GATEWAY_TIMEOUT:
-                case INTERNAL_SERVER_ERROR:
-                case BAD_GATEWAY:
-                case SERVICE_UNAVAILABLE:
-                default:
-                    ex.message = "网络错误,Code:"+httpException.code()+" ,err:"+httpException.getMessage();
-                    break;
-            }*/
             ex.message = httpException.getMessage();
             return ex;
         } else if (e instanceof JsonParseException
                 || e instanceof JSONException
-                || e instanceof JsonSyntaxException
                 || e instanceof JsonSerializer
                 || e instanceof NotSerializableException
                 || e instanceof ParseException) {
-            ex = new ApiException(e, ERROR.PARSE_ERROR);
-            ex.message = "解析错误";
+            ex = new ApiException(e, Error.PARSE_ERROR);
+            ex.message = "数据解析错误";
             return ex;
         } else if (e instanceof ClassCastException) {
-            ex = new ApiException(e, ERROR.CAST_ERROR);
+            ex = new ApiException(e, Error.CAST_ERROR);
             ex.message = "类型转换错误";
             return ex;
         } else if (e instanceof ConnectException) {
-            ex = new ApiException(e, ERROR.NETWORD_ERROR);
+            ex = new ApiException(e, Error.NETWORD_ERROR);
             ex.message = "连接失败";
             return ex;
         } else if (e instanceof javax.net.ssl.SSLHandshakeException) {
-            ex = new ApiException(e, ERROR.SSL_ERROR);
+            ex = new ApiException(e, Error.SSL_ERROR);
             ex.message = "证书验证失败";
             return ex;
         } else if (e instanceof ConnectTimeoutException) {
-            ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
+            ex = new ApiException(e, Error.TIMEOUT_ERROR);
             ex.message = "网络连接超时";
             return ex;
         } else if (e instanceof java.net.SocketTimeoutException) {
-            ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
+            ex = new ApiException(e, Error.TIMEOUT_ERROR);
             ex.message = "网络连接超时";
             return ex;
         } else if (e instanceof UnknownHostException) {
-            ex = new ApiException(e, ERROR.UNKNOWNHOST_ERROR);
+            ex = new ApiException(e, Error.UNKNOWNHOST_ERROR);
             ex.message = "无法解析该域名";
             return ex;
         } else if (e instanceof NullPointerException) {
-            ex = new ApiException(e, ERROR.NULLPOINTER_EXCEPTION);
+            ex = new ApiException(e, Error.NULLPOINTER_EXCEPTION);
             ex.message = "NullPointerException";
             return ex;
         } else if (e instanceof VideoException) {
-            ex = new ApiException(e, ERROR.PARSE_VIDEO_URL_ERROR);
+            ex = new ApiException(e, Error.PARSE_VIDEO_URL_ERROR);
             ex.message = e.getMessage();
             return ex;
         } else if (e instanceof FavoriteException) {
-            ex = new ApiException(e, ERROR.FAVORITE_VIDEO_ERROR);
+            ex = new ApiException(e, Error.FAVORITE_VIDEO_ERROR);
             ex.message = e.getMessage();
             return ex;
+        } else if (e instanceof DaoException) {
+            ex = new ApiException(e, Error.GREENDAO_ERROR);
+            ex.message = "数据库错误";
+            return ex;
         } else {
-            ex = new ApiException(e, ERROR.UNKNOWN);
+            ex = new ApiException(e, Error.UNKNOWN);
             ex.message = "未知错误";
             return ex;
         }
@@ -157,14 +133,10 @@ public class ApiException extends Exception {
         return message;
     }
 
-    /*public String getErrMessage() {
-        return message;
-    }*/
-
     /**
      * 约定异常
      */
-    public static class ERROR {
+    public static class Error {
         /**
          * 未知错误
          */
@@ -221,5 +193,7 @@ public class ApiException extends Exception {
          * 解析视频链接错误
          */
         private static final int FAVORITE_VIDEO_ERROR = PARSE_VIDEO_URL_ERROR + 1;
+
+        private static final int GREENDAO_ERROR = FAVORITE_VIDEO_ERROR + 1;
     }
 }

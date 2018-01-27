@@ -1,9 +1,14 @@
 package com.u91porn.data.dao;
 
+import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Severity;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.u91porn.BuildConfig;
 import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoResult;
+
+import org.greenrobot.greendao.DaoException;
 
 import java.util.List;
 
@@ -26,6 +31,8 @@ public class DataBaseManager {
         videoResultDao = daoSession.getVideoResultDao();
         categoryDao = daoSession.getCategoryDao();
         initCategory();
+        initCategory91PornForum();
+        initCategoryMeiZiTu();
     }
 
     public static void init(DaoSession daoSession) {
@@ -41,9 +48,45 @@ public class DataBaseManager {
     }
 
 
+    private void initCategoryMeiZiTu() {
+        int length = Category.CATEGORY_DEFAULT_MEI_ZI_TU_VALUE.length;
+        List<Category> categoryList = categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_MEI_ZI_TU)).build().list();
+        if (categoryList.size() == length) {
+            return;
+        }
+        for (int i = 0; i < length; i++) {
+            Category category = new Category();
+            category.setCategoryName(Category.CATEGORY_DEFAULT_MEI_ZI_TU_NAME[i]);
+            category.setCategoryValue(Category.CATEGORY_DEFAULT_MEI_ZI_TU_VALUE[i]);
+            category.setCategoryType(Category.TYPE_MEI_ZI_TU);
+            category.setIsShow(true);
+            category.setSortId(i);
+            categoryList.add(category);
+        }
+        categoryDao.insertOrReplaceInTx(categoryList);
+    }
+
+    private void initCategory91PornForum() {
+        int length = Category.CATEGORY_DEFAULT_91PORN_FORUM_VALUE.length;
+        List<Category> categoryList = categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN_FORUM)).build().list();
+        if (categoryList.size() == length) {
+            return;
+        }
+        for (int i = 0; i < length; i++) {
+            Category category = new Category();
+            category.setCategoryName(Category.CATEGORY_DEFAULT_91PORN_FORUM_NAME[i]);
+            category.setCategoryValue(Category.CATEGORY_DEFAULT_91PORN_FORUM_VALUE[i]);
+            category.setCategoryType(Category.TYPE_91PORN_FORUM);
+            category.setIsShow(true);
+            category.setSortId(i);
+            categoryList.add(category);
+        }
+        categoryDao.insertOrReplaceInTx(categoryList);
+    }
+
     private void initCategory() {
         int length = Category.CATEGORY_DEFAULT_91PORN_VALUE.length;
-        List<Category> categoryList = categoryDao.loadAll();
+        List<Category> categoryList = categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN)).build().list();
         if (categoryList.size() == length) {
             return;
         }
@@ -84,8 +127,20 @@ public class DataBaseManager {
     }
 
     public UnLimit91PornItem findByViewKey(String viewKey) {
-
-        return unLimit91PornItemDao.queryBuilder().where(UnLimit91PornItemDao.Properties.ViewKey.eq(viewKey)).build().unique();
+        try {
+            return unLimit91PornItemDao.queryBuilder().where(UnLimit91PornItemDao.Properties.ViewKey.eq(viewKey)).build().unique();
+        } catch (Exception e) {
+            //暂时先都删除了，之前没有设置唯一约束
+            List<UnLimit91PornItem> tmp = unLimit91PornItemDao.queryBuilder().where(UnLimit91PornItemDao.Properties.ViewKey.eq(viewKey)).build().list();
+            for (UnLimit91PornItem unLimit91PornItem : tmp) {
+                unLimit91PornItemDao.delete(unLimit91PornItem);
+            }
+            if (!BuildConfig.DEBUG) {
+                Bugsnag.notify(new Throwable("findByViewKey DaoException", e), Severity.WARNING);
+            }
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public VideoResult getVideoResultByViewKey(String viewKey) {
@@ -97,7 +152,16 @@ public class DataBaseManager {
     }
 
     public UnLimit91PornItem findByDownloadId(int downloadId) {
-        return unLimit91PornItemDao.queryBuilder().where(UnLimit91PornItemDao.Properties.DownloadId.eq(downloadId)).build().unique();
+        try {
+            return unLimit91PornItemDao.queryBuilder().where(UnLimit91PornItemDao.Properties.DownloadId.eq(downloadId)).build().unique();
+        } catch (Exception e) {
+            //暂时先不处理这问题了，理论上一个不会发生，因为时根据url生成
+            if (!BuildConfig.DEBUG) {
+                Bugsnag.notify(new Throwable("findByDownloadId DaoException", e), Severity.WARNING);
+            }
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public List<UnLimit91PornItem> loadAllLimit91PornItems() {
@@ -116,14 +180,14 @@ public class DataBaseManager {
         unLimit91PornItemDao.updateInTx(unLimit91PornItemList);
     }
 
-    public List<Category> loadAllCategoryData() {
+    public List<Category> loadAllCategoryData(int type) {
         categoryDao.detachAll();
-        return categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN)).orderAsc(CategoryDao.Properties.SortId).build().list();
+        return categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(type)).orderAsc(CategoryDao.Properties.SortId).build().list();
     }
 
-    public List<Category> loadCategoryData() {
+    public List<Category> loadCategoryData(int type) {
         categoryDao.detachAll();
-        return categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN), CategoryDao.Properties.IsShow.eq(true)).orderAsc(CategoryDao.Properties.SortId).build().list();
+        return categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(type), CategoryDao.Properties.IsShow.eq(true)).orderAsc(CategoryDao.Properties.SortId).build().list();
     }
 
     public void updateCategoryData(List<Category> categoryList) {

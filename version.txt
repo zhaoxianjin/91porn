@@ -1,13 +1,12 @@
 {
-"apkDownloadUrl": "https://bitbucket.org/techGay/91porn/downloads/app-beta-v1.1.1.apk",
-"updateMessage": "1. 首页大改版，更多板块即将加入\n
-                  2. 新增夜间模式（适配过程好痛苦）\n
-                  3. 修复检查更新概率404错误问题\n
-                  4. 保存数据未及时更新导致崩溃问题\n
-                  5. 优化底层网络结构，优化HTTP代理设置\n
-                  6. 其他细节优化及bug修复\n
-
-                  版本改动较大，测试不够，难免有较多bug，不能自动更新请到github手动下载。",
-"versionCode": 12,
-"versionName": "1.1.1"
+"apkDownloadUrl": "https://bitbucket.org/techGay/91porn/downloads/app-beta-v1.1.2.apk",
+"updateMessage": "板块越来越多，可能小内存手机会吃不消，小部分用户可能会升级失败或数据异常，需要时卸载重新安装即可。\n
+                  1.	新增论坛板块（仅支持查看免费板块），妹子图图片板块\n
+                  2.	修复在程序中更改系统配置时可能引发程序崩溃的bug\n
+                  3.	修复程序后台因内存不足被杀死时重新打开崩溃的问题\n
+                  4.	优化内存占用，在系统低内存时自动释放可释放内存，以减少后台时被杀几率（最好还是把程序加入清理软件白名单）\n
+                  5.	修复登录注册验证码无法显示问题\n
+                  6.	其他细小bug以及优化改进",
+"versionCode": 13,
+"versionName": "1.1.2"
 }

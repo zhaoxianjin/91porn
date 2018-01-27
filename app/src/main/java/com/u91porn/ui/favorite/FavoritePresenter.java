@@ -138,7 +138,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
 
                     @Override
                     public void onError(final String msg, int code) {
-                        if (code == ApiException.ERROR.NULLPOINTER_EXCEPTION) {
+                        if (code == ApiException.Error.NULLPOINTER_EXCEPTION) {
                             if (!TextUtils.isEmpty(uploadMsg)) {
                                 if (user != null) {
                                     uploadMsg = uploadMsg + user.toString();

@@ -14,6 +14,7 @@ import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoResult;
 import com.u91porn.rxjava.CallBackWrapper;
+import com.u91porn.rxjava.RxSchedulersHelper;
 import com.u91porn.utils.DownloadManager;
 import com.u91porn.utils.SDCardUtils;
 import com.u91porn.utils.VideoCacheFileNameGenerator;
@@ -65,7 +66,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
     @Override
     public void downloadVideo(UnLimit91PornItem unLimit91PornItem, boolean isDownloadNeedWifi, boolean isForceReDownload, DownloadListener downloadListener) {
         UnLimit91PornItem tmp = dataBaseManager.findByViewKey(unLimit91PornItem.getViewKey());
-        if (tmp == null || tmp.getVideoResult() == null) {
+        if (tmp == null || tmp.getVideoResultId() == 0) {
             if (downloadListener != null) {
                 downloadListener.onError("还未解析成功视频地址");
             } else {
@@ -128,7 +129,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
             return;
         }
         Logger.d("视频连接：" + videoResult.getVideoUrl());
-        String path = SDCardUtils.DOWNLOAD_PATH + unLimit91PornItem.getViewKey() + ".mp4";
+        String path = SDCardUtils.DOWNLOAD_VIDEO_PATH + unLimit91PornItem.getViewKey() + ".mp4";
         Logger.d(path);
         int id = DownloadManager.getImpl().startDownload(videoResult.getVideoUrl(), path, isDownloadNeedWifi, isForceReDownload);
         if (tmp.getAddDownloadDate() == null) {
@@ -150,27 +151,77 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
 
     @Override
     public void loadDownloadingData() {
-        //final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().notEqual(UnLimit91PornItem_.status, FileDownloadStatus.completed).and().notEqual(UnLimit91PornItem_.downloadId, 0).orderDesc(UnLimit91PornItem_.addDownloadDate).build().find();
-        final List<UnLimit91PornItem> unLimit91PornItems = dataBaseManager.loadDownloadingData();
-        ifViewAttached(new ViewAction<DownloadView>() {
-            @Override
-            public void run(@NonNull DownloadView view) {
-                view.setDownloadingData(unLimit91PornItems);
-            }
-        });
+
+        Observable
+                .create(new ObservableOnSubscribe<List<UnLimit91PornItem>>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<List<UnLimit91PornItem>> emitter) throws Exception {
+                        List<UnLimit91PornItem> unLimit91PornItems = dataBaseManager.loadDownloadingData();
+                        emitter.onNext(unLimit91PornItems);
+                        emitter.onComplete();
+                    }
+                })
+                .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.DESTROY))
+                .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
+                    @Override
+                    public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItemList) {
+                        ifViewAttached(new ViewAction<DownloadView>() {
+                            @Override
+                            public void run(@NonNull DownloadView view) {
+                                view.setDownloadingData(unLimit91PornItemList);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(final String msg, int code) {
+                        ifViewAttached(new ViewAction<DownloadView>() {
+                            @Override
+                            public void run(@NonNull DownloadView view) {
+                                view.showError(msg);
+                            }
+                        });
+                    }
+                });
+
     }
 
     @Override
     public void loadFinishedData() {
-        //final List<UnLimit91PornItem> unLimit91PornItems = unLimit91PornItemBox.query().equal(UnLimit91PornItem_.status, FileDownloadStatus.completed).notEqual(UnLimit91PornItem_.downloadId, 0).orderDesc(UnLimit91PornItem_.finshedDownloadDate).build().find();
-        final List<UnLimit91PornItem> unLimit91PornItems = dataBaseManager.loadFinishedData();
 
-        ifViewAttached(new ViewAction<DownloadView>() {
-            @Override
-            public void run(@NonNull DownloadView view) {
-                view.setFinishedData(unLimit91PornItems);
-            }
-        });
+        Observable
+                .create(new ObservableOnSubscribe<List<UnLimit91PornItem>>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<List<UnLimit91PornItem>> emitter) throws Exception {
+                        List<UnLimit91PornItem> unLimit91PornItems = dataBaseManager.loadFinishedData();
+                        emitter.onNext(unLimit91PornItems);
+                        emitter.onComplete();
+                    }
+                })
+                .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.DESTROY))
+                .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
+                    @Override
+                    public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItemList) {
+                        ifViewAttached(new ViewAction<DownloadView>() {
+                            @Override
+                            public void run(@NonNull DownloadView view) {
+                                view.setFinishedData(unLimit91PornItemList);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(final String msg, int code) {
+                        ifViewAttached(new ViewAction<DownloadView>() {
+                            @Override
+                            public void run(@NonNull DownloadView view) {
+                                view.showError(msg);
+                            }
+                        });
+                    }
+                });
     }
 
     @Override
@@ -186,6 +237,11 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         } else {
             deleteWithFile(unLimit91PornItem);
         }
+    }
+
+    @Override
+    public UnLimit91PornItem findUnLimit91PornItemByDownloadId(int downloadId) {
+        return dataBaseManager.findByDownloadId(downloadId);
     }
 
     /**

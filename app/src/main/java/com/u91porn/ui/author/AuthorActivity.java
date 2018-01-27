@@ -17,6 +17,7 @@ import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
@@ -51,7 +52,6 @@ public class AuthorActivity extends MvpActivity<AuthorView, AuthorPresenter> imp
         setContentView(R.layout.activity_author);
         ButterKnife.bind(this);
         initToolBar(toolbar);
-        setTitle("用户视频");
         uid = getIntent().getStringExtra(Keys.KEY_INTENT_UID);
         if (TextUtils.isEmpty(uid)) {
             showMessage("用户信息错误，无法获取数据", TastyToast.ERROR);
@@ -105,7 +105,7 @@ public class AuthorActivity extends MvpActivity<AuthorView, AuthorPresenter> imp
     @NonNull
     @Override
     public AuthorPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
         return new AuthorPresenter(noLimit91PornServiceApi, provider, cacheProviders);
     }

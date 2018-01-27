@@ -12,6 +12,8 @@ import com.liulishuo.filedownloader.FileDownloader;
 import com.orhanobut.logger.Logger;
 import com.u91porn.R;
 import com.u91porn.adapter.DownloadFragmentAdapter;
+import com.u91porn.data.dao.DataBaseManager;
+import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.BaseAppCompatActivity;
 
 import java.util.ArrayList;
@@ -37,50 +39,19 @@ public class DownloadActivity extends BaseAppCompatActivity {
 
     private DownloadFragmentAdapter downloadAdapter;
     private List<Fragment> fragmentList;
-    FileDownloadConnectListener fileDownloadConnectListener = new FileDownloadConnectListener() {
-        @Override
-        public void connected() {
-            Logger.t(TAG).d("connected连接上");
-        }
-
-        @Override
-        public void disconnected() {
-            Logger.t(TAG).d("disconnected断开连接？？？");
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
         ButterKnife.bind(this);
-        setTitle(R.string.my_download);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-        toolbar.setContentInsetStartWithNavigation(0);
+        initToolBar(toolbar);
         fragmentList = new ArrayList<>();
         fragmentList.add(new DownloadingFragment());
         fragmentList.add(new FinishedFragment());
         downloadAdapter = new DownloadFragmentAdapter(getSupportFragmentManager(), fragmentList);
         downloadViewpager.setAdapter(downloadAdapter);
         downloadTab.setupWithViewPager(downloadViewpager);
-
-        FileDownloader.getImpl().addServiceConnectListener(fileDownloadConnectListener);
-
-        if (!FileDownloader.getImpl().isServiceConnected()) {
-            FileDownloader.getImpl().bindService();
-            Logger.t(TAG).d("启动连接");
-        } else {
-            Logger.t(TAG).d("已经连接");
-        }
-
     }
 
     @Override
@@ -92,6 +63,5 @@ public class DownloadActivity extends BaseAppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileDownloader.getImpl().removeServiceConnectListener(fileDownloadConnectListener);
     }
 }

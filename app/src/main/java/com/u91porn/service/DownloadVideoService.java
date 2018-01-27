@@ -72,7 +72,7 @@ public class DownloadVideoService extends Service implements DownloadManager.Dow
     }
 
     @Override
-    public void blockComplete(BaseDownloadTask task) {
+    public void complete(BaseDownloadTask task) {
 
     }
 

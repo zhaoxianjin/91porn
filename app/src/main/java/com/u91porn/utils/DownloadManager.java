@@ -93,8 +93,7 @@ public class DownloadManager {
 
         @Override
         protected void blockComplete(BaseDownloadTask task) {
-            Logger.t(TAG).d("blockComplete:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
-            // blockComplete(task);
+            Logger.t(TAG).d("complete:" + "--status:" + task.getStatus() + "--:soFarBytes：" + task.getSmallFileSoFarBytes() + "--:totalBytes：" + task.getSmallFileTotalBytes());
         }
 
         @Override
@@ -126,11 +125,13 @@ public class DownloadManager {
     /**
      * 实时保存下载信息
      *
-     * @param task
+     * @param task 任务信息
      */
     private void saveDownloadInfo(BaseDownloadTask task) {
         UnLimit91PornItem unLimit91PornItem = dataBaseManager.findByDownloadId(task.getId());
         if (unLimit91PornItem == null) {
+            //不存在的任务清除掉
+            FileDownloader.getImpl().clear(task.getId(), task.getPath());
             if (!BuildConfig.DEBUG) {
                 Bugsnag.notify(new Throwable(TAG + "::save download info failure:" + task.getUrl()), Severity.WARNING);
             }
@@ -155,13 +156,17 @@ public class DownloadManager {
         unLimit91PornItem.setSpeed(task.getSpeed());
         unLimit91PornItem.setStatus(task.getStatus());
         dataBaseManager.update(unLimit91PornItem);
-        update(task);
+        if (task.getStatus() == FileDownloadStatus.completed) {
+            complete(task);
+        } else {
+            update(task);
+        }
     }
 
-    private void blockComplete(final BaseDownloadTask task) {
+    private void complete(final BaseDownloadTask task) {
         final List<DownloadStatusUpdater> updaterListCopy = (List<DownloadStatusUpdater>) updaterList.clone();
         for (DownloadStatusUpdater downloadStatusUpdater : updaterListCopy) {
-            downloadStatusUpdater.blockComplete(task);
+            downloadStatusUpdater.complete(task);
         }
     }
 
@@ -173,7 +178,7 @@ public class DownloadManager {
     }
 
     public interface DownloadStatusUpdater {
-        void blockComplete(BaseDownloadTask task);
+        void complete(BaseDownloadTask task);
 
         void update(BaseDownloadTask task);
     }

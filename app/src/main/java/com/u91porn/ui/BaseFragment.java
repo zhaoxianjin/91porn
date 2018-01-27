@@ -1,9 +1,11 @@
 package com.u91porn.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
+import android.support.annotation.Nullable;
+import android.view.View;
 
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
@@ -11,29 +13,18 @@ import com.trello.navi2.component.support.NaviFragment;
 import com.trello.rxlifecycle2.LifecycleProvider;
 import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.navi.NaviLifecycle;
+import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.eventbus.BaseUrlChangeEvent;
 import com.u91porn.eventbus.ProxySetEvent;
-import com.u91porn.rxjava.RxSchedulersHelper;
-import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.Keys;
 import com.u91porn.utils.PlaybackEngine;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.concurrent.TimeUnit;
-
-import io.reactivex.Completable;
-import io.reactivex.CompletableObserver;
-import io.reactivex.CompletableTransformer;
-import io.reactivex.Single;
-import io.reactivex.SingleObserver;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * @author flymegoc
@@ -43,30 +34,33 @@ import io.reactivex.schedulers.Schedulers;
 
 public abstract class BaseFragment extends NaviFragment {
     private final String TAG = getClass().getSimpleName();
+    private final String KEY_SAVE_DIN_STANCE_STATE_CATEGORY = "key_save_din_stance_state_category";
     protected final LifecycleProvider<FragmentEvent> provider = NaviLifecycle.createFragmentLifecycleProvider(this);
     protected Context context;
-    protected MainActivity mainActivity;
-    protected boolean isFitst = true;
+    protected Activity activity;
     protected Category category;
-    private boolean mIsLoadedData;
-
-    protected void showMessage(String msg, int type) {
-        TastyToast.makeText(context.getApplicationContext(), msg, TastyToast.LENGTH_SHORT, type).show();
-    }
+    protected boolean mIsLoadedData;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = getContext();
-        if (getActivity() instanceof MainActivity) {
-            mainActivity = (MainActivity) getActivity();
-        }
+        activity = getActivity();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
+        if (savedInstanceState != null) {
+            category = (Category) savedInstanceState.getSerializable(KEY_SAVE_DIN_STANCE_STATE_CATEGORY);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(KEY_SAVE_DIN_STANCE_STATE_CATEGORY, category);
     }
 
     @Override
@@ -77,20 +71,13 @@ public abstract class BaseFragment extends NaviFragment {
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        Logger.t(TAG).d("------------------onStart()");
-    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onProxySetEvent(ProxySetEvent proxySetEvent) {
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        Logger.t(TAG).d("------------------onStop()");
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onProxySetEvent(ProxySetEvent proxySetEvent) {
+    public void onBaseUrlChangeEvent(BaseUrlChangeEvent baseUrlChangeEvent) {
 
     }
 
@@ -113,7 +100,7 @@ public abstract class BaseFragment extends NaviFragment {
     /**
      * 处理对用户是否可见
      *
-     * @param isVisibleToUser
+     * @param isVisibleToUser 可见
      */
     private void handleOnVisibilityChangedToUser(boolean isVisibleToUser) {
         if (isVisibleToUser) {
@@ -168,16 +155,17 @@ public abstract class BaseFragment extends NaviFragment {
     }
 
     private void playAnimation() {
-        if (mainActivity != null) {
-            mainActivity.overridePendingTransition(R.anim.slide_in_right, R.anim.side_out_left);
+        if (activity != null) {
+            activity.overridePendingTransition(R.anim.slide_in_right, R.anim.side_out_left);
         }
     }
 
     protected void goToPlayVideo(UnLimit91PornItem unLimit91PornItem) {
         Intent intent = PlaybackEngine.getPlaybackEngineIntent(getContext());
         intent.putExtra(Keys.KEY_INTENT_UNLIMIT91PORNITEM, unLimit91PornItem);
-        if (mainActivity != null) {
-            mainActivity.startActivityWithAnimotion(intent);
+        if (activity != null) {
+            startActivity(intent);
+            activity.overridePendingTransition(R.anim.slide_in_right, R.anim.side_out_left);
         } else {
             showMessage("无法获取宿主Activity", TastyToast.INFO);
         }
@@ -199,9 +187,12 @@ public abstract class BaseFragment extends NaviFragment {
 
     @Override
     public void onDestroy() {
-        isFitst = true;
         EventBus.getDefault().unregister(this);
         super.onDestroy();
         Logger.t(TAG).d("------------------onDestroy()");
+    }
+
+    protected void showMessage(String msg, int type) {
+        TastyToast.makeText(context.getApplicationContext(), msg, TastyToast.LENGTH_SHORT, type).show();
     }
 }

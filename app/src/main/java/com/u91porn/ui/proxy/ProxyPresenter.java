@@ -2,9 +2,7 @@ package com.u91porn.ui.proxy;
 
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.text.format.DateUtils;
 
-import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
@@ -18,6 +16,7 @@ import com.u91porn.data.model.ProxyModel;
 import com.u91porn.parse.ParseProxy;
 import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.rxjava.RxSchedulersHelper;
+import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.CommonHeaderInterceptor;
 import com.u91porn.utils.Constants;
 import com.u91porn.utils.HeaderUtils;
@@ -58,7 +57,7 @@ public class ProxyPresenter extends MvpBasePresenter<ProxyView> implements IProx
 
     @Override
     public void testProxy(String proxyIpAddress, int proxyPort) {
-        if (RegexUtils.isIP(proxyIpAddress) && proxyPort < Constants.PROXY_MAX_PORT) {
+        if (RegexUtils.isIP(proxyIpAddress) && proxyPort < Constants.PROXY_MAX_PORT && proxyPort > 0) {
             init91PornRetrofitService(proxyIpAddress, proxyPort)
                     .indexPhp(HeaderUtils.getIndexHeader())
                     .compose(RxSchedulersHelper.<String>ioMainThread())
@@ -226,7 +225,7 @@ public class ProxyPresenter extends MvpBasePresenter<ProxyView> implements IProx
 
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
-                .baseUrl(MyApplication.getInstace().getHost())
+                .baseUrl(AddressHelper.getInstance().getVideo91PornAddress())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build();

@@ -1,7 +1,7 @@
 package com.u91porn.ui;
 
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.support.annotation.IntRange;
@@ -10,10 +10,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.TextView;
 
-import com.androidadvance.topsnackbar.TSnackbar;
 import com.jaeger.library.StatusBarUtil;
+import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.navi2.component.support.NaviAppCompatActivity;
 import com.trello.rxlifecycle2.LifecycleProvider;
@@ -34,15 +33,18 @@ import cn.bingoogolapple.swipebacklayout.BGASwipeBackHelper;
  */
 
 public abstract class BaseAppCompatActivity extends NaviAppCompatActivity implements BGASwipeBackHelper.Delegate {
+    private final String TAG = this.getClass().getSimpleName();
     private AppManager appManager = AppManager.getAppManager();
     public final LifecycleProvider<ActivityEvent> provider = NaviLifecycle.createActivityLifecycleProvider(this);
     protected BGASwipeBackHelper mSwipeBackHelper;
     protected boolean existActivityWithAnimation = true;
+    protected Context context;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         initSwipeBackFinish();
         super.onCreate(savedInstanceState);
+        context = this;
         appManager.addActivity(this);
     }
 
@@ -177,17 +179,6 @@ public abstract class BaseAppCompatActivity extends NaviAppCompatActivity implem
         TastyToast.makeText(getApplicationContext(), msg, TastyToast.LENGTH_SHORT, type).show();
     }
 
-    protected void showTopMessage(String message) {
-        TSnackbar snackbar = TSnackbar.make(findViewById(android.R.id.content), message, TSnackbar.LENGTH_LONG);
-        snackbar.setActionTextColor(Color.WHITE);
-        View snackbarView = snackbar.getView();
-        snackbarView.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent));
-        TextView textView = snackbarView.findViewById(com.androidadvance.topsnackbar.R.id.snackbar_text);
-        textView.setTextSize(16);
-        textView.setTextColor(Color.WHITE);
-        snackbar.show();
-    }
-
     protected void initToolBar(Toolbar toolbar) {
         if (toolbar == null) {
             return;
@@ -204,5 +195,11 @@ public abstract class BaseAppCompatActivity extends NaviAppCompatActivity implem
             }
         });
         toolbar.setContentInsetStartWithNavigation(0);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Logger.t(TAG).d("------------------onStop()");
     }
 }

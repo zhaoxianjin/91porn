@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,12 +21,14 @@ import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
+import com.u91porn.utils.AppUtils;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.LoadHelperUtils;
 
@@ -46,7 +49,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
 
 
     @BindView(R.id.recyclerView_common)
-    SwipeMenuRecyclerView recyclerView;
+    RecyclerView recyclerView;
     Unbinder unbinder;
     @BindView(R.id.contentView)
     SwipeRefreshLayout contentView;
@@ -79,7 +82,7 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     @NonNull
     @Override
     public CommonPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
         return new CommonPresenter(noLimit91PornServiceApi, cacheProviders, provider);
     }
@@ -127,12 +130,13 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
             }
         });
         //loadData(false);
+        AppUtils.setColorSchemeColors(context,contentView);
     }
 
     @Override
     public void onProxySetEvent(ProxySetEvent proxySetEvent) {
         super.onProxySetEvent(proxySetEvent);
-        presenter.setNoLimit91PornServiceApi(MyApplication.getInstace().getNoLimit91PornService());
+        presenter.setNoLimit91PornServiceApi(ApiManager.getInstance().getNoLimit91PornService(context));
     }
 
     @Override

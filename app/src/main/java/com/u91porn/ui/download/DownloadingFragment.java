@@ -17,15 +17,18 @@ import com.aitsuki.swipe.SwipeItemLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadConnectListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.orhanobut.logger.Logger;
+import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.DownloadVideoAdapter;
 import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.service.DownloadVideoService;
+import com.u91porn.ui.BaseAppCompatActivity;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DownloadManager;
@@ -42,6 +45,8 @@ import butterknife.Unbinder;
 
 /**
  * A simple {@link Fragment} subclass.
+ *
+ * @author flymegoc
  */
 public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPresenter> implements DownloadManager.DownloadStatusUpdater, DownloadView {
 
@@ -50,26 +55,49 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     RecyclerView recyclerView;
     Unbinder unbinder;
     private DownloadVideoAdapter mDownloadAdapter;
+    private ArrayList<UnLimit91PornItem> mUnLimit91PornItemList;
 
 
     public DownloadingFragment() {
         // Required empty public constructor
     }
 
+    private FileDownloadConnectListener fileDownloadConnectListener = new FileDownloadConnectListener() {
+        @Override
+        public void connected() {
+            Logger.t(TAG).d("连接上下载服务");
+            List<UnLimit91PornItem> unLimit91PornItems = DataBaseManager.getInstance().loadDownloadingData();
+            for (UnLimit91PornItem unLimit91PornItem : unLimit91PornItems) {
+                int status = FileDownloader.getImpl().getStatus(unLimit91PornItem.getVideoResult().getVideoUrl(), unLimit91PornItem.getDownLoadPath());
+                Logger.t(TAG).d("fix status:::" + status);
+                if (status != unLimit91PornItem.getStatus()) {
+                    unLimit91PornItem.setStatus(status);
+                    DataBaseManager.getInstance().update(unLimit91PornItem);
+                }
+            }
+            presenter.loadDownloadingData();
+        }
+
+        @Override
+        public void disconnected() {
+            Logger.t(TAG).d("下载服务连接断开了");
+        }
+    };
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         DownloadManager.getImpl().addUpdater(this);
+        FileDownloader.getImpl().addServiceConnectListener(fileDownloadConnectListener);
     }
 
     @NonNull
     @Override
     public DownloadPresenter createPresenter() {
-        DownloadActivity downloadActivity = (DownloadActivity) getActivity();
         DataBaseManager dataBaseManager = DataBaseManager.getInstance();
         HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
         File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
-        return new DownloadPresenter(dataBaseManager, downloadActivity.provider, cacheServer, videoCacheDir);
+        return new DownloadPresenter(dataBaseManager, ((BaseAppCompatActivity) activity).provider, cacheServer, videoCacheDir);
 
     }
 
@@ -77,10 +105,11 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         unbinder = ButterKnife.bind(this, view);
-        List<UnLimit91PornItem> mUnLimit91PornItemList = new ArrayList<>();
+        mUnLimit91PornItemList = new ArrayList<>();
         mDownloadAdapter = new DownloadVideoAdapter(R.layout.item_right_menu_delete_download, mUnLimit91PornItemList);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.getItemAnimator().setChangeDuration(0);
         recyclerView.setAdapter(mDownloadAdapter);
         mDownloadAdapter.setEmptyView(R.layout.empty_view, recyclerView);
 
@@ -88,6 +117,9 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
                 UnLimit91PornItem unLimit91PornItem = (UnLimit91PornItem) adapter.getItem(position);
+                if (unLimit91PornItem == null) {
+                    return;
+                }
                 Logger.t(TAG).d("当前状态：" + unLimit91PornItem.getStatus());
                 if (view.getId() == R.id.right_menu_delete) {
                     SwipeItemLayout swipeItemLayout = (SwipeItemLayout) view.getParent();
@@ -111,7 +143,19 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
                 }
             }
         });
-        presenter.loadDownloadingData();
+
+    }
+
+    @Override
+    protected void onLazyLoadOnce() {
+        super.onLazyLoadOnce();
+        if (!FileDownloader.getImpl().isServiceConnected()) {
+            FileDownloader.getImpl().bindService();
+            Logger.t(TAG).d("启动下载服务");
+        } else {
+            presenter.loadDownloadingData();
+            Logger.t(TAG).d("下载服务已经连接");
+        }
     }
 
     private void startDownload(UnLimit91PornItem unLimit91PornItem, View view, boolean isForceReDownload) {
@@ -119,7 +163,7 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
         presenter.downloadVideo(unLimit91PornItem, isDownloadNeedWifi, isForceReDownload);
         ((ImageView) view).setImageResource(R.drawable.pause_download);
         Intent intent = new Intent(getContext(), DownloadVideoService.class);
-        getContext().startService(intent);
+        context.startService(intent);
     }
 
     @Override
@@ -132,14 +176,45 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     }
 
     @Override
-    public void blockComplete(BaseDownloadTask task) {
+    public void complete(BaseDownloadTask task) {
+        if (mUnLimit91PornItemList == null || mUnLimit91PornItemList.size() == 0) {
+            return;
+        }
         Logger.t(TAG).d("已经下载完成了");
-        presenter.loadDownloadingData();
+        UnLimit91PornItem unLimit91PornItem = presenter.findUnLimit91PornItemByDownloadId(task.getId());
+        if (unLimit91PornItem != null) {
+            int position = mUnLimit91PornItemList.indexOf(unLimit91PornItem);
+            if (position >= 0 && position < mUnLimit91PornItemList.size()) {
+                mUnLimit91PornItemList.remove(position);
+                mDownloadAdapter.notifyItemRemoved(position);
+            } else {
+                presenter.loadDownloadingData();
+            }
+        } else {
+            presenter.loadDownloadingData();
+        }
     }
 
     @Override
     public void update(BaseDownloadTask task) {
-        presenter.loadDownloadingData();
+        Logger.t(TAG).d("update(BaseDownloadTask task)");
+        if (mUnLimit91PornItemList == null || mUnLimit91PornItemList.size() == 0) {
+            return;
+        }
+        UnLimit91PornItem unLimit91PornItem = presenter.findUnLimit91PornItemByDownloadId(task.getId());
+        if (unLimit91PornItem != null) {
+            int position = mUnLimit91PornItemList.indexOf(unLimit91PornItem);
+            Logger.t(TAG).d("position" + position);
+            if (position >= 0 && position < mUnLimit91PornItemList.size()) {
+                mUnLimit91PornItemList.set(position, unLimit91PornItem);
+                mDownloadAdapter.notifyItemChanged(position);
+            } else {
+                mUnLimit91PornItemList.add(unLimit91PornItem);
+                mDownloadAdapter.notifyItemInserted(mUnLimit91PornItemList.size());
+            }
+        } else {
+            presenter.loadDownloadingData();
+        }
     }
 
     @Override
@@ -150,6 +225,7 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     @Override
     public void onDestroy() {
         super.onDestroy();
+        FileDownloader.getImpl().removeServiceConnectListener(fileDownloadConnectListener);
         DownloadManager.getImpl().removeUpdater(this);
     }
 
@@ -161,11 +237,13 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
 
     @Override
     public void setDownloadingData(List<UnLimit91PornItem> unLimit91PornItems) {
-        mDownloadAdapter.setNewData(unLimit91PornItems);
+        mUnLimit91PornItemList.clear();
+        mUnLimit91PornItemList.addAll(unLimit91PornItems);
+        mDownloadAdapter.notifyDataSetChanged();
         if (unLimit91PornItems.size() == 0) {
             try {
                 Intent intent = new Intent(getContext(), DownloadVideoService.class);
-                getContext().stopService(intent);
+                context.stopService(intent);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -194,6 +272,6 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
 
     @Override
     public void showError(String message) {
-
+        showMessage(message, TastyToast.ERROR);
     }
 }

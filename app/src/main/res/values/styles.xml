@@ -15,7 +15,11 @@
         <item name="qmui_dialog_title_text_color">@color/common_black_white_text_color</item>
         <item name="qmui_dialog_content_list_item_bg">?attr/qmui_s_list_item_bg_with_border_none</item>
         <item name="qmui_dialog_menu_item_text_color">@color/common_black_white_text_color</item>
+        <item name="qmui_bottom_sheet_list_item_text_appearance">@style/myItemStyle</item>
+    </style>
 
+    <style name="myItemStyle" parent="QMUITextAppearance.ListItem">
+        <item name="android:textColor">@color/common_black_white_text_color</item>
     </style>
 
     <style name="myss" parent="QMUI.CommonListItemView">
@@ -86,8 +90,7 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:background">@drawable/timg</item>
+        <item name="android:windowBackground">@drawable/timg</item>
     </style>
 
     <style name="sort_category_popuwindow_anim" parent="android:Animation">

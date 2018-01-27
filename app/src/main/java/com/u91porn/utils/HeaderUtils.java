@@ -15,7 +15,7 @@ public class HeaderUtils {
      * @return header
      */
     public static String getPlayVideoReferer(String viewKey) {
-        return MyApplication.getInstace().getHost() + "view_video.php?viewkey=" + viewKey;
+        return AddressHelper.getInstance().getVideo91PornAddress() + "view_video.php?viewkey=" + viewKey;
     }
 
     /**
@@ -24,7 +24,7 @@ public class HeaderUtils {
      * @return header
      */
     public static String getIndexHeader() {
-        return MyApplication.getInstace().getHost() + "index.php";
+        return AddressHelper.getInstance().getVideo91PornAddress() + "index.php";
     }
 
     /**
@@ -32,7 +32,7 @@ public class HeaderUtils {
      * @return header
      */
     public static String getFavHeader(){
-        return MyApplication.getInstace().getHost() + "my_favour.php";
+        return AddressHelper.getInstance().getVideo91PornAddress() + "my_favour.php";
     }
 
     /**
@@ -41,6 +41,6 @@ public class HeaderUtils {
      * @return header
      */
     public static String getUserHeader(String action) {
-        return MyApplication.getInstace().getHost() + action + ".php";
+        return AddressHelper.getInstance().getVideo91PornAddress() + action + ".php";
     }
 }

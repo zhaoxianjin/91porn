@@ -30,6 +30,7 @@ import io.rx_cache2.Reply;
  */
 
 public class IndexPresenter extends MvpBasePresenter<IndexView> implements IIndex {
+    private static final String TAG = IndexPresenter.class.getSimpleName();
     private NoLimit91PornServiceApi mNoLimit91PornServiceApi;
     private CacheProviders cacheProviders;
     private LifecycleProvider<FragmentEvent> provider;
@@ -58,13 +59,13 @@ public class IndexPresenter extends MvpBasePresenter<IndexView> implements IInde
                     public String apply(Reply<String> responseBodyReply) throws Exception {
                         switch (responseBodyReply.getSource()) {
                             case CLOUD:
-                                Logger.d("数据来自：网络");
+                                Logger.t(TAG).d("数据来自：网络");
                                 break;
                             case MEMORY:
-                                Logger.d("数据来自：内存");
+                                Logger.t(TAG).d("数据来自：内存");
                                 break;
                             case PERSISTENCE:
-                                Logger.d("数据来自：磁盘缓存");
+                                Logger.t(TAG).d("数据来自：磁盘缓存");
                                 break;
                             default:
                                 break;

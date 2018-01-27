@@ -9,6 +9,7 @@ import android.util.Base64;
 import com.orhanobut.logger.Logger;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
@@ -26,13 +27,11 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
 
     private static final String TAG = SplashActivity.class.getSimpleName();
     private String password;
-    private String username;
-    private String captcha = "3124";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+
         //防止重复开启程序造成多次登录
         if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0) {
             //结束你的activity
@@ -45,7 +44,8 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
         if (user != null) {
             startMain();
         }
-        username = (String) SPUtils.get(this, Keys.KEY_SP_USER_LOGIN_USERNAME, "");
+        setContentView(R.layout.activity_splash);
+        String username = (String) SPUtils.get(this, Keys.KEY_SP_USER_LOGIN_USERNAME, "");
         String ep = (String) SPUtils.get(this, Keys.KEY_SP_USER_LOGIN_PASSWORD, "");
         if (!TextUtils.isEmpty(ep)) {
             password = new String(Base64.decode(ep.getBytes(), Base64.DEFAULT));
@@ -54,7 +54,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
         boolean isAutoLogin = (boolean) SPUtils.get(this, Keys.KEY_SP_USER_AUTO_LOGIN, false);
 
         if (!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password) && isAutoLogin) {
-            captcha = UserHelper.randomCaptcha();
+            String captcha = UserHelper.randomCaptcha();
             login(username, password, captcha);
         } else {
             startMain();
@@ -80,7 +80,7 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
     @NonNull
     @Override
     public SplashPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         UserPresenter userPresenter = new UserPresenter(noLimit91PornServiceApi, provider);
         return new SplashPresenter(userPresenter);
     }

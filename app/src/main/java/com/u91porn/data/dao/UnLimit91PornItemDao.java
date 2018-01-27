@@ -80,7 +80,7 @@ public class UnLimit91PornItemDao extends AbstractDao<UnLimit91PornItem, Long> {
                 "\"FINSHED_DOWNLOAD_DATE\" INTEGER," + // 14: finshedDownloadDate
                 "\"VIEW_HISTORY_DATE\" INTEGER);"); // 15: viewHistoryDate
         // Add Indexes
-        db.execSQL("CREATE INDEX " + constraint + "IDX_UN_LIMIT91_PORN_ITEM_VIEW_KEY ON \"UN_LIMIT91_PORN_ITEM\"" +
+        db.execSQL("CREATE UNIQUE INDEX " + constraint + "IDX_UN_LIMIT91_PORN_ITEM_VIEW_KEY ON \"UN_LIMIT91_PORN_ITEM\"" +
                 " (\"VIEW_KEY\" ASC);");
     }
 

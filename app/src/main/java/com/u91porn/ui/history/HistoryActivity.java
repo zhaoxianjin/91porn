@@ -38,21 +38,7 @@ public class HistoryActivity extends MvpActivity<HistoryView, HistoryPresenter> 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
         ButterKnife.bind(this);
-
-        setSupportActionBar(toolbar);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-        toolbar.setContentInsetStartWithNavigation(0);
-
-        setTitle(R.string.history_views);
-
+        initToolBar(toolbar);
         mUnLimit91PornItemList = new ArrayList<>();
         mUnLimit91Adapter = new HistoryAdapter(R.layout.item_unlimit_91porn, mUnLimit91PornItemList);
 

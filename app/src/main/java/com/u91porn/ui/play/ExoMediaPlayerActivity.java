@@ -2,6 +2,7 @@ package com.u91porn.ui.play;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +13,10 @@ import com.flymegoc.exolibrary.widget.ExoVideoControlsMobile;
 import com.flymegoc.exolibrary.widget.ExoVideoView;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.u91porn.R;
+import com.u91porn.eventbus.LowMemoryEvent;
 import com.u91porn.utils.GlideApp;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 
@@ -21,7 +25,8 @@ import java.io.File;
  */
 public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedListener {
 
-    private ExoVideoView videoplayer;
+    private static final String TAG = ExoMediaPlayerActivity.class.getSimpleName();
+    private ExoVideoView videoPlayer;
     private ExoVideoControlsMobile videoControlsMobile;
     private boolean isPauseByActivityEvent = false;
 
@@ -34,9 +39,9 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
     @Override
     public void initPlayerView() {
         View view = LayoutInflater.from(this).inflate(R.layout.playback_engine_exo_media, videoplayerContainer, true);
-        videoplayer = view.findViewById(R.id.video_view);
-        videoControlsMobile = (ExoVideoControlsMobile) videoplayer.getVideoControls();
-        videoplayer.setOnPreparedListener(this);
+        videoPlayer = view.findViewById(R.id.video_view);
+        videoControlsMobile = (ExoVideoControlsMobile) videoPlayer.getVideoControls();
+        videoPlayer.setOnPreparedListener(this);
     }
 
     @Override
@@ -44,7 +49,7 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
 
         if (isPauseByActivityEvent) {
             isPauseByActivityEvent = false;
-            videoplayer.reset();
+            videoPlayer.reset();
         }
         videoControlsMobile.setOnBackButtonClickListener(new ExoVideoControlsMobile.OnBackButtonClickListener() {
             @Override
@@ -53,41 +58,41 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
             }
         });
         if (!TextUtils.isEmpty(thumImgUrl)) {
-            GlideApp.with(this).load(Uri.parse(thumImgUrl)).transition(new DrawableTransitionOptions().crossFade(300)).into(videoplayer.getPreviewImageView());
+            GlideApp.with(this).load(Uri.parse(thumImgUrl)).transition(new DrawableTransitionOptions().crossFade(300)).into(videoPlayer.getPreviewImageView());
         }
         //加载本地下载好的视频
         if (unLimit91PornItem.getStatus() == FileDownloadStatus.completed) {
             File downloadFile = new File(unLimit91PornItem.getDownLoadPath());
             if (downloadFile.exists()) {
-                videoplayer.setVideoPath(downloadFile.getAbsolutePath());
+                videoPlayer.setVideoPath(downloadFile.getAbsolutePath());
             } else {
                 String proxyUrl = proxy.getProxyUrl(videoUrl);
-                videoplayer.setVideoURI(Uri.parse(proxyUrl));
+                videoPlayer.setVideoURI(Uri.parse(proxyUrl));
             }
         } else {
             String proxyUrl = proxy.getProxyUrl(videoUrl);
-            videoplayer.setVideoURI(Uri.parse(proxyUrl));
+            videoPlayer.setVideoURI(Uri.parse(proxyUrl));
         }
         videoControlsMobile.setTitle(title);
     }
 
     @Override
     public void onPrepared() {
-        videoplayer.start();
+        videoPlayer.start();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (!videoplayer.isPlaying() && isPauseByActivityEvent) {
+        if (!videoPlayer.isPlaying() && isPauseByActivityEvent) {
             isPauseByActivityEvent = false;
-            videoplayer.start();
+            videoPlayer.start();
         }
     }
 
     @Override
     protected void onPause() {
-        videoplayer.pause();
+        videoPlayer.pause();
         isPauseByActivityEvent = true;
         super.onPause();
 
@@ -102,7 +107,7 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
 
     @Override
     protected void onDestroy() {
-        videoplayer.release();
+        videoPlayer.release();
         super.onDestroy();
     }
 }

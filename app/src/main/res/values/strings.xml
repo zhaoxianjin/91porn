@@ -39,7 +39,7 @@
     <string name="about_copyright">© %1$s TechGay 91PORN All rights reserved.</string>
     <string name="about_check_update">检查更新</string>
     <string name="playback_engine">播放引擎</string>
-    <string name="address_91porn">设置91地址</string>
+    <string name="address_91porn">设置91视频地址</string>
     <string name="address_forum_91porn">设置91论坛地址</string>
     <string name="address_t66y">设置草榴地址</string>
     <string name="about_item_clean_cache">清除缓存</string>
@@ -80,4 +80,9 @@
     <string name="delete">删除</string>
     <string name="title_user_login">用户登录（仅本次有效）</string>
     <string name="title_user_register">用户注册</string>
+    <string name="title_author_video">用户视频</string>
+    <string name="title_setting">设置</string>
+    <string name="forum_content">帖子内容</string>
+    <string name="dialog_title_system_msg">系统弹出提示框</string>
+    <string name="photo">看图</string>
 </resources>

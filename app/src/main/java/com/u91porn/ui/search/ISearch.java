@@ -5,6 +5,6 @@ package com.u91porn.ui.search;
  * @date 2018/1/7
  */
 
-public interface ISearch extends IBaseSearch {
+public interface ISearch {
     void searchVideos(String searchId, String sort,boolean pullToRefresh);
 }

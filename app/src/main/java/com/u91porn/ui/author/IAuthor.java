@@ -5,6 +5,6 @@ package com.u91porn.ui.author;
  * @date 2018/1/8
  */
 
-public interface IAuthor extends IBaseAuthor {
+public interface IAuthor {
     void authorVideos(String uid,boolean pullToRefresh);
 }

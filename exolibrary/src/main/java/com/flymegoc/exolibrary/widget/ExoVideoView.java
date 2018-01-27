@@ -1065,23 +1065,21 @@ public class ExoVideoView extends RelativeLayout {
                     stepTime = stepTime - 1000;
                     updateUI(stepTime);
                 } else if (isblockY && distanceY > mTouchSlop) {
-                    //TODO 音量和屏幕亮度
                     oY = event.getY();
                     if (isLight) {
-                        stepLight -= 0.01;
+                        stepLight -= 0.02;
                         updateLight(stepLight);
                     } else if (isVolume) {
-                        stepVolume -= 0.01;
+                        stepVolume -= 0.02;
                         updateVolume(stepVolume);
                     }
                 } else if (isblockY && distanceY < -mTouchSlop) {
-                    //TODO 音量和屏幕亮度
                     oY = event.getY();
                     if (isLight) {
-                        stepLight += 0.01;
+                        stepLight += 0.02;
                         updateLight(stepLight);
                     } else if (isVolume) {
-                        stepVolume += 0.01;
+                        stepVolume += 0.02;
                         updateVolume(stepVolume);
                     }
                 }

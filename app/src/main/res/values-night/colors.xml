@@ -14,6 +14,8 @@
     <color name="green">#5ACC87</color>
     <color name="lightred">#FE5442</color>
 
+    <color name="forum_91_porn_essence">@color/green</color>
+
     <!-- common start-->
     <color name="common_background">@color/qmui_config_color_gray_3</color>
     <color name="common_always_white_text_color">@color/qmui_config_color_gray_7</color>
@@ -41,6 +43,6 @@
     <color name="mine_header_text_color">@color/qmui_config_color_gray_7</color>
     <color name="play_head_video_info_text_color">@color/qmui_config_color_gray_7</color>
     <color name="item_91porn_comment_message_text_color">@color/qmui_config_color_gray_7</color>
-    <color name="item_91porn_comment_info_text_color">@color/qmui_config_color_gray_4</color>
+    <color name="item_91porn_comment_info_text_color">@color/qmui_config_color_gray_6</color>
     <color name="sort_category_drag_color">@color/colorPrimary</color>
 </resources>

@@ -7,11 +7,11 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.aitsuki.swipe.SwipeMenuRecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
@@ -20,13 +20,13 @@ import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
-import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
-import com.u91porn.utils.HeaderUtils;
+import com.u91porn.utils.AppUtils;
 import com.u91porn.utils.LoadHelperUtils;
 
 import java.util.ArrayList;
@@ -45,8 +45,9 @@ import butterknife.Unbinder;
 public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implements IndexView, SwipeRefreshLayout.OnRefreshListener {
 
 
+    private static final String TAG = IndexFragment.class.getSimpleName();
     @BindView(R.id.recyclerView_index)
-    SwipeMenuRecyclerView recyclerView;
+    RecyclerView recyclerView;
     Unbinder unbinder;
     @BindView(R.id.contentView)
     SwipeRefreshLayout contentView;
@@ -73,7 +74,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     @NonNull
     @Override
     public IndexPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
         return new IndexPresenter(noLimit91PornServiceApi, cacheProviders, provider);
     }
@@ -91,8 +92,8 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
         super.onViewCreated(view, savedInstanceState);
         unbinder = ButterKnife.bind(this, view);
         // Setup contentView == SwipeRefreshView
-        contentView.setOnRefreshListener(this);
 
+        contentView.setOnRefreshListener(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(mUnLimit91Adapter);
 
@@ -111,12 +112,13 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
                 loadData(false, true);
             }
         });
+        AppUtils.setColorSchemeColors(context,contentView);
     }
 
     @Override
     public void onProxySetEvent(ProxySetEvent proxySetEvent) {
         super.onProxySetEvent(proxySetEvent);
-        presenter.setNoLimit91PornServiceApi(MyApplication.getInstace().getNoLimit91PornService());
+        presenter.setNoLimit91PornServiceApi(ApiManager.getInstance().getNoLimit91PornService(context));
     }
 
     @Override

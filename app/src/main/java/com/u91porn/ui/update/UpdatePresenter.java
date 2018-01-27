@@ -53,7 +53,6 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
                     public UpdateVersion apply(String s) throws Exception {
                         Document doc = Jsoup.parse(s);
                         String text = doc.select("table.highlight").text();
-                        Logger.d(text);
                         return gson.fromJson(text, UpdateVersion.class);
                     }
                 })
@@ -110,9 +109,6 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
 
                     @Override
                     public void onError(Throwable e) {
-                        if (!BuildConfig.DEBUG) {
-                            Bugsnag.notify(e, Severity.WARNING);
-                        }
                         super.onError(e);
                     }
                 });

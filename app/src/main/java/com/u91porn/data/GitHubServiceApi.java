@@ -18,4 +18,13 @@ public interface GitHubServiceApi {
      */
     @GET
     Observable<String> checkUpdate(@Url String url);
+
+    /**
+     * 检查新公告
+     *
+     * @param url 链接
+     * @return ob
+     */
+    @GET
+    Observable<String> checkNewNotice(@Url String url);
 }

@@ -22,8 +22,10 @@ public class DialogUtils {
             textView.setText(message);
         }
         builder.setView(view);
+        builder.setCancelable(false);
         AlertDialog mAlertDialog = builder.create();
         mAlertDialog.setCanceledOnTouchOutside(false);
+        mAlertDialog.setCancelable(false);
 
         return mAlertDialog;
     }

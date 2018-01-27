@@ -16,7 +16,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.orhanobut.logger.Logger;
@@ -24,11 +23,12 @@ import com.qmuiteam.qmui.util.QMUIKeyboardHelper;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.favorite.FavoriteActivity;
 import com.u91porn.ui.search.SearchActivity;
-import com.u91porn.utils.Constants;
+import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.GlideApp;
 import com.u91porn.utils.HeaderUtils;
@@ -65,7 +65,6 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     @BindView(R.id.cb_auto_login)
     CheckBox cbAutoLogin;
 
-    private NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
     private AlertDialog alertDialog;
     private String username;
     private String password;
@@ -165,7 +164,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
      * 加载验证码，目前似乎是非必须，不填也是可以登录的
      */
     private void loadCaptcha() {
-        String url = MyApplication.getInstace().getHost() + "captcha.php";
+        String url = AddressHelper.getInstance().getVideo91PornAddress() + "captcha.php";
 
         Logger.t(TAG).d("验证码链接：" + url);
         Uri uri = Uri.parse(url);
@@ -175,6 +174,7 @@ public class UserLoginActivity extends MvpActivity<UserView, UserPresenter> impl
     @NonNull
     @Override
     public UserPresenter createPresenter() {
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         return new UserPresenter(noLimit91PornServiceApi, provider);
     }
 

@@ -30,6 +30,7 @@
         android:layout_margin="@dimen/activity_horizontal_margin"
         android:background="@drawable/button_selector"
         android:text="@string/exit_login_account"
+        android:visibility="gone"
         android:textSize="18sp"
         android:textColor="@color/common_always_white_text_color" />
 </RelativeLayout>

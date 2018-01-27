@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_horizontal_margin">
+
+    <Button
+        android:id="@+id/bt_dialog_setting_forum_91_porn_reset_default_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_selector"
+        android:text="恢复成默认地址"
+        android:textColor="@color/common_always_white_text_color" />
+
+    <android.support.v4.widget.Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/et_dialog_setting_forum_91_porn_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

@@ -20,6 +20,7 @@ import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.FavoriteAdapter;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.dao.DataBaseManager;
@@ -62,18 +63,7 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
         setContentView(R.layout.activity_favorite);
         ButterKnife.bind(this);
         deleteAlertDialog = DialogUtils.initLodingDialog(this, "删除中，请稍后...");
-        setTitle(R.string.my_collect);
-
-        setSupportActionBar(toolbar);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        initToolBar(toolbar);
         toolbar.setContentInsetStartWithNavigation(0);
 
         // Setup contentView == SwipeRefreshView
@@ -134,7 +124,7 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     @Override
     public FavoritePresenter createPresenter() {
         DataBaseManager dataBaseManager = DataBaseManager.getInstance();
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         User user = MyApplication.getInstace().getUser();
         return new FavoritePresenter(dataBaseManager, noLimit91PornServiceApi, cacheProviders, user, provider);
     }

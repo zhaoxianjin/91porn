@@ -28,7 +28,7 @@ public class UnLimit91PornItem implements Serializable {
 
     @Id(autoincrement = true)
     public Long id;
-    @Index
+    @Index(unique = true)
     private String viewKey;
     private String title;
     private String imgUrl;
@@ -63,7 +63,7 @@ public class UnLimit91PornItem implements Serializable {
 
     @Generated(hash = 1886601433)
     public UnLimit91PornItem(Long id, String viewKey, String title, String imgUrl, String duration, String info, long videoResultId, int downloadId, int progress, long speed,
-            int soFarBytes, int totalFarBytes, int status, Date addDownloadDate, Date finshedDownloadDate, Date viewHistoryDate) {
+                             int soFarBytes, int totalFarBytes, int status, Date addDownloadDate, Date finshedDownloadDate, Date viewHistoryDate) {
         this.id = id;
         this.viewKey = viewKey;
         this.title = title;
@@ -101,17 +101,16 @@ public class UnLimit91PornItem implements Serializable {
 
         UnLimit91PornItem that = (UnLimit91PornItem) o;
 
-        return videoResult != null ? videoResult.equals(that.videoResult) : that.videoResult == null;
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return viewKey != null ? viewKey.hashCode() : 0;
+        return id.hashCode();
     }
 
-
     public String getDownLoadPath() {
-        return SDCardUtils.DOWNLOAD_PATH + getViewKey() + ".mp4";
+        return SDCardUtils.DOWNLOAD_VIDEO_PATH + getViewKey() + ".mp4";
     }
 
     public Date getAddDownloadDate() {

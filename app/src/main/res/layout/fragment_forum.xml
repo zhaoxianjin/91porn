@@ -3,14 +3,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/common_background"
-    tools:context="com.u91porn.ui.forum.ForumFragment">
+    tools:context="com.u91porn.ui.forum91porn.ForumFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </android.support.v4.widget.SwipeRefreshLayout>
+
     <TextView
+        android:id="@+id/tv_forum_91_porn_tip"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:textSize="20sp"
-        android:text="@string/coming_soon" />
-
+        android:text="需要登录论坛帐号及相关权限\n-暂不支持-"
+        android:textColor="@color/common_black_white_text_color"
+        android:textSize="18sp"
+        android:visibility="gone" />
 </FrameLayout>

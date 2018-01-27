@@ -18,6 +18,7 @@ import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
+import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpActivity;
@@ -72,17 +73,7 @@ public class SearchActivity extends MvpActivity<SearchView, SearchPresenter> imp
     }
 
     private void init() {
-        setSupportActionBar(toolbar);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-        toolbar.setContentInsetStartWithNavigation(0);
+        initToolBar(toolbar);
         searchView.setQueryHint("搜索视频");
         searchView.onActionViewExpanded();
 
@@ -216,7 +207,7 @@ public class SearchActivity extends MvpActivity<SearchView, SearchPresenter> imp
     @NonNull
     @Override
     public SearchPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = MyApplication.getInstace().getNoLimit91PornService();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
         return new SearchPresenter(noLimit91PornServiceApi, provider);
     }
 

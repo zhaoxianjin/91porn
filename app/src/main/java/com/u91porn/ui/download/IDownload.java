@@ -20,4 +20,6 @@ public interface IDownload extends IBaseDownload {
     void deleteDownloadingTask(UnLimit91PornItem unLimit91PornItem);
 
     void deleteDownloadedTask(UnLimit91PornItem unLimit91PornItem, boolean isDeleteFile);
+
+    UnLimit91PornItem findUnLimit91PornItemByDownloadId(int downloadId);
 }
