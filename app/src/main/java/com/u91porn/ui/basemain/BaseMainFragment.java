@@ -39,7 +39,7 @@ import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.Category;
 import com.u91porn.eventbus.LowMemoryEvent;
 import com.u91porn.ui.MvpFragment;
-import com.u91porn.ui.main.Main91PronVideoFragment;
+import com.u91porn.ui.porn91video.Main91PronVideoFragment;
 import com.u91porn.utils.AnimationUtils;
 import com.u91porn.utils.FragmentUtils;
 
@@ -79,7 +79,7 @@ public abstract class BaseMainFragment extends MvpFragment<BaseMainView, BaseMai
     private boolean isNeedInterruptOnBackPressed = false;
     private FragmentManager fragmentManager;
     private int currentSelectPosition = 0;
-    private boolean isFonground = false;
+    private boolean isBackground = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -101,7 +101,7 @@ public abstract class BaseMainFragment extends MvpFragment<BaseMainView, BaseMai
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         super.onCreateView(inflater, container, savedInstanceState);
@@ -122,7 +122,7 @@ public abstract class BaseMainFragment extends MvpFragment<BaseMainView, BaseMai
         Drawable dropDownDrawable = ResourceUtil.tintList(context, R.drawable.ic_arrow_drop_down_black_24dp, R.color.common_always_white_text_color);
         ivSortCategory.setImageDrawable(dropDownDrawable);
         ivSortCategory.setOnClickListener(this);
-
+        mBaseMainFragmentAdapter.setDestroy(isNeedDestroy());
         viewPager.setAdapter(mBaseMainFragmentAdapter);
         tabLayout.setupWithViewPager(viewPager);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -143,16 +143,20 @@ public abstract class BaseMainFragment extends MvpFragment<BaseMainView, BaseMai
         });
     }
 
+    public boolean isNeedDestroy() {
+        return false;
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        isFonground = true;
+        isBackground = false;
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        isFonground = false;
+        isBackground = true;
     }
 
     @Override
@@ -374,11 +378,11 @@ public abstract class BaseMainFragment extends MvpFragment<BaseMainView, BaseMai
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onTryToReleaseMemory(LowMemoryEvent lowMemoryEvent) {
         //有可能已经被回收或者还没创建（概率）
-        if (isFonground || categoryList == null || fragmentManager == null || viewPager == null || mBaseMainFragmentAdapter == null) {
+        if (!isBackground || categoryList == null || fragmentManager == null || viewPager == null || mBaseMainFragmentAdapter == null) {
             return;
         }
         if (!BuildConfig.DEBUG) {
-            Bugsnag.notify(new Throwable(lowMemoryEvent.getTag() + ":LowMemory,try to release some memory now!"), Severity.INFO);
+            Bugsnag.notify(new Throwable(TAG + ":LowMemory,try to release some memory now!"), Severity.INFO);
         }
         try {
             Logger.t(TAG).d("start try to release memory ....");
@@ -404,7 +408,7 @@ public abstract class BaseMainFragment extends MvpFragment<BaseMainView, BaseMai
         } catch (Exception e) {
             e.printStackTrace();
             if (!BuildConfig.DEBUG) {
-                Bugsnag.notify(new Throwable("tryToReleaseMemory error::", e), Severity.WARNING);
+                Bugsnag.notify(new Throwable(TAG + " tryToReleaseMemory error::", e), Severity.WARNING);
             }
         }
     }

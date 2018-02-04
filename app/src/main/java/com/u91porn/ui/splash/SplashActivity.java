@@ -15,8 +15,9 @@ import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.user.UserPresenter;
+import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.UserHelper;
 
@@ -67,6 +68,9 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
         String acl = "Log In";
         String x = "47";
         String y = "12";
+        if (AddressHelper.getInstance().isEmpty(Keys.KEY_SP_CUSTOM_ADDRESS)) {
+            return;
+        }
         presenter.login(username, password, f, f2, captcha, acl, x, y, HeaderUtils.getUserHeader("login"));
     }
 
@@ -80,7 +84,10 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
     @NonNull
     @Override
     public SplashPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
+        NoLimit91PornServiceApi noLimit91PornServiceApi = null;
+        if (!AddressHelper.getInstance().isEmpty(Keys.KEY_SP_CUSTOM_ADDRESS)) {
+            noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
+        }
         UserPresenter userPresenter = new UserPresenter(noLimit91PornServiceApi, provider);
         return new SplashPresenter(userPresenter);
     }

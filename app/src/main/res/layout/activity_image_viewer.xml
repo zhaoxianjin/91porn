@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context="com.u91porn.ui.viewimage.PictureViewerActivity">
+    tools:context="com.u91porn.ui.images.viewimage.PictureViewerActivity">
 
     <android.support.v4.view.ViewPager
         android:id="@+id/viewPager"

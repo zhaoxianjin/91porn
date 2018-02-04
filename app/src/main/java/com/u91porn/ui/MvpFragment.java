@@ -50,6 +50,7 @@ public abstract class MvpFragment<V extends MvpView, P extends MvpPresenter<V>> 
      * {@link #setRetainInstance(boolean)} is set to true. This method will be called from
      * {@link #onViewCreated(View, Bundle)}
      */
+    @Override
     @NonNull
     public abstract P createPresenter();
 
@@ -143,7 +144,7 @@ public abstract class MvpFragment<V extends MvpView, P extends MvpPresenter<V>> 
         getMvpDelegate().onDetach();
     }
 
-    @Override public void onSaveInstanceState(Bundle outState) {
+    @Override public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         getMvpDelegate().onSaveInstanceState(outState);
     }

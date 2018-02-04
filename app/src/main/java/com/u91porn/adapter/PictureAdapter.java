@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -22,6 +23,7 @@ import com.orhanobut.logger.Logger;
 import com.u91porn.R;
 import com.u91porn.utils.GlideApp;
 import com.u91porn.utils.GlideImageLoader;
+import com.u91porn.widget.ProblematicFrameLayout;
 
 import java.util.List;
 
@@ -32,6 +34,7 @@ import java.util.List;
 
 public class PictureAdapter extends PagerAdapter {
 
+    private static final String TAG = PictureAdapter.class.getSimpleName();
     private List<String> imageList;
     private onImageClickListener onImageClickListener;
 
@@ -48,14 +51,14 @@ public class PictureAdapter extends PagerAdapter {
     @Override
     public View instantiateItem(@NonNull ViewGroup container, final int position) {
 
-        View contentView = View.inflate(container.getContext(), R.layout.item_picture_adapter, null);
+        View contentView = LayoutInflater.from(container.getContext()).inflate(R.layout.item_picture_adapter, container, false);
 
         PhotoView photoView = contentView.findViewById(R.id.photoView);
-        final ProgressBar progressBar=contentView.findViewById(R.id.progressBar);
+        final ProgressBar progressBar = contentView.findViewById(R.id.progressBar);
         //http://i.meizitu.net/2018/01/25c01.jpg
         String url = imageList.get(position);
         if (url.contains("meizitu.net")) {
-            GlideApp.with(container.getContext()).load(buildGlideUrl(url)).transition(new DrawableTransitionOptions().crossFade(300)).listener(new RequestListener<Drawable>() {
+            GlideApp.with(container).load(buildGlideUrl(url)).transition(new DrawableTransitionOptions().crossFade(300)).listener(new RequestListener<Drawable>() {
                 @Override
                 public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                     progressBar.setVisibility(View.GONE);
@@ -69,7 +72,7 @@ public class PictureAdapter extends PagerAdapter {
                 }
             }).into(photoView);
         } else {
-            GlideApp.with(container.getContext()).load(Uri.parse(url)).transition(new DrawableTransitionOptions().crossFade(300)).listener(new RequestListener<Drawable>() {
+            GlideApp.with(container).load(Uri.parse(url)).transition(new DrawableTransitionOptions().crossFade(300)).listener(new RequestListener<Drawable>() {
                 @Override
                 public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                     progressBar.setVisibility(View.GONE);
@@ -102,14 +105,25 @@ public class PictureAdapter extends PagerAdapter {
                 return true;
             }
         });
-        Logger.d("instantiateItem");
+        Logger.t(TAG).d("instantiateItem");
         return contentView;
     }
 
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-        container.removeView((View) object);
-        Logger.d("destroyItem");
+        ProblematicFrameLayout view = (ProblematicFrameLayout) object;
+        for (int i = 0; i < view.getChildCount(); i++) {
+            View childView = view.getChildAt(i);
+            if (childView instanceof PhotoView) {
+                childView.setOnClickListener(null);
+                childView.setOnLongClickListener(null);
+                GlideApp.with(container).clear(childView);
+                view.removeViewAt(i);
+                Logger.t(TAG).d("clean photoView");
+            }
+        }
+        container.removeView(view);
+        Logger.t(TAG).d("destroyItem");
     }
 
     @Override

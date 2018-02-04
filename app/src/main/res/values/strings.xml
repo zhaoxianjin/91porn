@@ -42,6 +42,7 @@
     <string name="address_91porn">设置91视频地址</string>
     <string name="address_forum_91porn">设置91论坛地址</string>
     <string name="address_t66y">设置草榴地址</string>
+    <string name="address_pig_av">设置朱古力视频地址</string>
     <string name="about_item_clean_cache">清除缓存</string>
     <string name="proxy_setting">HTTP代理</string>
     <string name="night_mode">夜间模式</string>
@@ -85,4 +86,5 @@
     <string name="forum_content">帖子内容</string>
     <string name="dialog_title_system_msg">系统弹出提示框</string>
     <string name="photo">看图</string>
+    <string name="pig_av">PigAv</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.u91porn.ui.download;
 
+import android.arch.lifecycle.Lifecycle;
 import android.support.annotation.NonNull;
 
 import com.danikula.videocache.HttpProxyCacheServer;
@@ -9,7 +10,6 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.VideoResult;
@@ -42,11 +42,11 @@ import io.reactivex.schedulers.Schedulers;
 public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements IDownload {
 
     private DataBaseManager dataBaseManager;
-    private LifecycleProvider<ActivityEvent> provider;
+    private LifecycleProvider<Lifecycle.Event> provider;
     private HttpProxyCacheServer proxy;
     private File videoCacheDir;
 
-    public DownloadPresenter(DataBaseManager dataBaseManager, LifecycleProvider<ActivityEvent> provider, HttpProxyCacheServer proxy, File videoCacheDir) {
+    public DownloadPresenter(DataBaseManager dataBaseManager, LifecycleProvider<Lifecycle.Event> provider, HttpProxyCacheServer proxy, File videoCacheDir) {
         this.dataBaseManager = dataBaseManager;
         this.provider = provider;
         this.proxy = proxy;
@@ -162,7 +162,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
                     }
                 })
                 .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
-                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItemList) {
@@ -200,7 +200,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
                     }
                 })
                 .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
-                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onSuccess(final List<UnLimit91PornItem> unLimit91PornItemList) {
@@ -322,7 +322,7 @@ public class DownloadPresenter extends MvpBasePresenter<DownloadView> implements
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<String>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {

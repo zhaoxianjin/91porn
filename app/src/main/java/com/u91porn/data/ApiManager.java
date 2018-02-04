@@ -9,8 +9,8 @@ import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
 import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.CommonHeaderInterceptor;
-import com.u91porn.utils.Constants;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Constants;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.RegexUtils;
 import com.u91porn.utils.SPUtils;
 
@@ -38,7 +38,8 @@ public class ApiManager {
     private GitHubServiceApi mGitHubServiceApi;
     private Forum91PronServiceApi mForum91PronServiceApi;
     private MeiZiTuServiceApi mMeiZiTuServiceApi;
-
+    private PigAvServiceApi mPigAvServiceApi;
+    private Mm99ServiceApi mMm99ServiceApi;
     private SharedPrefsCookiePersistor sharedPrefsCookiePersistor;
     private SetCookieCache setCookieCache;
     private PersistentCookieJar cookieJar;
@@ -182,6 +183,50 @@ public class ApiManager {
         Logger.t(TAG).d("end init MeiZiTuServiceApi...");
     }
 
+    public void initPigAvRetrofitService() {
+        Logger.t(TAG).d("begin init PigAvRetrofitService...");
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(new CommonHeaderInterceptor());
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+            @Override
+            public void log(@NonNull String message) {
+                Logger.t(TAG).d("HttpLog:" + message);
+            }
+        });
+        logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+        builder.addInterceptor(logging);
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(builder.build())
+                .baseUrl(AddressHelper.getInstance().getPigAvAddress())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .build();
+        Logger.t(TAG).d("end init PigAvRetrofitService...");
+        mPigAvServiceApi = retrofit.create(PigAvServiceApi.class);
+    }
+
+    private void init99MmRetrofitService() {
+        Logger.t(TAG).d("begin init init99MmRetrofitService...");
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(new CommonHeaderInterceptor());
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+            @Override
+            public void log(@NonNull String message) {
+                Logger.t(TAG).d("HttpLog:" + message);
+            }
+        });
+        logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+        builder.addInterceptor(logging);
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(builder.build())
+                .baseUrl(Api.APP_99_MM_DOMAIN)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .build();
+        Logger.t(TAG).d("end init init99MmRetrofitService...");
+        mMm99ServiceApi = retrofit.create(Mm99ServiceApi.class);
+    }
+
     public NoLimit91PornServiceApi getNoLimit91PornService(Context context) {
         if (mNoLimit91PornServiceApi == null) {
             synchronized (NoLimit91PornServiceApi.class) {
@@ -218,5 +263,23 @@ public class ApiManager {
             }
         }
         return mGitHubServiceApi;
+    }
+
+    public PigAvServiceApi getPigAvServiceApi() {
+        if (mPigAvServiceApi == null) {
+            synchronized (PigAvServiceApi.class) {
+                initPigAvRetrofitService();
+            }
+        }
+        return mPigAvServiceApi;
+    }
+
+    public Mm99ServiceApi getMm99ServiceApi() {
+        if (mMm99ServiceApi==null){
+            synchronized (Mm99ServiceApi.class){
+                init99MmRetrofitService();
+            }
+        }
+        return mMm99ServiceApi;
     }
 }

@@ -34,14 +34,12 @@ import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.proxy.ProxySettingActivity;
 import com.u91porn.ui.setting.SettingActivity;
 import com.u91porn.ui.user.UserLoginActivity;
-import com.u91porn.utils.Constants;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Constants;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.widget.ObservableScrollView;
 
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

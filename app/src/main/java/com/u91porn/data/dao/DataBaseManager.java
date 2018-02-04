@@ -30,9 +30,11 @@ public class DataBaseManager {
         unLimit91PornItemDao = daoSession.getUnLimit91PornItemDao();
         videoResultDao = daoSession.getVideoResultDao();
         categoryDao = daoSession.getCategoryDao();
-        initCategory();
-        initCategory91PornForum();
-        initCategoryMeiZiTu();
+        initCategory(Category.TYPE_91PORN, Category.CATEGORY_DEFAULT_91PORN_VALUE, Category.CATEGORY_DEFAULT_91PORN_NAME);
+        initCategory(Category.TYPE_91PORN_FORUM, Category.CATEGORY_DEFAULT_91PORN_FORUM_VALUE, Category.CATEGORY_DEFAULT_91PORN_FORUM_NAME);
+        initCategory(Category.TYPE_MEI_ZI_TU, Category.CATEGORY_DEFAULT_MEI_ZI_TU_VALUE, Category.CATEGORY_DEFAULT_MEI_ZI_TU_NAME);
+        initCategory(Category.TYPE_PIG_AV, Category.CATEGORY_DEFAULT_PIG_AV_VALUE, Category.CATEGORY_DEFAULT_PIG_AV_NAME);
+        initCategory(Category.TYPE_99_MM, Category.CATEGORY_DEFAULT_99_MM_VALUE, Category.CATEGORY_DEFAULT_99_MM_NAME);
     }
 
     public static void init(DaoSession daoSession) {
@@ -47,54 +49,17 @@ public class DataBaseManager {
         return dataBaseManager;
     }
 
-
-    private void initCategoryMeiZiTu() {
-        int length = Category.CATEGORY_DEFAULT_MEI_ZI_TU_VALUE.length;
-        List<Category> categoryList = categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_MEI_ZI_TU)).build().list();
+    private void initCategory(int type, String[] value, String[] name) {
+        int length = value.length;
+        List<Category> categoryList = categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(type)).build().list();
         if (categoryList.size() == length) {
             return;
         }
         for (int i = 0; i < length; i++) {
             Category category = new Category();
-            category.setCategoryName(Category.CATEGORY_DEFAULT_MEI_ZI_TU_NAME[i]);
-            category.setCategoryValue(Category.CATEGORY_DEFAULT_MEI_ZI_TU_VALUE[i]);
-            category.setCategoryType(Category.TYPE_MEI_ZI_TU);
-            category.setIsShow(true);
-            category.setSortId(i);
-            categoryList.add(category);
-        }
-        categoryDao.insertOrReplaceInTx(categoryList);
-    }
-
-    private void initCategory91PornForum() {
-        int length = Category.CATEGORY_DEFAULT_91PORN_FORUM_VALUE.length;
-        List<Category> categoryList = categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN_FORUM)).build().list();
-        if (categoryList.size() == length) {
-            return;
-        }
-        for (int i = 0; i < length; i++) {
-            Category category = new Category();
-            category.setCategoryName(Category.CATEGORY_DEFAULT_91PORN_FORUM_NAME[i]);
-            category.setCategoryValue(Category.CATEGORY_DEFAULT_91PORN_FORUM_VALUE[i]);
-            category.setCategoryType(Category.TYPE_91PORN_FORUM);
-            category.setIsShow(true);
-            category.setSortId(i);
-            categoryList.add(category);
-        }
-        categoryDao.insertOrReplaceInTx(categoryList);
-    }
-
-    private void initCategory() {
-        int length = Category.CATEGORY_DEFAULT_91PORN_VALUE.length;
-        List<Category> categoryList = categoryDao.queryBuilder().where(CategoryDao.Properties.CategoryType.eq(Category.TYPE_91PORN)).build().list();
-        if (categoryList.size() == length) {
-            return;
-        }
-        for (int i = 0; i < length; i++) {
-            Category category = new Category();
-            category.setCategoryName(Category.CATEGORY_DEFAULT_91PORN_NAME[i]);
-            category.setCategoryValue(Category.CATEGORY_DEFAULT_91PORN_VALUE[i]);
-            category.setCategoryType(Category.TYPE_91PORN);
+            category.setCategoryName(name[i]);
+            category.setCategoryValue(value[i]);
+            category.setCategoryType(type);
             category.setIsShow(true);
             category.setSortId(i);
             categoryList.add(category);

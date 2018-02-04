@@ -1,5 +1,6 @@
 package com.u91porn.ui.favorite;
 
+import android.arch.lifecycle.Lifecycle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -10,7 +11,6 @@ import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.dao.DataBaseManager;
@@ -20,11 +20,11 @@ import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.data.model.User;
 import com.u91porn.exception.ApiException;
 import com.u91porn.exception.FavoriteException;
+import com.u91porn.parser.Parse91PronVideo;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.utils.HeaderUtils;
-import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
+import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.SDCardUtils;
 
 import java.io.File;
@@ -56,14 +56,14 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
     private User user;
     private Integer totalPage = 1;
     private int page = 1;
-    private LifecycleProvider<ActivityEvent> provider;
+    private LifecycleProvider<Lifecycle.Event> provider;
     /**
      * 本次强制刷新过那下面的请求也一起刷新
      */
     private boolean cleanCache = false;
     private String uploadMsg;
 
-    public FavoritePresenter(DataBaseManager dataBaseManager, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<ActivityEvent> provider) {
+    public FavoritePresenter(DataBaseManager dataBaseManager, NoLimit91PornServiceApi noLimit91PornServiceApi, CacheProviders cacheProviders, User user, LifecycleProvider<Lifecycle.Event> provider) {
         this.dataBaseManager = dataBaseManager;
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.cacheProviders = cacheProviders;
@@ -114,7 +114,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .retryWhen(new RetryWhenProcess(2))
                 .compose(RxSchedulersHelper.<String>ioMainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<String>bindUntilEvent(Lifecycle.Event.ON_STOP))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -223,7 +223,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .retryWhen(new RetryWhenProcess(2))
                 .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
-                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(Lifecycle.Event.ON_STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -301,7 +301,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
                 })
                 .retryWhen(new RetryWhenProcess(2))
                 .compose(RxSchedulersHelper.<List<UnLimit91PornItem>>ioMainThread())
-                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<List<UnLimit91PornItem>>bindUntilEvent(Lifecycle.Event.ON_STOP))
                 .subscribe(new CallBackWrapper<List<UnLimit91PornItem>>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -386,7 +386,7 @@ public class FavoritePresenter extends MvpBasePresenter<FavoriteView> implements
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<String>bindUntilEvent(Lifecycle.Event.ON_STOP))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {

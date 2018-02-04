@@ -73,21 +73,21 @@
             android:label="@string/about_me"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ui.play.ExoMediaPlayerActivity"
+            android:name=".ui.porn91video.play.ExoMediaPlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
-            android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ui.porn91video.play.JiaoZiVideoPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ui.porn91video.search.SearchActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ui.play.JiaoZiVideoPlayerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
-            android:windowSoftInputMode="adjustPan"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.search.SearchActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.author.AuthorActivity"
+            android:name=".ui.porn91video.author.AuthorActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
             android:label="@string/title_author_video"
             android:screenOrientation="portrait" />
@@ -102,17 +102,21 @@
             android:label="@string/activity_proxy_setting"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ui.browse91porn.Browse91PornActivity"
+            android:name=".ui.porn91forum.browse91porn.Browse91PornActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
             android:label="@string/forum_content"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.viewimage.PictureViewerActivity"
+        <activity
+            android:name=".ui.images.viewimage.PictureViewerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
             android:label="@string/photo"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.pigav.playpigav.PlayPigAvActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/pig_av"
             android:screenOrientation="portrait"
-            >
+            />
 
-        </activity>
         <service android:name=".service.UpdateDownloadService" />
         <service android:name=".service.DownloadVideoService" />
 
@@ -129,7 +133,6 @@
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="" />
-
     </application>
 
 </manifest>

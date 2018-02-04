@@ -1,16 +1,16 @@
 package com.u91porn.ui.user;
 
+import android.arch.lifecycle.Lifecycle;
 import android.support.annotation.NonNull;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.MyApplication;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.User;
+import com.u91porn.parser.Parse91PronVideo;
 import com.u91porn.rxjava.CallBackWrapper;
-import com.u91porn.parse.Parse91PronVideo;
 import com.u91porn.rxjava.RetryWhenProcess;
 import com.u91porn.rxjava.RxSchedulersHelper;
 
@@ -25,9 +25,9 @@ import io.reactivex.disposables.Disposable;
 
 public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
     private NoLimit91PornServiceApi noLimit91PornServiceApi;
-    private LifecycleProvider<ActivityEvent> provider;
+    private LifecycleProvider<Lifecycle.Event> provider;
 
-    public UserPresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, LifecycleProvider<ActivityEvent> provider) {
+    public UserPresenter(NoLimit91PornServiceApi noLimit91PornServiceApi, LifecycleProvider<Lifecycle.Event> provider) {
         this.noLimit91PornServiceApi = noLimit91PornServiceApi;
         this.provider = provider;
     }
@@ -41,7 +41,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
         noLimit91PornServiceApi.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y, referer)
                 .retryWhen(new RetryWhenProcess(2))
                 .compose(RxSchedulersHelper.<String>ioMainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<String>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {
@@ -109,7 +109,7 @@ public class UserPresenter extends MvpBasePresenter<UserView> implements IUser {
         noLimit91PornServiceApi.register(next, username, password1, password2, email, captchaInput, fingerprint, vip, actionSignup, submitX, submitY, referer, ipAddress)
                 .retryWhen(new RetryWhenProcess(2))
                 .compose(RxSchedulersHelper.<String>ioMainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<String>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
                     @Override
                     public void onBegin(Disposable d) {

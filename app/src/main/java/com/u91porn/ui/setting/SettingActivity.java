@@ -1,20 +1,15 @@
 package com.u91porn.ui.setting;
 
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -23,15 +18,14 @@ import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
-import com.u91porn.data.Api;
 import com.u91porn.data.ApiManager;
 import com.u91porn.data.model.User;
 import com.u91porn.eventbus.BaseUrlChangeEvent;
 import com.u91porn.ui.BaseAppCompatActivity;
 import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.AddressHelper;
-import com.u91porn.utils.Constants;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Constants;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.PlaybackEngine;
 import com.u91porn.utils.RegexUtils;
 import com.u91porn.utils.SPUtils;
@@ -54,8 +48,6 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
     QMUIGroupListView qmuiGroupListView;
     @BindView(R.id.bt_setting_exit_account)
     Button btSettingExitAccount;
-    private AlertDialog setting91PornAddressAlertDialog;
-    private AlertDialog settingForum91AddressAlertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,26 +79,46 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
         QMUICommonListItemView addressItemWithChevron = qmuiGroupListView.createItemView(getString(R.string.address_91porn));
         addressItemWithChevron.setId(R.id.setting_item_91_porn_address);
         addressItemWithChevron.setOrientation(QMUICommonListItemView.VERTICAL);
-        addressItemWithChevron.setDetailText(AddressHelper.getInstance().getVideo91PornAddress());
+        String video91Address = AddressHelper.getInstance().getVideo91PornAddress();
+        addressItemWithChevron.setDetailText(TextUtils.isEmpty(video91Address) ? "未设置" : video91Address);
         addressItemWithChevron.setAccessoryType(QMUICommonListItemView.ACCESSORY_TYPE_CHEVRON);
 
         //91论坛地址
         QMUICommonListItemView forumAddressItemWithChevron = qmuiGroupListView.createItemView(getString(R.string.address_forum_91porn));
         forumAddressItemWithChevron.setId(R.id.setting_item_t66y_forum_address);
         forumAddressItemWithChevron.setOrientation(QMUICommonListItemView.VERTICAL);
-        forumAddressItemWithChevron.setDetailText(AddressHelper.getInstance().getForum91PornAddress());
+        String forum91Address = AddressHelper.getInstance().getForum91PornAddress();
+        forumAddressItemWithChevron.setDetailText(TextUtils.isEmpty(forum91Address) ? "未设置" : forum91Address);
         forumAddressItemWithChevron.setAccessoryType(QMUICommonListItemView.ACCESSORY_TYPE_CHEVRON);
+
+        //朱古力视频地址
+        QMUICommonListItemView pigAvAddressItemWithChevron = qmuiGroupListView.createItemView(getString(R.string.address_pig_av));
+        pigAvAddressItemWithChevron.setOrientation(QMUICommonListItemView.VERTICAL);
+        String pigAvAddress = AddressHelper.getInstance().getPigAvAddress();
+        pigAvAddressItemWithChevron.setDetailText(TextUtils.isEmpty(pigAvAddress) ? "未设置" : pigAvAddress);
+        pigAvAddressItemWithChevron.setAccessoryType(QMUICommonListItemView.ACCESSORY_TYPE_CHEVRON);
 
         //草榴地址
         QMUICommonListItemView t66yAddressItemWithChevron = qmuiGroupListView.createItemView(getString(R.string.address_t66y));
         t66yAddressItemWithChevron.setId(R.id.setting_item_t66y_forum_address);
         t66yAddressItemWithChevron.setAccessoryType(QMUICommonListItemView.ACCESSORY_TYPE_CHEVRON);
 
-        tsec.addItemView(addressItemWithChevron, this);
+        tsec.addItemView(addressItemWithChevron, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAddressSettingDialog((QMUICommonListItemView) v, Keys.KEY_SP_CUSTOM_ADDRESS);
+            }
+        });
         tsec.addItemView(forumAddressItemWithChevron, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showForumAddressSettingDialog((QMUICommonListItemView) v);
+                showAddressSettingDialog((QMUICommonListItemView) v, Keys.KEY_SP_FORUM_91_PORN_ADDRESS);
+            }
+        });
+        tsec.addItemView(pigAvAddressItemWithChevron, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAddressSettingDialog((QMUICommonListItemView) v, Keys.KEY_SP_PIG_AV_ADDRESS);
             }
         });
         tsec.addItemView(t66yAddressItemWithChevron, this);
@@ -156,6 +168,53 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
         sec.addTo(qmuiGroupListView);
     }
 
+    private void showAddressSettingDialog(final QMUICommonListItemView qmuiCommonListItemView, final String key) {
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(this);
+        builder.setTitle("地址设置");
+        builder.setPlaceholder("别忘了最后的“/”哦");
+        builder.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.addAction("确定", new QMUIDialogAction.ActionListener() {
+            @Override
+            public void onClick(QMUIDialog dialog, int index) {
+                String address = builder.getEditText().getText().toString().trim();
+                if (!TextUtils.isEmpty(address) && RegexUtils.isURL(address) && address.endsWith("/")) {
+                    SPUtils.put(context, key, address);
+                    qmuiCommonListItemView.setDetailText(address);
+                    showMessage("设置成功", TastyToast.INFO);
+                    sendUpdateSuccessMessage(key, address);
+                    dialog.dismiss();
+                } else {
+                    showMessage("设置失败，输入地址格式不正确，(不要忘了最后面的“/”)", TastyToast.ERROR);
+                }
+            }
+        });
+        builder.addAction("取消", new QMUIDialogAction.ActionListener() {
+            @Override
+            public void onClick(QMUIDialog dialog, int index) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    private void sendUpdateSuccessMessage(String key, String address) {
+        switch (key) {
+            case Keys.KEY_SP_CUSTOM_ADDRESS:
+                // 全局 BaseUrl 的优先级低于 Domain-Name header 中单独配置的,其他未配置的接口将受全局 BaseUrl 的影响
+                RetrofitUrlManager.getInstance().setGlobalDomain(address);
+                break;
+            case Keys.KEY_SP_FORUM_91_PORN_ADDRESS:
+                ApiManager.getInstance().initForum91RetrofitService();
+                EventBus.getDefault().post(new BaseUrlChangeEvent());
+                break;
+            case Keys.KEY_SP_PIG_AV_ADDRESS:
+                ApiManager.getInstance().initPigAvRetrofitService();
+                EventBus.getDefault().post(new BaseUrlChangeEvent());
+                break;
+            default:
+        }
+    }
+
     private void showForbiddenReleaseMemoryTipInfoDialog() {
         QMUIDialog.MessageDialogBuilder builder = new QMUIDialog.MessageDialogBuilder(this);
         builder.setTitle("温馨提示");
@@ -186,89 +245,6 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
                 .show();
     }
 
-    @SuppressLint("SetTextI18n")
-    private void showIPAddressSettingDialog(final QMUICommonListItemView qmuiCommonListItemView) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyDialogTheme);
-        builder.setTitle("访问地址设置");
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_layout_ip_address_setting, null);
-        final RadioGroup radioGroup = view.findViewById(R.id.rg_address);
-        RadioButton neverRadioButton = view.findViewById(R.id.rb_never_go_address);
-        RadioButton willGoRadioButton = view.findViewById(R.id.rb_will_go_someday);
-
-        final EditText editText = view.findViewById(R.id.et_custom_ip_address);
-        final String customAddress = (String) SPUtils.get(this, Keys.KEY_SP_CUSTOM_ADDRESS, "");
-
-        willGoRadioButton.setText(Api.APP_DEFAULT_DOMAIN + "(不需翻墙，但会被封杀)");
-        if (!TextUtils.isEmpty(customAddress)) {
-            switch (customAddress) {
-                case Api.APP_91PORN_DOMAIN:
-                    neverRadioButton.setChecked(true);
-                    break;
-                case Api.APP_DEFAULT_DOMAIN:
-                    willGoRadioButton.setChecked(true);
-                    break;
-                default:
-                    neverRadioButton.setChecked(false);
-                    willGoRadioButton.setChecked(false);
-                    editText.setText(customAddress);
-                    break;
-            }
-        }
-        builder.setView(view);
-        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                String address;
-                switch (checkedId) {
-                    case R.id.rb_never_go_address:
-                        address = Api.APP_91PORN_DOMAIN;
-                        break;
-                    case R.id.rb_will_go_someday:
-                        address = Api.APP_DEFAULT_DOMAIN;
-                        break;
-                    default:
-                        address = Api.APP_DEFAULT_DOMAIN;
-                }
-                updateVideo91PornAddress(qmuiCommonListItemView, address);
-                setting91PornAddressAlertDialog.dismiss();
-            }
-        });
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                String customAddress = editText.getText().toString().trim();
-                //优先填入的自定义地址
-                if (!TextUtils.isEmpty(customAddress)) {
-                    //简单验证地址是否合法
-                    if (RegexUtils.isURL(customAddress) && customAddress.endsWith("/")) {
-                        updateVideo91PornAddress(qmuiCommonListItemView, customAddress);
-                    } else {
-                        showIPAddressSettingDialog(qmuiCommonListItemView);
-                        showMessage("设置失败，输入地址格式不正确，(不要忘了最后面的“/”)", TastyToast.ERROR);
-                    }
-                } else {
-                    showMessage("没有填写地址，设置未更改", TastyToast.INFO);
-                }
-            }
-        });
-        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        setting91PornAddressAlertDialog = builder.show();
-    }
-
-    private void updateVideo91PornAddress(QMUICommonListItemView qmuiCommonListItemView, String address) {
-        SPUtils.put(SettingActivity.this, Keys.KEY_SP_CUSTOM_ADDRESS, address);
-        // 全局 BaseUrl 的优先级低于 Domain-Name header 中单独配置的,其他未配置的接口将受全局 BaseUrl 的影响
-        RetrofitUrlManager.getInstance().setGlobalDomain(address);
-        qmuiCommonListItemView.setDetailText(address);
-        showMessage("设置成功", TastyToast.INFO);
-    }
-
     private void showExitDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyDialogTheme);
         builder.setTitle("退出登录");
@@ -292,57 +268,6 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
         builder.show();
     }
 
-    private void showT66yAddressSettingDialog() {
-
-    }
-
-    private void showForumAddressSettingDialog(final QMUICommonListItemView qmuiCommonListItemView) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyDialogTheme);
-        builder.setTitle("论坛地址设置");
-        View view = View.inflate(this, R.layout.dialog_91_forum_address_setting, null);
-        view.findViewById(R.id.bt_dialog_setting_forum_91_porn_reset_default_address).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                settingForum91AddressAlertDialog.dismiss();
-                updateForum91PronAddress(qmuiCommonListItemView, "");
-            }
-        });
-        final AppCompatEditText editText = view.findViewById(R.id.et_dialog_setting_forum_91_porn_address);
-        String address = (String) SPUtils.get(this, Keys.KEY_SP_FORUM_91_PORN_ADDRESS, "");
-        editText.setText(address);
-        builder.setView(view);
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String address = editText.getText().toString().trim();
-                if (!TextUtils.isEmpty(address)) {
-                    if (RegexUtils.isURL(address) && address.endsWith("/")) {
-                        updateForum91PronAddress(qmuiCommonListItemView, address);
-                    } else {
-                        showForumAddressSettingDialog(qmuiCommonListItemView);
-                        showMessage("设置失败，输入地址格式不正确，(不要忘了最后面的“/”)", TastyToast.ERROR);
-                    }
-                } else {
-                    showMessage("没有填写，木有任何改变", TastyToast.INFO);
-                }
-            }
-        });
-        builder.setNegativeButton("取消", null);
-        settingForum91AddressAlertDialog = builder.show();
-    }
-
-    private void updateForum91PronAddress(QMUICommonListItemView qmuiCommonListItemView, String address) {
-        SPUtils.put(SettingActivity.this, Keys.KEY_SP_FORUM_91_PORN_ADDRESS, address);
-        ApiManager.getInstance().initForum91RetrofitService();
-        if (TextUtils.isEmpty(address)) {
-            qmuiCommonListItemView.setDetailText(Api.APP_91PRON_FROUM_DOMAIN);
-        } else {
-            qmuiCommonListItemView.setDetailText(address);
-        }
-        showMessage("设置成功", TastyToast.INFO);
-        EventBus.getDefault().post(new BaseUrlChangeEvent());
-    }
-
     @Override
     public void onClick(View v) {
 
@@ -353,14 +278,8 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
             case R.id.setting_item_player_engine_choice:
                 showPlaybackEngineChoiceDialog((QMUICommonListItemView) v);
                 break;
-            case R.id.setting_item_91_porn_address:
-                showIPAddressSettingDialog((QMUICommonListItemView) v);
-                break;
-            case R.id.setting_item_91_porn_forum_address:
-                showForumAddressSettingDialog((QMUICommonListItemView) v);
-                break;
             case R.id.setting_item_t66y_forum_address:
-                showT66yAddressSettingDialog();
+                showAddressSettingDialog((QMUICommonListItemView) v, "");
                 break;
             default:
         }

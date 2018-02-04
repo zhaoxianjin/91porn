@@ -1,17 +1,16 @@
 package com.u91porn.ui.about;
 
+import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.u91porn.R;
 import com.u91porn.data.model.UpdateVersion;
+import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.utils.AppCacheUtils;
-import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.utils.GlideApp;
 
 import java.io.File;
@@ -32,9 +31,9 @@ import io.reactivex.schedulers.Schedulers;
 
 public class AboutPresenter extends MvpBasePresenter<AboutView> implements IAbout {
     private UpdatePresenter updatePresenter;
-    private LifecycleProvider<ActivityEvent> provider;
+    private LifecycleProvider<Lifecycle.Event> provider;
 
-    public AboutPresenter(UpdatePresenter updatePresenter, LifecycleProvider<ActivityEvent> provider) {
+    public AboutPresenter(UpdatePresenter updatePresenter, LifecycleProvider<Lifecycle.Event> provider) {
         this.updatePresenter = updatePresenter;
         this.provider = provider;
     }
@@ -105,7 +104,7 @@ public class AboutPresenter extends MvpBasePresenter<AboutView> implements IAbou
                 .subscribeOn(Schedulers.io())
                 .delay(1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<Boolean>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<Boolean>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<Boolean>() {
 
                     @Override
@@ -152,7 +151,7 @@ public class AboutPresenter extends MvpBasePresenter<AboutView> implements IAbou
                 .subscribeOn(Schedulers.io())
                 .delay(500, TimeUnit.MILLISECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<String>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<String>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<String>() {
 
                     @Override

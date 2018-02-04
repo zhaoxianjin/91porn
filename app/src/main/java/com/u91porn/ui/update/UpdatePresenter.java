@@ -1,17 +1,12 @@
 package com.u91porn.ui.update;
 
+import android.arch.lifecycle.Lifecycle;
 import android.support.annotation.NonNull;
 
-import com.bugsnag.android.Bugsnag;
-import com.bugsnag.android.Severity;
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
-import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.u91porn.BuildConfig;
 import com.u91porn.data.GitHubServiceApi;
-import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.rxjava.CallBackWrapper;
 
@@ -33,9 +28,9 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
     private GitHubServiceApi gitHubServiceApi;
     private final static String CHECK_UPDATE_URL = "https://github.com/techGay/91porn/blob/master/version.txt";
     private Gson gson;
-    private LifecycleProvider<ActivityEvent> provider;
+    private LifecycleProvider<Lifecycle.Event> provider;
 
-    public UpdatePresenter(GitHubServiceApi gitHubServiceApi, Gson gson, LifecycleProvider<ActivityEvent> provider) {
+    public UpdatePresenter(GitHubServiceApi gitHubServiceApi, Gson gson, LifecycleProvider<Lifecycle.Event> provider) {
         this.gitHubServiceApi = gitHubServiceApi;
         this.gson = gson;
         this.provider = provider;
@@ -58,7 +53,7 @@ public class UpdatePresenter extends MvpBasePresenter<UpdateView> implements IUp
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(provider.<UpdateVersion>bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(provider.<UpdateVersion>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<UpdateVersion>() {
                     @Override
                     public void onBegin(Disposable d) {

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/common_background"
-    tools:context="com.u91porn.ui.recentupdates.RecentUpdatesFragment">
+    tools:context="com.u91porn.ui.porn91video.recentupdates.RecentUpdatesFragment">
 
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/contentView"

@@ -1,24 +1,23 @@
 package com.u91porn.ui.proxy;
 
+import android.arch.lifecycle.Lifecycle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.u91porn.MyApplication;
 import com.u91porn.data.Api;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.ProxyServiceApi;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.ProxyModel;
-import com.u91porn.parse.ParseProxy;
+import com.u91porn.parser.ParseProxy;
 import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.rxjava.RxSchedulersHelper;
 import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.CommonHeaderInterceptor;
-import com.u91porn.utils.Constants;
+import com.u91porn.utils.constants.Constants;
 import com.u91porn.utils.HeaderUtils;
 import com.u91porn.utils.RegexUtils;
 
@@ -46,11 +45,11 @@ public class ProxyPresenter extends MvpBasePresenter<ProxyView> implements IProx
     private static final String TAG = ProxyPresenter.class.getSimpleName();
     private long successTime = 0;
     private ProxyServiceApi proxyServiceApi;
-    private LifecycleProvider<ActivityEvent> provider;
+    private LifecycleProvider<Lifecycle.Event> provider;
     private int totalPage = 1;
     private int page = 1;
 
-    public ProxyPresenter(ProxyServiceApi proxyServiceApi, LifecycleProvider<ActivityEvent> provider) {
+    public ProxyPresenter(ProxyServiceApi proxyServiceApi, LifecycleProvider<Lifecycle.Event> provider) {
         this.proxyServiceApi = proxyServiceApi;
         this.provider = provider;
     }
@@ -128,7 +127,7 @@ public class ProxyPresenter extends MvpBasePresenter<ProxyView> implements IProx
                     }
                 })
                 .compose(RxSchedulersHelper.<List<ProxyModel>>ioMainThread())
-                .compose(provider.<List<ProxyModel>>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<List<ProxyModel>>bindUntilEvent(Lifecycle.Event.ON_STOP))
                 .subscribe(new CallBackWrapper<List<ProxyModel>>() {
                     @Override
                     public void onBegin(Disposable d) {

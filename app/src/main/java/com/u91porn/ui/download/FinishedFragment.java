@@ -23,7 +23,6 @@ import com.aitsuki.swipe.SwipeItemLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.MyApplication;
 import com.u91porn.R;
@@ -34,7 +33,7 @@ import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DownloadManager;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 
 import java.io.File;
@@ -73,10 +72,9 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     @NonNull
     @Override
     public DownloadPresenter createPresenter() {
-        DownloadActivity downloadActivity = (DownloadActivity) getActivity();
         HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
         File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
-        return new DownloadPresenter(DataBaseManager.getInstance(), downloadActivity.provider, cacheServer, videoCacheDir);
+        return new DownloadPresenter(DataBaseManager.getInstance(), provider, cacheServer, videoCacheDir);
     }
 
     @Override

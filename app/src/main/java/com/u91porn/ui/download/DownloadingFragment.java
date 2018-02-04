@@ -28,11 +28,10 @@ import com.u91porn.adapter.DownloadVideoAdapter;
 import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.service.DownloadVideoService;
-import com.u91porn.ui.BaseAppCompatActivity;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DownloadManager;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 
 import java.io.File;
@@ -97,7 +96,7 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
         DataBaseManager dataBaseManager = DataBaseManager.getInstance();
         HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
         File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
-        return new DownloadPresenter(dataBaseManager, ((BaseAppCompatActivity) activity).provider, cacheServer, videoCacheDir);
+        return new DownloadPresenter(dataBaseManager, provider, cacheServer, videoCacheDir);
 
     }
 

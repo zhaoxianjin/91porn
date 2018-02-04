@@ -11,7 +11,6 @@ import com.danikula.videocache.HttpProxyCacheServer;
 import com.github.yuweiguocn.library.greendao.MigrationHelper;
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.FormatStrategy;
 import com.orhanobut.logger.Logger;
@@ -26,8 +25,8 @@ import com.u91porn.data.model.User;
 import com.u91porn.eventbus.LowMemoryEvent;
 import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.AppCacheUtils;
-import com.u91porn.utils.Constants;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Constants;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.VideoCacheFileNameGenerator;
 

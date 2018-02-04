@@ -151,6 +151,7 @@
     public <init>(android.content.Context, android.util.AttributeSet);
     public <init>(android.content.Context, android.util.AttributeSet, int);
     public void set*(...);
+    public void get*(...);
 }
 
 #保持 Parcelable 不被混淆

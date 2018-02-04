@@ -1,12 +1,11 @@
 package com.u91porn.ui.notice;
 
+import android.arch.lifecycle.Lifecycle;
 import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
-import com.orhanobut.logger.Logger;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.u91porn.data.GitHubServiceApi;
 import com.u91porn.data.model.Notice;
 import com.u91porn.rxjava.CallBackWrapper;
@@ -26,9 +25,9 @@ public class NoticePresenter extends MvpBasePresenter<NoticeView> implements INo
     private GitHubServiceApi gitHubServiceApi;
     private final static String CHECK_NEW_NOTICE_URL = "https://github.com/techGay/91porn/blob/master/notice.txt";
     private Gson gson;
-    private LifecycleProvider<ActivityEvent> provider;
+    private LifecycleProvider<Lifecycle.Event> provider;
 
-    public NoticePresenter(GitHubServiceApi gitHubServiceApi, Gson gson, LifecycleProvider<ActivityEvent> provider) {
+    public NoticePresenter(GitHubServiceApi gitHubServiceApi, Gson gson, LifecycleProvider<Lifecycle.Event> provider) {
         this.gitHubServiceApi = gitHubServiceApi;
         this.gson = gson;
         this.provider = provider;
@@ -50,7 +49,7 @@ public class NoticePresenter extends MvpBasePresenter<NoticeView> implements INo
                     }
                 })
                 .compose(RxSchedulersHelper.<Notice>ioMainThread())
-                .compose(provider.<Notice>bindUntilEvent(ActivityEvent.STOP))
+                .compose(provider.<Notice>bindUntilEvent(Lifecycle.Event.ON_DESTROY))
                 .subscribe(new CallBackWrapper<Notice>() {
                     @Override
                     public void onSuccess(final Notice notice) {

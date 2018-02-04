@@ -4,8 +4,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.orhanobut.logger.Logger;
-import com.u91porn.data.Api;
+import com.u91porn.utils.constants.Keys;
+
+import java.util.Random;
 
 /**
  * @author flymegoc
@@ -18,7 +19,7 @@ public class AddressHelper {
     private static AddressHelper mAddressHelper;
     @SuppressLint("StaticFieldLeak")
     private static Context context;
-
+    private static Random mRandom = new Random();
     private AddressHelper() {
 
     }
@@ -46,21 +47,30 @@ public class AddressHelper {
         return mAddressHelper;
     }
 
+    /**
+     * 获取随机ip地址
+     *
+     * @return
+     */
+    public static String getRandomIPAddress() {
+
+        return String.valueOf(mRandom.nextInt(255)) + "." + String.valueOf(mRandom.nextInt(255)) + "." + String.valueOf(mRandom.nextInt(255)) + "." + String.valueOf(mRandom.nextInt(255));
+    }
+
     public String getVideo91PornAddress() {
-        String current91PornAddress = (String) SPUtils.get(context, Keys.KEY_SP_CUSTOM_ADDRESS, "");
-        Logger.t(TAG).d("Video91PornAddress::" + current91PornAddress);
-        if (TextUtils.isEmpty(current91PornAddress)) {
-            current91PornAddress = Api.APP_DEFAULT_DOMAIN;
-        }
-        return current91PornAddress;
+        return (String) SPUtils.get(context, Keys.KEY_SP_CUSTOM_ADDRESS, "");
     }
 
     public String getForum91PornAddress() {
-        String forum91PornAddress = (String) SPUtils.get(context, Keys.KEY_SP_FORUM_91_PORN_ADDRESS, "");
-        Logger.t(TAG).d("Forum91PornAddress()::" + forum91PornAddress);
-        if (TextUtils.isEmpty(forum91PornAddress)) {
-            forum91PornAddress = Api.APP_91PRON_FROUM_DOMAIN;
-        }
-        return forum91PornAddress;
+        return (String) SPUtils.get(context, Keys.KEY_SP_FORUM_91_PORN_ADDRESS, "");
+    }
+
+    public String getPigAvAddress() {
+        return (String) SPUtils.get(context, Keys.KEY_SP_PIG_AV_ADDRESS, "");
+    }
+
+    public boolean isEmpty(String key) {
+        String address = (String) SPUtils.get(context, key, "");
+        return TextUtils.isEmpty(address);
     }
 }

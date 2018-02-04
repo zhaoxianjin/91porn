@@ -18,7 +18,6 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.util.QMUIKeyboardHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
@@ -29,8 +28,7 @@ import com.u91porn.utils.AppManager;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.GlideApp;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.Keys;
-import com.u91porn.utils.RandomIPAdderssUtils;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.UserHelper;
 
@@ -148,7 +146,7 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         String actionSignup = "Sign Up";
         String submitX = "45";
         String submitY = "13";
-        String ipAddress = RandomIPAdderssUtils.getRandomIPAdderss();
+        String ipAddress = AddressHelper.getRandomIPAddress();
         QMUIKeyboardHelper.hideKeyboard(getCurrentFocus());
         presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignup, submitX, submitY, ipAddress, HeaderUtils.getUserHeader("signup"));
     }

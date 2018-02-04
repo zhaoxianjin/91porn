@@ -21,7 +21,6 @@ import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.qmuiteam.qmui.util.QMUIKeyboardHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.ProxyAdapter;
 import com.u91porn.data.Api;
@@ -31,7 +30,7 @@ import com.u91porn.data.model.ProxyModel;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.utils.DialogUtils;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.widget.IpInputEditText;
 
@@ -203,8 +202,8 @@ public class ProxySettingActivity extends MvpActivity<ProxyView, ProxyPresenter>
             case R.id.bt_proxy_setting_test:
                 isTestSuccess = false;
                 String proxyIpAddress = etDialogProxySettingIpAddress.getIpAddressStr();
-                String portStr = etDialogProxySettingPort.getText().toString();
-                if (TextUtils.isEmpty(portStr) || TextUtils.isEmpty(proxyIpAddress) || TextUtils.isDigitsOnly(portStr)) {
+                String portStr = etDialogProxySettingPort.getText().toString().trim();
+                if (TextUtils.isEmpty(portStr) || TextUtils.isEmpty(proxyIpAddress) || !TextUtils.isDigitsOnly(portStr)) {
                     showMessage("端口号或IP地址不正确", TastyToast.WARNING);
                     return;
                 }

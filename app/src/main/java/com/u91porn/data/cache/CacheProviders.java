@@ -94,4 +94,41 @@ public interface CacheProviders {
     @ProviderKey("authorVideos")
     @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
     Observable<Reply<String>> authorVideos(Observable<String> stringObservable, DynamicKeyGroup filterPageCategory, EvictDynamicKey evictFilter);
+
+    /**
+     * 妹子图分类
+     *
+     * @param observable           ob
+     * @param dynamicKeyGroup      页码分类
+     * @param evictDynamicKeyGroup 缓存控制
+     * @return ob
+     */
+    @ProviderKey("mei_zi_tu")
+    @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
+    Observable<Reply<String>> meiZiTu(Observable<String> observable, DynamicKeyGroup dynamicKeyGroup, EvictDynamicKeyGroup evictDynamicKeyGroup);
+
+    /**
+     * 妹子图浏览，永不过期
+     *
+     * @param observable ob
+     * @return ob
+     */
+    @ProviderKey("mei_zi_tu_pic_list")
+    Observable<Reply<String>> meiZiTu(Observable<String> observable, DynamicKey dynamicKey, EvictDynamicKey evictDynamicKey);
+
+
+
+    @ProviderKey("cache_v113")
+    @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
+    Observable<Reply<String>> cacheWithLimitTime(Observable<String> observable, DynamicKey dynamicKey, EvictDynamicKey evictDynamicKey);
+
+    @ProviderKey("cache_v113")
+    Observable<Reply<String>> cacheWithNoLimitTime(Observable<String> observable, DynamicKey dynamicKey, EvictDynamicKey evictDynamicKey);
+
+    @ProviderKey("cache_v113")
+    @LifeCache(duration = CACHE_TIME, timeUnit = TimeUnit.MINUTES)
+    Observable<Reply<String>> cacheWithLimitTime(Observable<String> observable, DynamicKeyGroup dynamicKeyGroup, EvictDynamicKeyGroup evictDynamicKeyGroup);
+
+    @ProviderKey("cache_v113")
+    Observable<Reply<String>> cacheWithNoLimitTime(Observable<String> observable, DynamicKeyGroup dynamicKeyGroup, EvictDynamicKeyGroup evictDynamicKeyGroup);
 }

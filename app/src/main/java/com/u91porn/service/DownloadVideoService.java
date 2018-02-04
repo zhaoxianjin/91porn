@@ -14,7 +14,7 @@ import com.u91porn.R;
 import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.download.DownloadActivity;
-import com.u91porn.utils.Constants;
+import com.u91porn.utils.constants.Constants;
 import com.u91porn.utils.DownloadManager;
 
 import java.util.List;

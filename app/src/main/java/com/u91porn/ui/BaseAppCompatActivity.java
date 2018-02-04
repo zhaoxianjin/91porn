@@ -1,5 +1,6 @@
 package com.u91porn.ui;
 
+import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,20 +9,19 @@ import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.jaeger.library.StatusBarUtil;
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.trello.navi2.component.support.NaviAppCompatActivity;
+import com.trello.lifecycle2.android.lifecycle.AndroidLifecycle;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.ActivityEvent;
-import com.trello.rxlifecycle2.navi.NaviLifecycle;
 import com.u91porn.R;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.utils.AppManager;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.PlaybackEngine;
 
 import cn.bingoogolapple.swipebacklayout.BGASwipeBackHelper;
@@ -32,10 +32,11 @@ import cn.bingoogolapple.swipebacklayout.BGASwipeBackHelper;
  * @describe
  */
 
-public abstract class BaseAppCompatActivity extends NaviAppCompatActivity implements BGASwipeBackHelper.Delegate {
+public abstract class BaseAppCompatActivity extends AppCompatActivity implements BGASwipeBackHelper.Delegate {
     private final String TAG = this.getClass().getSimpleName();
     private AppManager appManager = AppManager.getAppManager();
-    public final LifecycleProvider<ActivityEvent> provider = NaviLifecycle.createActivityLifecycleProvider(this);
+    protected final LifecycleProvider<Lifecycle.Event> provider = AndroidLifecycle.createLifecycleProvider(this);
+
     protected BGASwipeBackHelper mSwipeBackHelper;
     protected boolean existActivityWithAnimation = true;
     protected Context context;
@@ -176,7 +177,11 @@ public abstract class BaseAppCompatActivity extends NaviAppCompatActivity implem
     }
 
     protected void showMessage(String msg, int type) {
-        TastyToast.makeText(getApplicationContext(), msg, TastyToast.LENGTH_SHORT, type).show();
+        //因为时在onDestroy 才取消的请求，初步断定又可能就是在那么微妙的一瞬间发生了
+        //android.view.WindowManager$BadTokenException · Unable to add window -- token android.os.BinderProxy@53d6ca9 is not valid; is your activity running? 如果activity正在销毁则可能引发
+        if (!isFinishing()) {
+            TastyToast.makeText(getApplicationContext(), msg, TastyToast.LENGTH_SHORT, type).show();
+        }
     }
 
     protected void initToolBar(Toolbar toolbar) {

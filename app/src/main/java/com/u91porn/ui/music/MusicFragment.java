@@ -8,15 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.orhanobut.logger.Logger;
 import com.u91porn.R;
-import com.u91porn.data.Api;
 import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.rxjava.RxSchedulersHelper;
 import com.u91porn.ui.BaseFragment;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -28,6 +23,7 @@ import retrofit2.http.Url;
 
 /**
  * A simple {@link Fragment} subclass.
+ * @author flymegoc
  */
 public class MusicFragment extends BaseFragment {
 
@@ -62,7 +58,7 @@ public class MusicFragment extends BaseFragment {
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build();
         PigAvServiceApi pigAvServiceApi = retrofit.create(PigAvServiceApi.class);
-        pigAvServiceApi.parseVideoUrl("https://pigav.com/109304/haru-harumi-avdebut.html")
+        pigAvServiceApi.parseVideoUrl("https://pigav.com/218473/%E8%8B%A5%E8%8F%9C%E5%A5%88%E5%A4%AE-%E5%A5%B3%E6%95%99%E5%B8%AB%E4%B8%AD%E5%87%BA20%E9%80%A3%E7%99%BA.html")
                 .compose(RxSchedulersHelper.<String>ioMainThread())
                 .subscribe(new CallBackWrapper<String>() {
                     @Override

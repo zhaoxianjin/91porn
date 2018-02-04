@@ -1,25 +1,23 @@
 package com.u91porn.ui;
 
 import android.app.Activity;
+import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.view.View;
+import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.trello.navi2.component.support.NaviFragment;
+import com.trello.lifecycle2.android.lifecycle.AndroidLifecycle;
 import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.FragmentEvent;
-import com.trello.rxlifecycle2.navi.NaviLifecycle;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.eventbus.BaseUrlChangeEvent;
 import com.u91porn.eventbus.ProxySetEvent;
-import com.u91porn.utils.Keys;
+import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.PlaybackEngine;
 
 import org.greenrobot.eventbus.EventBus;
@@ -32,15 +30,14 @@ import org.greenrobot.eventbus.ThreadMode;
  * @describe
  */
 
-public abstract class BaseFragment extends NaviFragment {
+public abstract class BaseFragment extends Fragment {
     private final String TAG = getClass().getSimpleName();
     private final String KEY_SAVE_DIN_STANCE_STATE_CATEGORY = "key_save_din_stance_state_category";
-    protected final LifecycleProvider<FragmentEvent> provider = NaviLifecycle.createFragmentLifecycleProvider(this);
+    protected final LifecycleProvider<Lifecycle.Event> provider = AndroidLifecycle.createLifecycleProvider(this);
     protected Context context;
     protected Activity activity;
     protected Category category;
     protected boolean mIsLoadedData;
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -58,10 +55,11 @@ public abstract class BaseFragment extends NaviFragment {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(KEY_SAVE_DIN_STANCE_STATE_CATEGORY, category);
     }
+
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
