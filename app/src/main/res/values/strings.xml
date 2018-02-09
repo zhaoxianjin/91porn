@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">91Porn</string>
 
-    <string name="coming_soon">敬请期待...</string>
+    <string name="coming_soon">敬请期待&#8230;</string>
     <string name="hot">当前最热</string>
     <string name="recent_updates">最近更新</string>
     <string name="index">主页</string>
@@ -74,7 +74,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="activity_proxy_setting">HTTP代理设置</string>
     <string name="done">完成</string>
-    <string name="tip_proxy_setting">Tip：这个设置只是HTTP代理设置，仅代理网页请求(百度免费HTTP代理即可,但可用性一般不高)，并不会提高你观看视频的速度，只为解决部分用户无法访问或者观看次数超限问题，如果你的观看次数不受影响，请不要设置。</string>
+    <string name="tip_proxy_setting">Tip：这个设置只是HTTP代理设置，仅代理网页请求(百度免费HTTP代理即可,但可用性一般很低很低)，并不会提高你观看视频的速度，只为解决部分用户观看次数超限问题，如果你的观看次数不受影响，最好不要设置。</string>
     <string name="port">端口号(port)</string>
     <string name="test">测试</string>
     <string name="clean">清空</string>
@@ -87,4 +87,6 @@
     <string name="dialog_title_system_msg">系统弹出提示框</string>
     <string name="photo">看图</string>
     <string name="pig_av">PigAv</string>
+    <string name="back">返回</string>
+    <string name="sure">确定</string>
 </resources>

@@ -15,13 +15,11 @@ import android.view.ViewGroup;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
@@ -73,13 +71,15 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     @NonNull
     @Override
     public IndexPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+        getActivityComponent().inject(this);
+        Logger.t(TAG).d(apiManager.toString());
+        NoLimit91PornServiceApi noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
+
         return new IndexPresenter(noLimit91PornServiceApi, cacheProviders, provider);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         super.onCreateView(inflater, container, savedInstanceState);
@@ -117,7 +117,7 @@ public class IndexFragment extends MvpFragment<IndexView, IndexPresenter> implem
     @Override
     public void onProxySetEvent(ProxySetEvent proxySetEvent) {
         super.onProxySetEvent(proxySetEvent);
-        presenter.setNoLimit91PornServiceApi(ApiManager.getInstance().getNoLimit91PornService(context));
+        presenter.setNoLimit91PornServiceApi(apiManager.getNoLimit91PornService());
     }
 
     @Override

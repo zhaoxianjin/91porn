@@ -27,13 +27,10 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.BuildConfig;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.GitHubServiceApi;
 import com.u91porn.data.model.Notice;
 import com.u91porn.data.model.UpdateVersion;
-import com.u91porn.data.model.User;
 import com.u91porn.eventbus.LowMemoryEvent;
 import com.u91porn.service.UpdateDownloadService;
 import com.u91porn.ui.MvpActivity;
@@ -52,13 +49,13 @@ import com.u91porn.ui.update.UpdatePresenter;
 import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.ApkVersionUtils;
-import com.u91porn.utils.AppManager;
-import com.u91porn.utils.constants.Constants;
 import com.u91porn.utils.FragmentUtils;
-import com.u91porn.utils.constants.Keys;
-import com.u91porn.utils.constants.PermissionConstants;
 import com.u91porn.utils.SDCardUtils;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.UserHelper;
+import com.u91porn.utils.constants.Constants;
+import com.u91porn.utils.constants.Keys;
+import com.u91porn.utils.constants.PermissionConstants;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.PermissionListener;
 import com.yanzhenjie.permission.Rationale;
@@ -115,7 +112,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
         ButterKnife.bind(this);
-        mCurrentFragment = new Fragment();
         fragmentManager = getSupportFragmentManager();
         selectIndex = getIntent().getIntExtra(Keys.KEY_SELECT_INDEX, 0);
         if (savedInstanceState != null) {
@@ -138,6 +134,12 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         doOnTabSelected(selectIndex);
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Logger.t(TAG).d("onNewIntent");
+    }
+
     private void doOnFloatingActionButtonClick(@IntRange(from = 0, to = 4) int position) {
         switch (position) {
             case 0:
@@ -158,12 +160,12 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         }
     }
 
-    private void showVideoBottomSheet(int selectIndex) {
+    private void showVideoBottomSheet(int checkIndex) {
         new QMUIBottomSheet.BottomListSheetBuilder(this, true)
                 .addItem(ResourceUtil.getDrawable(this, R.drawable.ic_search_black_24dp), "搜索91视频")
                 .addItem(ResourceUtil.getDrawable(this, R.drawable.ic_video_library_black_24dp), "91视频")
                 .addItem(ResourceUtil.getDrawable(this, R.drawable.ic_video_library_black_24dp), "朱古力视频")
-                .setCheckedIndex(selectIndex)
+                .setCheckedIndex(checkIndex)
                 .setOnSheetItemClickListener(new QMUIBottomSheet.BottomListSheetBuilder.OnSheetItemClickListener() {
                     @Override
                     public void onClick(QMUIBottomSheet dialog, View itemView, int position, String tag) {
@@ -173,7 +175,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                                 goToSearchVideo();
                                 break;
                             default:
-                                handlerFirstTabClickToShow(position);
+                                handlerFirstTabClickToShow(position, selectIndex, true);
                         }
                     }
                 })
@@ -181,17 +183,17 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 .show();
     }
 
-    private void showPictureBottomSheet(int selectIndex) {
+    private void showPictureBottomSheet(int checkIndex) {
         new QMUIBottomSheet.BottomListSheetBuilder(this, true)
                 .addItem(ResourceUtil.getDrawable(this, R.drawable.ic_photo_library_black_24dp), "妹子图")
                 .addItem(ResourceUtil.getDrawable(this, R.drawable.ic_photo_library_black_24dp), "九妹图社")
                 .addItem(ResourceUtil.getDrawable(this, R.drawable.ic_photo_library_black_24dp), "花瓣网")
-                .setCheckedIndex(selectIndex)
+                .setCheckedIndex(checkIndex)
                 .setOnSheetItemClickListener(new QMUIBottomSheet.BottomListSheetBuilder.OnSheetItemClickListener() {
                     @Override
                     public void onClick(QMUIBottomSheet dialog, View itemView, int position, String tag) {
                         dialog.dismiss();
-                        handlerSecondTabClickToShow(position);
+                        handlerSecondTabClickToShow(position, selectIndex, true);
                     }
                 })
                 .build()
@@ -248,11 +250,11 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     private void doOnTabSelected(@IntRange(from = 0, to = 4) int position) {
         switch (position) {
             case 0:
-                handlerFirstTabClickToShow(firstTabShow);
+                handlerFirstTabClickToShow(firstTabShow, position, false);
                 showFloatingActionButton(fabSearch);
                 break;
             case 1:
-                handlerSecondTabClickToShow(secondTabShow);
+                handlerSecondTabClickToShow(secondTabShow, position, false);
                 showFloatingActionButton(fabSearch);
                 break;
             case 2:
@@ -263,21 +265,21 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 if (mMain91ForumFragment == null) {
                     mMain91ForumFragment = Main91ForumFragment.getInstance();
                 }
-                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMain91ForumFragment, content.getId(), position);
+                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMain91ForumFragment, content.getId(), position, false);
                 showFloatingActionButton(fabSearch);
                 break;
             case 3:
                 if (mMusicFragment == null) {
                     mMusicFragment = MusicFragment.getInstance();
                 }
-                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMusicFragment, content.getId(), position);
+                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMusicFragment, content.getId(), position, false);
                 hideFloatingActionButton(fabSearch);
                 break;
             case 4:
                 if (mMineFragment == null) {
                     mMineFragment = MineFragment.getInstance();
                 }
-                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMineFragment, content.getId(), position);
+                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMineFragment, content.getId(), position, false);
                 hideFloatingActionButton(fabSearch);
                 break;
             default:
@@ -285,7 +287,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         selectIndex = position;
     }
 
-    private void handlerFirstTabClickToShow(int position) {
+    private void handlerFirstTabClickToShow(int position, int itemId, boolean isInnerReplace) {
         switch (position) {
             case PORN91:
                 if (AddressHelper.getInstance().isEmpty(Keys.KEY_SP_CUSTOM_ADDRESS)) {
@@ -295,7 +297,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 if (mMain91PronVideoFragment == null) {
                     mMain91PronVideoFragment = Main91PronVideoFragment.getInstance();
                 }
-                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMain91PronVideoFragment, content.getId(), 0);
+                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMain91PronVideoFragment, content.getId(), itemId, isInnerReplace);
                 firstTabShow = PORN91;
                 SPUtils.put(this, Keys.KEY_SP_FIRST_TAB_SHOW, PORN91);
                 mMainPigAvFragment = null;
@@ -308,7 +310,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 if (mMainPigAvFragment == null) {
                     mMainPigAvFragment = MainPigAvFragment.getInstance();
                 }
-                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMainPigAvFragment, content.getId(), 0);
+                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMainPigAvFragment, content.getId(), itemId, isInnerReplace);
                 firstTabShow = PIG_AV;
                 SPUtils.put(this, Keys.KEY_SP_FIRST_TAB_SHOW, PIG_AV);
                 mMain91PronVideoFragment = null;
@@ -338,13 +340,13 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         builder.show();
     }
 
-    private void handlerSecondTabClickToShow(int position) {
+    private void handlerSecondTabClickToShow(int position, int itemId, boolean isInnerReplace) {
         switch (position) {
             case MEI_ZI_TU:
                 if (mMaiMeiZiTuFragment == null) {
                     mMaiMeiZiTuFragment = MainMeiZiTuFragment.getInstance();
                 }
-                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMaiMeiZiTuFragment, content.getId(), 1);
+                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMaiMeiZiTuFragment, content.getId(), itemId, isInnerReplace);
                 secondTabShow = MEI_ZI_TU;
                 SPUtils.put(this, Keys.KEY_SP_SECOND_TAB_SHOW, MEI_ZI_TU);
                 mMain99MmFragment = null;
@@ -353,7 +355,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
                 if (mMain99MmFragment == null) {
                     mMain99MmFragment = Main99MmFragment.getInstance();
                 }
-                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMain99MmFragment, content.getId(), 1);
+                mCurrentFragment = FragmentUtils.switchContent(fragmentManager, mCurrentFragment, mMain99MmFragment, content.getId(), itemId, isInnerReplace);
                 secondTabShow = MM_99;
                 SPUtils.put(this, Keys.KEY_SP_SECOND_TAB_SHOW, MM_99);
                 mMaiMeiZiTuFragment = null;
@@ -495,19 +497,20 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
             if (!existActivityWithAnimation) {
                 super.onBackPressed();
             }
-            finish();
+            finishAffinity();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    AppManager.getAppManager().AppExit();
+                    int pid = android.os.Process.myPid();
+                    android.os.Process.killProcess(pid);
                 }
             }, 500);
         }
     }
 
     private void goToSearchVideo() {
-        User user = MyApplication.getInstace().getUser();
-        if (user == null) {
+
+        if (!UserHelper.isUserInfoComplete(user)) {
             showMessage("请先登录", TastyToast.INFO);
             Intent intent = new Intent(MainActivity.this, UserLoginActivity.class);
             intent.putExtra(Keys.KEY_INTENT_LOGIN_FOR_ACTION, UserLoginActivity.LOGIN_ACTION_FOR_SEARCH_91PRON_VIDEO);
@@ -552,7 +555,8 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     @NonNull
     @Override
     public MainPresenter createPresenter() {
-        GitHubServiceApi gitHubServiceApi = ApiManager.getInstance().getGitHubServiceApi();
+        getActivityComponent().inject(this);
+        GitHubServiceApi gitHubServiceApi = apiManager.getGitHubServiceApi();
         Gson gson = new Gson();
         return new MainPresenter(new UpdatePresenter(gitHubServiceApi, gson, provider), new NoticePresenter(gitHubServiceApi, gson, provider));
     }

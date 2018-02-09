@@ -3,6 +3,7 @@ package com.u91porn.ui.splash;
 import android.support.annotation.NonNull;
 
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
+import com.u91porn.data.model.User;
 import com.u91porn.ui.user.UserPresenter;
 
 /**
@@ -22,11 +23,11 @@ public class SplashPresenter extends MvpBasePresenter<SplashView> implements ISp
     public void login(String username, String password, String fingerprint, String fingerprint2, String captcha, String actionlogin, String x, String y,String referer) {
         userPresenter.login(username, password, fingerprint, fingerprint2, captcha, actionlogin, x, y,referer, new UserPresenter.LoginListener() {
             @Override
-            public void loginSuccess() {
+            public void loginSuccess(final User user) {
                 ifViewAttached(new ViewAction<SplashView>() {
                     @Override
                     public void run(@NonNull SplashView view) {
-                        view.loginSuccess();
+                        view.loginSuccess(user);
                     }
                 });
             }

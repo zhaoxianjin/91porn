@@ -20,9 +20,7 @@ import android.widget.TextView;
 import com.qmuiteam.qmui.widget.grouplist.QMUICommonListItemView;
 import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.model.User;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.BaseFragment;
@@ -34,9 +32,11 @@ import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.proxy.ProxySettingActivity;
 import com.u91porn.ui.setting.SettingActivity;
 import com.u91porn.ui.user.UserLoginActivity;
+import com.u91porn.utils.AddressHelper;
+import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.UserHelper;
 import com.u91porn.utils.constants.Constants;
 import com.u91porn.utils.constants.Keys;
-import com.u91porn.utils.SPUtils;
 import com.u91porn.widget.ObservableScrollView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -89,6 +89,12 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getActivityComponent().inject(this);
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -123,7 +129,7 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
     @Override
     public void onResume() {
         super.onResume();
-        setUpUserInfo(MyApplication.getInstace().getUser());
+        setUpUserInfo(user);
     }
 
     @Override
@@ -188,7 +194,7 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
                 }
                 SPUtils.put(context, Keys.KEY_SP_OPEN_HTTP_PROXY, isChecked);
                 //重新实例化接口
-                ApiManager.getInstance().init91PornRetrofitService(context);
+                apiManager.init91PornRetrofitService(AddressHelper.getInstance().getVideo91PornAddress(), false);
                 //通知已经存在的更改为最新的
                 EventBus.getDefault().post(new ProxySetEvent(proxyHost, port));
             }
@@ -249,8 +255,7 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
     }
 
     private void userImageViewClick() {
-        User user = MyApplication.getInstace().getUser();
-        if (user != null) {
+        if (UserHelper.isUserInfoComplete(user)) {
             return;
         }
         Intent intent = new Intent(context, UserLoginActivity.class);
@@ -260,16 +265,20 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
     @SuppressLint("SetTextI18n")
     private void setUpUserInfo(User user) {
 
-        if (user == null) {
+        if (!UserHelper.isUserInfoComplete(user)) {
             tvNavUsername.setText("请登录");
             tvNavLastLoginTime.setText("---");
             tvNavLastLoginIp.setText("---");
             return;
         }
 
-        String status = user.getStatus().contains("正常") ? "正常" : "异常";
-        tvNavUsername.setText(user.getUserName() + "(" + status + ")");
-        tvNavLastLoginTime.setText(user.getLastLoginTime().replace("(如果你觉得时间不对,可能帐号被盗)", ""));
+        if (!TextUtils.isEmpty(user.getStatus())) {
+            String status = user.getStatus().contains("正常") ? "正常" : "异常";
+            tvNavUsername.setText(user.getUserName() + "(" + status + ")");
+        }
+        if (!TextUtils.isEmpty(user.getLastLoginTime())) {
+            tvNavLastLoginTime.setText(user.getLastLoginTime().replace("(如果你觉得时间不对,可能帐号被盗)", ""));
+        }
         tvNavLastLoginIp.setText(user.getLastLoginIP());
     }
 
@@ -277,7 +286,7 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Constants.USER_LOGIN_REQUEST_CODE && resultCode == RESULT_OK) {
-            setUpUserInfo(MyApplication.getInstace().getUser());
+            setUpUserInfo(user);
         }
     }
 
@@ -308,10 +317,9 @@ public class MineFragment extends BaseFragment implements View.OnClickListener {
         }
 
         if (content.equals(myFavoriteStr)) {
-            User user = MyApplication.getInstace().getUser();
-            if (user == null) {
+            if (!UserHelper.isUserInfoComplete(user)) {
                 Intent intent = new Intent(context, UserLoginActivity.class);
-                intent.putExtra(Keys.KEY_INTENT_LOGIN_FOR_ACTION,UserLoginActivity.LOGIN_ACTION_FOR_LOOK_MY_FAVORITE);
+                intent.putExtra(Keys.KEY_INTENT_LOGIN_FOR_ACTION, UserLoginActivity.LOGIN_ACTION_FOR_LOOK_MY_FAVORITE);
                 startActivityForResultWithAnimotion(intent, Constants.USER_LOGIN_REQUEST_CODE);
                 return;
             }

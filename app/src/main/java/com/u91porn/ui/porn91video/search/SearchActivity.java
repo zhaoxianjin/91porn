@@ -17,13 +17,12 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpActivity;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.LoadHelperUtils;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.constants.Keys;
 
 import org.angmarch.views.NiceSpinner;
 import org.angmarch.views.NiceSpinnerAdapter;
@@ -206,7 +205,8 @@ public class SearchActivity extends MvpActivity<SearchView, SearchPresenter> imp
     @NonNull
     @Override
     public SearchPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
+        getActivityComponent().inject(this);
+        NoLimit91PornServiceApi noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
         return new SearchPresenter(noLimit91PornServiceApi, provider);
     }
 

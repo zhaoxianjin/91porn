@@ -15,13 +15,11 @@ import android.view.ViewGroup;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
@@ -44,6 +42,7 @@ import butterknife.Unbinder;
 public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> implements CommonView, SwipeRefreshLayout.OnRefreshListener {
 
 
+    private static final String TAG = CommonFragment.class.getSimpleName();
     @BindView(R.id.recyclerView_common)
     RecyclerView recyclerView;
     Unbinder unbinder;
@@ -78,8 +77,10 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
     @NonNull
     @Override
     public CommonPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+        getActivityComponent().inject(this);
+        Logger.t(TAG).d(apiManager.toString());
+        NoLimit91PornServiceApi noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
+
         return new CommonPresenter(noLimit91PornServiceApi, cacheProviders, provider);
     }
 
@@ -103,11 +104,12 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 String hd = "hd";
-                if (hd.equals(category)) {
+                //好像可以解析得到
+                if (!hd.equals(category.getCategoryValue())) {
                     showMessage("非会员，无法观看高清视频！", TastyToast.WARNING);
                     return;
                 }
-                UnLimit91PornItem unLimit91PornItems = (UnLimit91PornItem) adapter.getData().get(position);
+                UnLimit91PornItem unLimit91PornItems = (UnLimit91PornItem) adapter.getItem(position);
                 goToPlayVideo(unLimit91PornItems);
             }
         });
@@ -126,13 +128,13 @@ public class CommonFragment extends MvpFragment<CommonView, CommonPresenter> imp
             }
         });
         //loadData(false);
-        AppUtils.setColorSchemeColors(context,contentView);
+        AppUtils.setColorSchemeColors(context, contentView);
     }
 
     @Override
     public void onProxySetEvent(ProxySetEvent proxySetEvent) {
         super.onProxySetEvent(proxySetEvent);
-        presenter.setNoLimit91PornServiceApi(ApiManager.getInstance().getNoLimit91PornService(context));
+        presenter.setNoLimit91PornServiceApi(apiManager.getNoLimit91PornService());
     }
 
     @Override

@@ -20,7 +20,6 @@ import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.R;
 import com.u91porn.adapter.BaseHeaderAdapter;
 import com.u91porn.adapter.Forum91PornIndexAdapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.model.Forum91PronItem;
 import com.u91porn.data.model.PinnedHeaderEntity;
 import com.u91porn.eventbus.BaseUrlChangeEvent;
@@ -161,13 +160,14 @@ public class Forum91IndexFragment extends MvpFragment<ForumView, ForumPresenter>
     @NonNull
     @Override
     public ForumPresenter createPresenter() {
-        return new ForumPresenter(ApiManager.getInstance().getForum91PronServiceApi(), provider);
+        getActivityComponent().inject(this);
+        return new ForumPresenter(apiManager.getForum91PronServiceApi(), provider);
     }
 
 
     @Override
     public void onBaseUrlChangeEvent(BaseUrlChangeEvent baseUrlChangeEvent) {
-        presenter.setForum91PronServiceApi(ApiManager.getInstance().getForum91PronServiceApi());
+        presenter.setForum91PronServiceApi(apiManager.getForum91PronServiceApi());
     }
 
     @Override

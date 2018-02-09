@@ -3,16 +3,13 @@ package com.u91porn.parser;
 import android.text.TextUtils;
 
 import com.orhanobut.logger.Logger;
-import com.u91porn.MyApplication;
 import com.u91porn.adapter.BaseHeaderAdapter;
 import com.u91porn.data.model.BaseResult;
 import com.u91porn.data.model.Content91Porn;
 import com.u91porn.data.model.Forum91PronItem;
 import com.u91porn.data.model.PinnedHeaderEntity;
 import com.u91porn.utils.AddressHelper;
-import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.StringUtils;
-import com.u91porn.utils.constants.Keys;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -196,7 +193,7 @@ public class ParseForum91Porn {
         return baseResult;
     }
 
-    public static BaseResult<Content91Porn> parseContent(String html) {
+    public static BaseResult<Content91Porn> parseContent(String html, boolean isNightModel) {
         BaseResult<Content91Porn> baseResult = new BaseResult<>();
         Document doc = Jsoup.parse(html);
 
@@ -206,7 +203,7 @@ public class ParseForum91Porn {
             List<String> stringList = new ArrayList<>();
             Content91Porn content91Porn = new Content91Porn();
             content91Porn.setImageList(stringList);
-            content91Porn.setContent("暂不支持解析该网页类型");
+            content91Porn.setContent("暂不支持解析该网页类型或者帖子已被封禁了");
             baseResult.setData(content91Porn);
             return baseResult;
         }
@@ -222,7 +219,6 @@ public class ParseForum91Porn {
         for (Element p : ps) {
             p.attr("style", "");
         }
-        boolean isNightModel = (boolean) SPUtils.get(MyApplication.getInstace(), Keys.KEY_SP_OPEN_NIGHT_MODE, false);
         //去掉字体大小以及适配夜间模式
         Elements fonts = content.select("font");
         for (Element font : fonts) {

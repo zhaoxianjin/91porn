@@ -24,6 +24,7 @@ public class DaoMaster extends AbstractDaoMaster {
         CategoryDao.createTable(db, ifNotExists);
         UnLimit91PornItemDao.createTable(db, ifNotExists);
         VideoResultDao.createTable(db, ifNotExists);
+        AutoCompleteModelDao.createTable(db, ifNotExists);
     }
 
     /** Drops underlying database table using DAOs. */
@@ -31,6 +32,7 @@ public class DaoMaster extends AbstractDaoMaster {
         CategoryDao.dropTable(db, ifExists);
         UnLimit91PornItemDao.dropTable(db, ifExists);
         VideoResultDao.dropTable(db, ifExists);
+        AutoCompleteModelDao.dropTable(db, ifExists);
     }
 
     /**
@@ -52,6 +54,7 @@ public class DaoMaster extends AbstractDaoMaster {
         registerDaoClass(CategoryDao.class);
         registerDaoClass(UnLimit91PornItemDao.class);
         registerDaoClass(VideoResultDao.class);
+        registerDaoClass(AutoCompleteModelDao.class);
     }
 
     public DaoSession newSession() {

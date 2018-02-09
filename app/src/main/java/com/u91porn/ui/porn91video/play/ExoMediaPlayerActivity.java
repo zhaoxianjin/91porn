@@ -61,11 +61,11 @@ public class ExoMediaPlayerActivity extends BasePlayVideo implements OnPreparedL
             if (downloadFile.exists()) {
                 videoPlayer.setVideoPath(downloadFile.getAbsolutePath());
             } else {
-                String proxyUrl = proxy.getProxyUrl(videoUrl);
+                String proxyUrl = httpProxyCacheServer.getProxyUrl(videoUrl);
                 videoPlayer.setVideoURI(Uri.parse(proxyUrl));
             }
         } else {
-            String proxyUrl = proxy.getProxyUrl(videoUrl);
+            String proxyUrl = httpProxyCacheServer.getProxyUrl(videoUrl);
             videoPlayer.setVideoURI(Uri.parse(proxyUrl));
         }
         videoControlsMobile.setTitle(title);

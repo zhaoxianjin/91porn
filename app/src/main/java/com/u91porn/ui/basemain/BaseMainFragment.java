@@ -112,6 +112,7 @@ public abstract class BaseMainFragment extends MvpFragment<BaseMainView, BaseMai
     @NonNull
     @Override
     public BaseMainPresenter createPresenter() {
+        getActivityComponent().inject(this);
         return new BaseMainPresenter(DataBaseManager.getInstance());
     }
 

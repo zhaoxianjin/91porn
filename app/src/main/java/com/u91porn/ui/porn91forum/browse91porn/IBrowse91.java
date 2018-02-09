@@ -7,5 +7,5 @@ package com.u91porn.ui.porn91forum.browse91porn;
  */
 
 public interface IBrowse91 {
-    void loadContent(Long tid);
+    void loadContent(Long tid,boolean isNightModel);
 }

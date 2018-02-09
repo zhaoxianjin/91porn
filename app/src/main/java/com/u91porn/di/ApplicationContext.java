@@ -13,5 +13,5 @@ import javax.inject.Qualifier;
 
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AplicationContext {
+public @interface ApplicationContext {
 }

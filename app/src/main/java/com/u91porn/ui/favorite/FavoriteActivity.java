@@ -17,21 +17,17 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.FavoriteAdapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.LoadHelperUtils;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.constants.Keys;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +48,6 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     SwipeRefreshLayout contentView;
 
     private FavoriteAdapter mUnLimit91Adapter;
-    private CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
 
     private LoadViewHelper helper;
     private AlertDialog deleteAlertDialog;
@@ -91,7 +86,7 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
                 swipeItemLayout.close();
                 if (view.getId() == R.id.right_menu_delete) {
                     UnLimit91PornItem unLimit91PornItem = (UnLimit91PornItem) adapter.getItem(position);
-                    if (unLimit91PornItem == null || unLimit91PornItem.getVideoResult() == null ) {
+                    if (unLimit91PornItem == null || unLimit91PornItem.getVideoResult() == null) {
                         showMessage("信息错误，无法删除", TastyToast.WARNING);
                         return;
                     }
@@ -123,9 +118,9 @@ public class FavoriteActivity extends MvpActivity<FavoriteView, FavoritePresente
     @NonNull
     @Override
     public FavoritePresenter createPresenter() {
+        getActivityComponent().inject(this);
         DataBaseManager dataBaseManager = DataBaseManager.getInstance();
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
-        User user = MyApplication.getInstace().getUser();
+        NoLimit91PornServiceApi noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
         return new FavoritePresenter(dataBaseManager, noLimit91PornServiceApi, cacheProviders, user, provider);
     }
 

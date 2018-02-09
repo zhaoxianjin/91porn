@@ -15,19 +15,15 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.danikula.videocache.HttpProxyCacheServer;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.flymegoc.exolibrary.widget.ExoVideoControlsMobile;
 import com.flymegoc.exolibrary.widget.ExoVideoView;
 import com.jaeger.library.StatusBarUtil;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.PigAvAdapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.PigAvServiceApi;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.PigAv;
 import com.u91porn.data.model.PigAvVideo;
 import com.u91porn.ui.MvpActivity;
@@ -53,7 +49,7 @@ public class PlayPigAvActivity extends MvpActivity<PlayPigAvView, PlayPigAvPrese
     FrameLayout playContainer;
     private ExoVideoControlsMobile videoControlsMobile;
     private boolean isPauseByActivityEvent = false;
-    private HttpProxyCacheServer proxy;
+
     private AlertDialog alertDialog;
 
     @Override
@@ -71,7 +67,6 @@ public class PlayPigAvActivity extends MvpActivity<PlayPigAvView, PlayPigAvPrese
                 onBackPressed();
             }
         });
-        proxy = MyApplication.getInstace().getProxy();
         PigAv pigAv = (PigAv) getIntent().getSerializableExtra(Keys.KEY_INTENT_PIG_AV_ITEM);
         if (pigAv != null) {
             parseVideoUrl(pigAv);
@@ -115,8 +110,9 @@ public class PlayPigAvActivity extends MvpActivity<PlayPigAvView, PlayPigAvPrese
     @NonNull
     @Override
     public PlayPigAvPresenter createPresenter() {
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        PigAvServiceApi pigAvServiceApi = ApiManager.getInstance().getPigAvServiceApi();
+        getActivityComponent().inject(this);
+
+        PigAvServiceApi pigAvServiceApi = apiManager.getPigAvServiceApi();
         return new PlayPigAvPresenter(cacheProviders, provider, pigAvServiceApi);
     }
 
@@ -163,7 +159,7 @@ public class PlayPigAvActivity extends MvpActivity<PlayPigAvView, PlayPigAvPrese
             showMessage("播放地址无效", TastyToast.ERROR);
             return;
         }
-        String proxyUrl = proxy.getProxyUrl(url);
+        String proxyUrl = httpProxyCacheServer.getProxyUrl(url);
         videoPlayer.setVideoURI(Uri.parse(proxyUrl));
     }
 

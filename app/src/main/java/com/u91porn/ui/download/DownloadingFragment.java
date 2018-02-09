@@ -15,14 +15,12 @@ import android.widget.ImageView;
 
 import com.aitsuki.swipe.SwipeItemLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.danikula.videocache.HttpProxyCacheServer;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadConnectListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.DownloadVideoAdapter;
 import com.u91porn.data.dao.DataBaseManager;
@@ -31,12 +29,14 @@ import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DownloadManager;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.constants.Keys;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -57,6 +57,7 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     private ArrayList<UnLimit91PornItem> mUnLimit91PornItemList;
 
 
+    @Inject
     public DownloadingFragment() {
         // Required empty public constructor
     }
@@ -93,10 +94,10 @@ public class DownloadingFragment extends MvpFragment<DownloadView, DownloadPrese
     @NonNull
     @Override
     public DownloadPresenter createPresenter() {
+        getActivityComponent().inject(this);
         DataBaseManager dataBaseManager = DataBaseManager.getInstance();
-        HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
         File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
-        return new DownloadPresenter(dataBaseManager, provider, cacheServer, videoCacheDir);
+        return new DownloadPresenter(dataBaseManager, provider, httpProxyCacheServer, videoCacheDir);
 
     }
 

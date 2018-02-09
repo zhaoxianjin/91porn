@@ -8,6 +8,8 @@ import com.u91porn.ui.BaseFragment;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * @author flymegoc
  * @date 2017/11/24
@@ -18,13 +20,13 @@ public class DownloadFragmentAdapter extends FragmentPagerAdapter {
 
     private List<Fragment> fragmentList;
 
-    public DownloadFragmentAdapter(FragmentManager fm, List<Fragment> fragmentList) {
-        super(fm);
-        this.fragmentList = fragmentList;
-    }
-
+    @Inject
     public DownloadFragmentAdapter(FragmentManager fm) {
         super(fm);
+    }
+
+    public void setData(List<Fragment> fragmentList) {
+        this.fragmentList = fragmentList;
     }
 
     @Override
@@ -34,11 +36,11 @@ public class DownloadFragmentAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return fragmentList.size();
+        return fragmentList == null ? 0 : fragmentList.size();
     }
 
     @Override
     public CharSequence getPageTitle(int position) {
-        return ((BaseFragment) fragmentList.get(position)).getTitle();
+        return fragmentList == null ? "" : ((BaseFragment) fragmentList.get(position)).getTitle();
     }
 }

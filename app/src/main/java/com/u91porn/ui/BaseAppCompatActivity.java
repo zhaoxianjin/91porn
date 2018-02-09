@@ -13,16 +13,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.jaeger.library.StatusBarUtil;
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.lifecycle2.android.lifecycle.AndroidLifecycle;
 import com.trello.rxlifecycle2.LifecycleProvider;
+import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.ApiManager;
+import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.utils.AppManager;
-import com.u91porn.utils.constants.Keys;
+import com.u91porn.data.model.User;
+import com.u91porn.di.component.ActivityComponent;
+import com.u91porn.di.component.DaggerActivityComponent;
+import com.u91porn.di.module.ActivityModule;
 import com.u91porn.utils.PlaybackEngine;
+import com.u91porn.utils.constants.Keys;
+
+import javax.inject.Inject;
 
 import cn.bingoogolapple.swipebacklayout.BGASwipeBackHelper;
 
@@ -34,19 +43,39 @@ import cn.bingoogolapple.swipebacklayout.BGASwipeBackHelper;
 
 public abstract class BaseAppCompatActivity extends AppCompatActivity implements BGASwipeBackHelper.Delegate {
     private final String TAG = this.getClass().getSimpleName();
-    private AppManager appManager = AppManager.getAppManager();
+
     protected final LifecycleProvider<Lifecycle.Event> provider = AndroidLifecycle.createLifecycleProvider(this);
 
     protected BGASwipeBackHelper mSwipeBackHelper;
     protected boolean existActivityWithAnimation = true;
     protected Context context;
+    private ActivityComponent mActivityComponent;
+
+    @Inject
+    protected ApiManager apiManager;
+
+    @Inject
+    protected HttpProxyCacheServer httpProxyCacheServer;
+
+    @Inject
+    protected CacheProviders cacheProviders;
+
+    @Inject
+    protected User user;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         initSwipeBackFinish();
         super.onCreate(savedInstanceState);
+        mActivityComponent = DaggerActivityComponent.builder()
+                .activityModule(new ActivityModule(this))
+                .applicationComponent(((MyApplication) getApplication()).getApplicationComponent())
+                .build();
         context = this;
-        appManager.addActivity(this);
+    }
+
+    public ActivityComponent getActivityComponent() {
+        return mActivityComponent;
     }
 
     @Override
@@ -119,7 +148,6 @@ public abstract class BaseAppCompatActivity extends AppCompatActivity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        appManager.finishActivity(this);
     }
 
     /**

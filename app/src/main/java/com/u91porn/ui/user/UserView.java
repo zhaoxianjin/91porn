@@ -1,5 +1,6 @@
 package com.u91porn.ui.user;
 
+import com.u91porn.data.model.User;
 import com.u91porn.ui.BaseView;
 
 /**
@@ -9,11 +10,11 @@ import com.u91porn.ui.BaseView;
 
 public interface UserView extends BaseView {
 
-    void loginSuccess();
+    void loginSuccess(User user);
 
     void loginError(String message);
 
-    void registerSuccess();
+    void registerSuccess(User user);
 
     void registerFailure(String message);
 }

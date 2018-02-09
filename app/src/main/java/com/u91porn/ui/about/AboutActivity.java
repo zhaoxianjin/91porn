@@ -20,7 +20,6 @@ import com.qmuiteam.qmui.widget.grouplist.QMUICommonListItemView;
 import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.R;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.GitHubServiceApi;
 import com.u91porn.data.model.UpdateVersion;
 import com.u91porn.service.UpdateDownloadService;
@@ -196,7 +195,8 @@ public class AboutActivity extends MvpActivity<AboutView, AboutPresenter> implem
     @NonNull
     @Override
     public AboutPresenter createPresenter() {
-        GitHubServiceApi gitHubServiceApi = ApiManager.getInstance().getGitHubServiceApi();
+        getActivityComponent().inject(this);
+        GitHubServiceApi gitHubServiceApi = apiManager.getGitHubServiceApi();
         return new AboutPresenter(new UpdatePresenter(gitHubServiceApi, new Gson(), provider), provider);
     }
 

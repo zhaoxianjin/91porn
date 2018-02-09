@@ -14,13 +14,11 @@ import android.view.ViewGroup;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
+import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.ui.MvpFragment;
@@ -37,6 +35,7 @@ import butterknife.Unbinder;
  * @author flymegoc
  */
 public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, RecentUpdatesPresenter> implements RecentUpdatesView, SwipeRefreshLayout.OnRefreshListener {
+    private static final String TAG = RecentUpdatesFragment.class.getSimpleName();
     @BindView(R.id.recyclerView_recent_updates)
     RecyclerView recyclerViewRecentUpdates;
     @BindView(R.id.contentView)
@@ -56,8 +55,10 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
     @NonNull
     @Override
     public RecentUpdatesPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+        getActivityComponent().inject(this);
+        Logger.t(TAG).d(apiManager.toString());
+        NoLimit91PornServiceApi noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
+
         return new RecentUpdatesPresenter(noLimit91PornServiceApi, cacheProviders, category.getCategoryValue(), provider);
     }
 
@@ -97,13 +98,13 @@ public class RecentUpdatesFragment extends MvpFragment<RecentUpdatesView, Recent
             }
         });
         //loadData(false);
-        AppUtils.setColorSchemeColors(context,contentView);
+        AppUtils.setColorSchemeColors(context, contentView);
     }
 
     @Override
     public void onProxySetEvent(ProxySetEvent proxySetEvent) {
         super.onProxySetEvent(proxySetEvent);
-        presenter.setNoLimit91PornServiceApi(ApiManager.getInstance().getNoLimit91PornService(context));
+        presenter.setNoLimit91PornServiceApi(apiManager.getNoLimit91PornService());
     }
 
     @Override

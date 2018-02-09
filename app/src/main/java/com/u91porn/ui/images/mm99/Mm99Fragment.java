@@ -16,11 +16,8 @@ import android.view.ViewGroup;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.Mm99Adapter;
-import com.u91porn.data.ApiManager;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.Mm99;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.ui.images.viewimage.PictureViewerActivity;
@@ -73,8 +70,9 @@ public class Mm99Fragment extends MvpFragment<Mm99View, Mm99Presenter> implement
     @NonNull
     @Override
     public Mm99Presenter createPresenter() {
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        return new Mm99Presenter(cacheProviders, ApiManager.getInstance().getMm99ServiceApi(), provider);
+        getActivityComponent().inject(this);
+
+        return new Mm99Presenter(cacheProviders, apiManager.getMm99ServiceApi(), provider);
     }
 
     @Override

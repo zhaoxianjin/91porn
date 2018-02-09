@@ -7,14 +7,23 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.orhanobut.logger.Logger;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.trello.lifecycle2.android.lifecycle.AndroidLifecycle;
 import com.trello.rxlifecycle2.LifecycleProvider;
+import com.u91porn.MyApplication;
 import com.u91porn.R;
+import com.u91porn.data.ApiManager;
+import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.Category;
 import com.u91porn.data.model.UnLimit91PornItem;
+import com.u91porn.data.model.User;
+import com.u91porn.di.component.ActivityComponent;
+import com.u91porn.di.component.DaggerActivityComponent;
+import com.u91porn.di.module.ActivityModule;
 import com.u91porn.eventbus.BaseUrlChangeEvent;
 import com.u91porn.eventbus.ProxySetEvent;
 import com.u91porn.utils.constants.Keys;
@@ -23,6 +32,8 @@ import com.u91porn.utils.PlaybackEngine;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import javax.inject.Inject;
 
 /**
  * @author flymegoc
@@ -38,11 +49,33 @@ public abstract class BaseFragment extends Fragment {
     protected Activity activity;
     protected Category category;
     protected boolean mIsLoadedData;
+    private ActivityComponent mActivityComponent;
+
+    @Inject
+    protected ApiManager apiManager;
+
+    @Inject
+    protected HttpProxyCacheServer httpProxyCacheServer;
+
+    @Inject
+    protected CacheProviders cacheProviders;
+
+    @Inject
+    protected User user;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = getContext();
         activity = getActivity();
+        mActivityComponent = DaggerActivityComponent.builder()
+                .activityModule(new ActivityModule((AppCompatActivity) activity))
+                .applicationComponent(((MyApplication) activity.getApplication()).getApplicationComponent())
+                .build();
+    }
+
+    public ActivityComponent getActivityComponent() {
+        return mActivityComponent;
     }
 
     @Override
@@ -52,6 +85,7 @@ public abstract class BaseFragment extends Fragment {
         if (savedInstanceState != null) {
             category = (Category) savedInstanceState.getSerializable(KEY_SAVE_DIN_STANCE_STATE_CATEGORY);
         }
+
     }
 
     @Override

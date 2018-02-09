@@ -7,9 +7,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import com.orhanobut.logger.Logger;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
 import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
@@ -17,9 +15,9 @@ import com.u91porn.ui.main.MainActivity;
 import com.u91porn.ui.user.UserPresenter;
 import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.UserHelper;
+import com.u91porn.utils.constants.Keys;
 
 /**
  * @author flymegoc
@@ -41,8 +39,8 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             return;
         }
-        User user = MyApplication.getInstace().getUser();
-        if (user != null) {
+
+        if (UserHelper.isUserInfoComplete(user)) {
             startMain();
         }
         setContentView(R.layout.activity_splash);
@@ -84,16 +82,18 @@ public class SplashActivity extends MvpActivity<SplashView, SplashPresenter> imp
     @NonNull
     @Override
     public SplashPresenter createPresenter() {
+        getActivityComponent().inject(this);
         NoLimit91PornServiceApi noLimit91PornServiceApi = null;
         if (!AddressHelper.getInstance().isEmpty(Keys.KEY_SP_CUSTOM_ADDRESS)) {
-            noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
+            noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
         }
         UserPresenter userPresenter = new UserPresenter(noLimit91PornServiceApi, provider);
         return new SplashPresenter(userPresenter);
     }
 
     @Override
-    public void loginSuccess() {
+    public void loginSuccess(User user) {
+        user.copyProperties(this.user);
         startMain();
     }
 

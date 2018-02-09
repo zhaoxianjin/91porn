@@ -14,16 +14,13 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.UnLimit91Adapter;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.UnLimit91PornItem;
 import com.u91porn.ui.MvpActivity;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.LoadHelperUtils;
+import com.u91porn.utils.constants.Keys;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,8 +102,8 @@ public class AuthorActivity extends MvpActivity<AuthorView, AuthorPresenter> imp
     @NonNull
     @Override
     public AuthorPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
+        getActivityComponent().inject(this);
+        NoLimit91PornServiceApi noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
         return new AuthorPresenter(noLimit91PornServiceApi, provider, cacheProviders);
     }
 

@@ -17,11 +17,8 @@ import android.view.ViewGroup;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.MeiZiTuAdapter;
-import com.u91porn.data.ApiManager;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.MeiZiTu;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.ui.images.viewimage.PictureViewerActivity;
@@ -78,8 +75,9 @@ public class MeiZiTuFragment extends MvpFragment<MeiZiTuView, MeiZiTuPresenter> 
     @NonNull
     @Override
     public MeiZiTuPresenter createPresenter() {
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        return new MeiZiTuPresenter(ApiManager.getInstance().getMeiZiTuServiceApi(), provider, cacheProviders);
+        getActivityComponent().inject(this);
+
+        return new MeiZiTuPresenter(apiManager.getMeiZiTuServiceApi(), provider, cacheProviders);
     }
 
     @Override

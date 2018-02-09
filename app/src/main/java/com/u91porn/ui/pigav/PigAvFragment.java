@@ -16,11 +16,8 @@ import android.view.ViewGroup;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.PigAvAdapter;
-import com.u91porn.data.ApiManager;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.PigAv;
 import com.u91porn.eventbus.BaseUrlChangeEvent;
 import com.u91porn.ui.MvpFragment;
@@ -70,14 +67,15 @@ public class PigAvFragment extends MvpFragment<PigAvView, PigAvPresenter> implem
     @NonNull
     @Override
     public PigAvPresenter createPresenter() {
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        return new PigAvPresenter(cacheProviders, provider, ApiManager.getInstance().getPigAvServiceApi());
+        getActivityComponent().inject(this);
+
+        return new PigAvPresenter(cacheProviders, provider, apiManager.getPigAvServiceApi());
     }
 
     @Override
     public void onBaseUrlChangeEvent(BaseUrlChangeEvent baseUrlChangeEvent) {
         super.onBaseUrlChangeEvent(baseUrlChangeEvent);
-        presenter.setPigAvServiceApi(ApiManager.getInstance().getPigAvServiceApi());
+        presenter.setPigAvServiceApi(apiManager.getPigAvServiceApi());
     }
 
     @Override

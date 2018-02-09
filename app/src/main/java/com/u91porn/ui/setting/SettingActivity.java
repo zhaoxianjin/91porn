@@ -3,43 +3,50 @@ package com.u91porn.ui.setting;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.AppCompatAutoCompleteTextView;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.grouplist.QMUICommonListItemView;
 import com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
-import com.u91porn.data.ApiManager;
-import com.u91porn.data.model.User;
 import com.u91porn.eventbus.BaseUrlChangeEvent;
-import com.u91porn.ui.BaseAppCompatActivity;
+import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.AddressHelper;
+import com.u91porn.utils.DialogUtils;
+import com.u91porn.utils.PlaybackEngine;
+import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.UserHelper;
 import com.u91porn.utils.constants.Constants;
 import com.u91porn.utils.constants.Keys;
-import com.u91porn.utils.PlaybackEngine;
-import com.u91porn.utils.RegexUtils;
-import com.u91porn.utils.SPUtils;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import me.jessyan.retrofiturlmanager.RetrofitUrlManager;
+import okhttp3.HttpUrl;
 
 /**
  * @author flymegoc
  */
-public class SettingActivity extends BaseAppCompatActivity implements View.OnClickListener {
+public class SettingActivity extends MvpActivity<SettingView, SettingPresenter> implements View.OnClickListener, SettingView {
 
     private static final String TAG = SettingActivity.class.getSimpleName();
     @BindView(R.id.toolbar)
@@ -49,9 +56,17 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
     @BindView(R.id.bt_setting_exit_account)
     Button btSettingExitAccount;
 
+    @Inject
+    SettingPresenter settingPresenter;
+
+    private AlertDialog testAlertDialog;
+    private boolean isTestSuccess = false;
+    private String testBaseUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Logger.t(TAG).d("onCreate(Bundle savedInstanceState)");
         setContentView(R.layout.activity_setting);
         ButterKnife.bind(this);
         initToolBar(toolbar);
@@ -60,11 +75,20 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
         init();
     }
 
+    @NonNull
+    @Override
+    public SettingPresenter createPresenter() {
+        Logger.t(TAG).d("createPresenter()");
+        getActivityComponent().inject(this);
+
+        return settingPresenter;
+    }
+
     private void init() {
-        User user = MyApplication.getInstace().getUser();
-        if (user != null) {
+        if (UserHelper.isUserInfoComplete(user)) {
             btSettingExitAccount.setVisibility(View.VISIBLE);
         }
+        testAlertDialog = DialogUtils.initLodingDialog(context, "测试中，请稍后...");
     }
 
     private void initListener() {
@@ -168,33 +192,125 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
         sec.addTo(qmuiGroupListView);
     }
 
+    private String getAddressSettingTitle(String key) {
+        switch (key) {
+            case Keys.KEY_SP_CUSTOM_ADDRESS:
+                return "91porn-地址设置";
+            case Keys.KEY_SP_FORUM_91_PORN_ADDRESS:
+                return "91论坛地址设置";
+            case Keys.KEY_SP_PIG_AV_ADDRESS:
+                return "朱古力地址设置";
+            default:
+                return "地址设置";
+        }
+    }
+
     private void showAddressSettingDialog(final QMUICommonListItemView qmuiCommonListItemView, final String key) {
-        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(this);
-        builder.setTitle("地址设置");
-        builder.setPlaceholder("别忘了最后的“/”哦");
-        builder.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.addAction("确定", new QMUIDialogAction.ActionListener() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_setting_address, qmuiCommonListItemView, false);
+        final AlertDialog alertDialog = new AlertDialog.Builder(this, R.style.MyDialogTheme)
+                .setTitle(getAddressSettingTitle(key))
+                .setView(view)
+                .setCancelable(false)
+                .show();
+        AppCompatButton okAppCompatButton = view.findViewById(R.id.bt_dialog_address_setting_ok);
+        AppCompatButton backAppCompatButton = view.findViewById(R.id.bt_dialog_address_setting_back);
+        AppCompatButton testAppCompatButton = view.findViewById(R.id.bt_dialog_address_setting_test);
+        final AppCompatAutoCompleteTextView autoCompleteTextView = view.findViewById(R.id.atv_dialog_address_setting_address);
+        autoCompleteTextView.setText(testBaseUrl);
+        if (!TextUtils.isEmpty(testBaseUrl)) {
+            autoCompleteTextView.setSelection(testBaseUrl.length());
+        }
+        final String[] address = {"http://", "https://", "http://www.", "https://www."};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_auto_complete_textview, address);
+        autoCompleteTextView.setAdapter(adapter);
+        okAppCompatButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(QMUIDialog dialog, int index) {
-                String address = builder.getEditText().getText().toString().trim();
-                if (!TextUtils.isEmpty(address) && RegexUtils.isURL(address) && address.endsWith("/")) {
+            public void onClick(View v) {
+                String address = autoCompleteTextView.getText().toString().trim();
+                if (!checkAddress(address)) {
+                    return;
+                }
+                testBaseUrl = address;
+                alertDialog.dismiss();
+                if (isTestSuccess) {
                     SPUtils.put(context, key, address);
                     qmuiCommonListItemView.setDetailText(address);
                     showMessage("设置成功", TastyToast.INFO);
                     sendUpdateSuccessMessage(key, address);
-                    dialog.dismiss();
                 } else {
-                    showMessage("设置失败，输入地址格式不正确，(不要忘了最后面的“/”)", TastyToast.ERROR);
+                    showConfirmDialog(qmuiCommonListItemView, address, key);
                 }
             }
         });
-        builder.addAction("取消", new QMUIDialogAction.ActionListener() {
+        backAppCompatButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(QMUIDialog dialog, int index) {
-                dialog.dismiss();
+            public void onClick(View v) {
+                alertDialog.dismiss();
             }
         });
-        builder.show();
+        testAppCompatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String address = autoCompleteTextView.getText().toString().trim();
+                if (!checkAddress(address)) {
+                    return;
+                }
+                testBaseUrl = address;
+                alertDialog.dismiss();
+                beginTestAddress(address, qmuiCommonListItemView, key);
+            }
+        });
+    }
+
+    private void showConfirmDialog(final QMUICommonListItemView qmuiCommonListItemView, final String address, final String key) {
+        new AlertDialog.Builder(this, R.style.MyDialogTheme)
+                .setTitle("温馨提示")
+                .setMessage("地址还未测试成功，确认设置吗？")
+                .setPositiveButton("设置", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SPUtils.put(context, key, address);
+                        qmuiCommonListItemView.setDetailText(address);
+                        showMessage("设置成功", TastyToast.INFO);
+                        sendUpdateSuccessMessage(key, address);
+                    }
+                })
+                .setNegativeButton("返回", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        showAddressSettingDialog(qmuiCommonListItemView, key);
+                    }
+                })
+                .show();
+    }
+
+    private boolean checkAddress(String address) {
+        HttpUrl httpUrl = HttpUrl.parse(address);
+        if (httpUrl == null) {
+            showMessage("设置失败，输入地址格式不正确，(不要忘了最后面的“/”)", TastyToast.ERROR);
+            return false;
+        }
+        List<String> pathSegments = httpUrl.pathSegments();
+        if (!"".equals(pathSegments.get(pathSegments.size() - 1))) {
+            showMessage("设置失败，输入地址格式不正确，(不要忘了最后面的“/”)", TastyToast.ERROR);
+            return false;
+        }
+        return true;
+    }
+
+    private void beginTestAddress(String address, QMUICommonListItemView qmuiCommonListItemView, String key) {
+        switch (key) {
+            case Keys.KEY_SP_CUSTOM_ADDRESS:
+                presenter.test91PornVideo(address, qmuiCommonListItemView, key);
+                break;
+            case Keys.KEY_SP_FORUM_91_PORN_ADDRESS:
+                presenter.test91PornForum(address, qmuiCommonListItemView, key);
+                break;
+            case Keys.KEY_SP_PIG_AV_ADDRESS:
+                presenter.testPigAv(address, qmuiCommonListItemView, key);
+                break;
+            default:
+        }
     }
 
     private void sendUpdateSuccessMessage(String key, String address) {
@@ -204,15 +320,16 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
                 RetrofitUrlManager.getInstance().setGlobalDomain(address);
                 break;
             case Keys.KEY_SP_FORUM_91_PORN_ADDRESS:
-                ApiManager.getInstance().initForum91RetrofitService();
+                apiManager.initForum91RetrofitService(address);
                 EventBus.getDefault().post(new BaseUrlChangeEvent());
                 break;
             case Keys.KEY_SP_PIG_AV_ADDRESS:
-                ApiManager.getInstance().initPigAvRetrofitService();
+                apiManager.initPigAvRetrofitService(address);
                 EventBus.getDefault().post(new BaseUrlChangeEvent());
                 break;
             default:
         }
+        testBaseUrl = "";
     }
 
     private void showForbiddenReleaseMemoryTipInfoDialog() {
@@ -252,8 +369,8 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
         builder.setPositiveButton("退出", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ApiManager.getInstance().cleanCookies();
-                MyApplication.getInstace().setUser(null);
+                apiManager.cleanCookies();
+                user.cleanProperties();
 
 //                SPUtils.put(SettingActivity.this, Keys.KEY_SP_USER_LOGIN_USERNAME, "");
 //                SPUtils.put(SettingActivity.this, Keys.KEY_SP_USER_LOGIN_PASSWORD, "");
@@ -279,9 +396,37 @@ public class SettingActivity extends BaseAppCompatActivity implements View.OnCli
                 showPlaybackEngineChoiceDialog((QMUICommonListItemView) v);
                 break;
             case R.id.setting_item_t66y_forum_address:
-                showAddressSettingDialog((QMUICommonListItemView) v, "");
+//                showAddressSettingDialog((QMUICommonListItemView) v, "");
                 break;
             default:
+        }
+    }
+
+    @Override
+    public void showTesting(boolean isTest) {
+        isTestSuccess = false;
+        testAlertDialog.show();
+    }
+
+    @Override
+    public void testSuccess(String message, QMUICommonListItemView qmuiCommonListItemView, String key) {
+        isTestSuccess = true;
+        dismissDialog();
+        showMessage(message, TastyToast.SUCCESS);
+        showAddressSettingDialog(qmuiCommonListItemView, key);
+    }
+
+    @Override
+    public void testFailure(String message, QMUICommonListItemView qmuiCommonListItemView, String key) {
+        isTestSuccess = false;
+        showMessage(message, TastyToast.ERROR);
+        showAddressSettingDialog(qmuiCommonListItemView, key);
+        dismissDialog();
+    }
+
+    private void dismissDialog() {
+        if (testAlertDialog.isShowing() && !isFinishing()) {
+            testAlertDialog.dismiss();
         }
     }
 }

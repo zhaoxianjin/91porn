@@ -21,17 +21,15 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.PictureAdapter;
-import com.u91porn.data.ApiManager;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.model.Mm99;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.GlideApp;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SDCardUtils;
+import com.u91porn.utils.constants.Keys;
+import com.u91porn.widget.ProblematicViewPager;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +46,7 @@ import de.greenrobot.common.io.FileUtils;
  */
 public class PictureViewerActivity extends MvpActivity<PictureViewerView, PictureViewerPresenter> implements PictureViewerView {
     @BindView(R.id.viewPager)
-    ViewPager viewPager;
+    ProblematicViewPager viewPager;
     @BindView(R.id.tv_num)
     TextView tvNum;
     private List<String> imageList;
@@ -70,8 +68,9 @@ public class PictureViewerActivity extends MvpActivity<PictureViewerView, Pictur
     @NonNull
     @Override
     public PictureViewerPresenter createPresenter() {
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        return new PictureViewerPresenter(provider, ApiManager.getInstance().getMeiZiTuServiceApi(), ApiManager.getInstance().getMm99ServiceApi(), cacheProviders);
+        getActivityComponent().inject(this);
+
+        return new PictureViewerPresenter(provider, apiManager.getMeiZiTuServiceApi(), apiManager.getMm99ServiceApi(), cacheProviders);
     }
 
     private void init() {

@@ -28,7 +28,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.danikula.videocache.HttpProxyCacheServer;
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar;
 import com.helper.loadviewhelper.help.OnLoadViewListener;
 import com.helper.loadviewhelper.load.LoadViewHelper;
@@ -38,32 +37,29 @@ import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.VideoCommentAdapter;
 import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
-import com.u91porn.data.cache.CacheProviders;
 import com.u91porn.data.dao.DataBaseManager;
 import com.u91porn.data.model.UnLimit91PornItem;
-import com.u91porn.data.model.User;
 import com.u91porn.data.model.VideoComment;
 import com.u91porn.data.model.VideoResult;
 import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpActivity;
-import com.u91porn.ui.porn91video.author.AuthorActivity;
 import com.u91porn.ui.download.DownloadPresenter;
 import com.u91porn.ui.favorite.FavoritePresenter;
+import com.u91porn.ui.porn91video.author.AuthorActivity;
 import com.u91porn.ui.user.UserLoginActivity;
 import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.AppUtils;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.LoadHelperUtils;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.UserHelper;
+import com.u91porn.utils.constants.Keys;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -123,7 +119,6 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
 
     private DataBaseManager dataBaseManager = DataBaseManager.getInstance();
 
-    protected HttpProxyCacheServer proxy = MyApplication.getInstace().getProxy();
     private VideoCommentAdapter videoCommentAdapter;
     private boolean isVideoError = true;
     private boolean isComment = true;
@@ -194,8 +189,8 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
             showMessage("请填写评论", TastyToast.INFO);
             return;
         }
-        User user = MyApplication.getInstace().getUser();
-        if (user == null) {
+
+        if (!UserHelper.isUserInfoComplete(user)) {
             showMessage("请先登录帐号", TastyToast.INFO);
             goToLogin();
             return;
@@ -257,8 +252,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
         tvPlayVideoAuthor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                User user = MyApplication.getInstace().getUser();
-                if (user == null) {
+                if (!UserHelper.isUserInfoComplete(user)) {
                     goToLogin();
                     showMessage("请先登录", TastyToast.INFO);
                     return;
@@ -406,14 +400,15 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
     @NonNull
     @Override
     public PlayVideoPresenter createPresenter() {
-        NoLimit91PornServiceApi mNoLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
-        CacheProviders cacheProviders = MyApplication.getInstace().getCacheProviders();
-        FavoritePresenter favoritePresenter = new FavoritePresenter(dataBaseManager, mNoLimit91PornServiceApi, cacheProviders, MyApplication.getInstace().getUser(), provider);
-        HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
+        getActivityComponent().inject(this);
+        NoLimit91PornServiceApi mNoLimit91PornServiceApi = apiManager.getNoLimit91PornService();
+
+        FavoritePresenter favoritePresenter = new FavoritePresenter(dataBaseManager, mNoLimit91PornServiceApi, cacheProviders, user, provider);
+
         File videoCacheDir = AppCacheUtils.getVideoCacheDir(this);
-        DownloadPresenter downloadPresenter = new DownloadPresenter(dataBaseManager, provider, cacheServer, videoCacheDir);
-        SharedPrefsCookiePersistor sharedPrefsCookiePersistor = ApiManager.getInstance().getSharedPrefsCookiePersistor();
-        SetCookieCache setCookieCache = ApiManager.getInstance().getSetCookieCache();
+        DownloadPresenter downloadPresenter = new DownloadPresenter(dataBaseManager, provider, httpProxyCacheServer, videoCacheDir);
+        SharedPrefsCookiePersistor sharedPrefsCookiePersistor = apiManager.getSharedPrefsCookiePersistor();
+        SetCookieCache setCookieCache = apiManager.getSetCookieCache();
         return new PlayVideoPresenter(mNoLimit91PornServiceApi, favoritePresenter, downloadPresenter, sharedPrefsCookiePersistor, setCookieCache, cacheProviders, provider, dataBaseManager);
     }
 
@@ -646,8 +641,7 @@ public abstract class BasePlayVideo extends MvpActivity<PlayVideoView, PlayVideo
             return;
         }
         VideoResult videoResult = unLimit91PornItem.getVideoResult();
-        User user = MyApplication.getInstace().getUser();
-        if (user == null) {
+        if (!UserHelper.isUserInfoComplete(user)) {
             goToLogin();
             showMessage("请先登录", TastyToast.SUCCESS);
             return;

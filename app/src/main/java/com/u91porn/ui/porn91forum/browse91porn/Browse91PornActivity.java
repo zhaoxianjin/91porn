@@ -20,7 +20,6 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.R;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.model.Content91Porn;
 import com.u91porn.data.model.Forum91PronItem;
 import com.u91porn.data.model.HostJsScope;
@@ -55,13 +54,15 @@ public class Browse91PornActivity extends MvpActivity<Browse91View, Browse91Pres
     private ArrayList<String> imageList;
     private Stack<Long> historyIdStack;
 
+    boolean isNightModel;
+
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_browse91_porn);
         ButterKnife.bind(this);
-
+        isNightModel = (boolean) SPUtils.get(this, Keys.KEY_SP_OPEN_NIGHT_MODE, false);
         historyIdStack = new Stack<>();
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -81,7 +82,7 @@ public class Browse91PornActivity extends MvpActivity<Browse91View, Browse91Pres
                     String tidStr = StringUtils.subString(url, starIndex + 4, starIndex + 10);
                     if (!TextUtils.isEmpty(tidStr) && TextUtils.isDigitsOnly(tidStr)) {
                         Long id = Long.parseLong(tidStr);
-                        presenter.loadContent(id);
+                        presenter.loadContent(id,isNightModel);
                         historyIdStack.push(id);
                     } else {
                         Logger.t(TAG).d(tidStr);
@@ -93,7 +94,7 @@ public class Browse91PornActivity extends MvpActivity<Browse91View, Browse91Pres
         });
         AppUtils.setColorSchemeColors(context, swipeLayout);
         forum91PronItem = (Forum91PronItem) getIntent().getSerializableExtra(Keys.KEY_INTENT_BROWSE_FORUM_91_PORN_ITEM);
-        presenter.loadContent(forum91PronItem.getTid());
+        presenter.loadContent(forum91PronItem.getTid(),isNightModel);
         historyIdStack.push(forum91PronItem.getTid());
         imageList = new ArrayList<>();
         boolean needShowTip = (boolean) SPUtils.get(this, Keys.KEY_SP_VIEW_91_PORN_FORUM_CONTENT_SHOW_TIP, true);
@@ -120,7 +121,7 @@ public class Browse91PornActivity extends MvpActivity<Browse91View, Browse91Pres
                 String tidStr = builder.getEditText().getText().toString().trim();
                 if (!TextUtils.isEmpty(tidStr) && TextUtils.isDigitsOnly(tidStr) && tidStr.length() <= 6) {
                     Long id = Long.parseLong(tidStr);
-                    presenter.loadContent(id);
+                    presenter.loadContent(id,isNightModel);
                     historyIdStack.push(id);
                     dialog.dismiss();
                 } else {
@@ -180,7 +181,8 @@ public class Browse91PornActivity extends MvpActivity<Browse91View, Browse91Pres
     @NonNull
     @Override
     public Browse91Presenter createPresenter() {
-        return new Browse91Presenter(ApiManager.getInstance().getForum91PronServiceApi());
+        getActivityComponent().inject(this);
+        return new Browse91Presenter(apiManager.getForum91PronServiceApi());
     }
 
     @Override
@@ -217,7 +219,7 @@ public class Browse91PornActivity extends MvpActivity<Browse91View, Browse91Pres
 
     @Override
     public void onRefresh() {
-        presenter.loadContent(forum91PronItem.getTid());
+        presenter.loadContent(forum91PronItem.getTid(),isNightModel);
     }
 
     @Override
@@ -246,9 +248,11 @@ public class Browse91PornActivity extends MvpActivity<Browse91View, Browse91Pres
 
     @Override
     public void onBackPressed() {
-        historyIdStack.pop();
         if (!historyIdStack.empty()) {
-            presenter.loadContent(historyIdStack.peek());
+            historyIdStack.pop();
+        }
+        if (!historyIdStack.empty()) {
+            presenter.loadContent(historyIdStack.peek(),isNightModel);
             return;
         }
         super.onBackPressed();

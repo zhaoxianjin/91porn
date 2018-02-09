@@ -21,10 +21,8 @@ import android.view.ViewGroup;
 
 import com.aitsuki.swipe.SwipeItemLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.danikula.videocache.HttpProxyCacheServer;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.sdsmdg.tastytoast.TastyToast;
-import com.u91porn.MyApplication;
 import com.u91porn.R;
 import com.u91porn.adapter.DownloadVideoAdapter;
 import com.u91porn.data.dao.DataBaseManager;
@@ -33,12 +31,14 @@ import com.u91porn.service.DownloadVideoService;
 import com.u91porn.ui.MvpFragment;
 import com.u91porn.utils.AppCacheUtils;
 import com.u91porn.utils.DownloadManager;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.constants.Keys;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -59,6 +59,7 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     private DownloadVideoAdapter mDownloadAdapter;
     private boolean isFoucesRefresh = false;
 
+    @Inject
     public FinishedFragment() {
         // Required empty public constructor
     }
@@ -72,9 +73,10 @@ public class FinishedFragment extends MvpFragment<DownloadView, DownloadPresente
     @NonNull
     @Override
     public DownloadPresenter createPresenter() {
-        HttpProxyCacheServer cacheServer = MyApplication.getInstace().getProxy();
+        getActivityComponent().inject(this);
+
         File videoCacheDir = AppCacheUtils.getVideoCacheDir(getContext());
-        return new DownloadPresenter(DataBaseManager.getInstance(), provider, cacheServer, videoCacheDir);
+        return new DownloadPresenter(DataBaseManager.getInstance(), provider, httpProxyCacheServer, videoCacheDir);
     }
 
     @Override

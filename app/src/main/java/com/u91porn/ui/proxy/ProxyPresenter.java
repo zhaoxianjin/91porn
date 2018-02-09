@@ -16,6 +16,7 @@ import com.u91porn.parser.ParseProxy;
 import com.u91porn.rxjava.CallBackWrapper;
 import com.u91porn.rxjava.RxSchedulersHelper;
 import com.u91porn.utils.AddressHelper;
+import com.u91porn.utils.CheckResultUtils;
 import com.u91porn.utils.CommonHeaderInterceptor;
 import com.u91porn.utils.constants.Constants;
 import com.u91porn.utils.HeaderUtils;
@@ -79,7 +80,7 @@ public class ProxyPresenter extends MvpBasePresenter<ProxyView> implements IProx
                                 @Override
                                 public void run(@NonNull ProxyView view) {
                                     view.showContent();
-                                    if (checkSuccess(s)) {
+                                    if (CheckResultUtils.check91PronVideoConnectIsSuccess(s)) {
                                         view.testProxySuccess("测试成功，用时：" + successTime + " ms");
                                     } else {
                                         view.testProxyError("访问成功，但无法获取内容");
@@ -181,16 +182,6 @@ public class ProxyPresenter extends MvpBasePresenter<ProxyView> implements IProx
 
     private String getParseUrl(int page) {
         return Api.APP_PROXY_GUO_BAN_JIA_DOMAIN + "free/country/美国/index" + page + ".shtml";
-    }
-
-    private boolean checkSuccess(String html) {
-        if (TextUtils.isEmpty(html)) {
-            return false;
-        }
-        if (html.contains("Chinese homemade video") || html.contains("91PORN旗下视频聊天") || html.contains("警告︰此网站只适合十八岁或以上人士观看")) {
-            return true;
-        }
-        return false;
     }
 
     /**

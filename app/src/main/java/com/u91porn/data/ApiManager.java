@@ -7,12 +7,13 @@ import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.orhanobut.logger.Logger;
 import com.u91porn.cookie.SetCookieCache;
 import com.u91porn.cookie.SharedPrefsCookiePersistor;
+import com.u91porn.di.ApplicationContext;
 import com.u91porn.utils.AddressHelper;
 import com.u91porn.utils.CommonHeaderInterceptor;
-import com.u91porn.utils.constants.Constants;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.RegexUtils;
 import com.u91porn.utils.SPUtils;
+import com.u91porn.utils.constants.Constants;
+import com.u91porn.utils.constants.Keys;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -29,7 +30,6 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
  * @author flymegoc
  * @date 2018/1/27
  */
-
 public class ApiManager {
 
     private static final String TAG = ApiManager.class.getSimpleName();
@@ -44,19 +44,13 @@ public class ApiManager {
     private SetCookieCache setCookieCache;
     private PersistentCookieJar cookieJar;
 
-    private static ApiManager mApiManager;
+    private Context context;
 
-    private ApiManager() {
-
-    }
-
-    public static ApiManager getInstance() {
-        if (mApiManager == null) {
-            synchronized (ApiManager.class) {
-                mApiManager = new ApiManager();
-            }
-        }
-        return mApiManager;
+    /**
+     * 需是applicationContext
+     */
+    public ApiManager(@ApplicationContext Context context) {
+        this.context = context;
     }
 
     /**
@@ -80,7 +74,7 @@ public class ApiManager {
     /**
      * 初始化Retrifit网络请求
      */
-    public void init91PornRetrofitService(Context context) {
+    public NoLimit91PornServiceApi init91PornRetrofitService(String baseUrl, boolean ignoreProxy) {
         Logger.t(TAG).d("begin init NoLimit91PornServiceApi...");
         sharedPrefsCookiePersistor = new SharedPrefsCookiePersistor(context);
         setCookieCache = new SetCookieCache();
@@ -90,10 +84,10 @@ public class ApiManager {
 
         builder.cookieJar(cookieJar);
         //如果代理地址不为空，且端口正确设置Http代理
-        boolean isOpenPxoxy = (boolean) SPUtils.get(context, Keys.KEY_SP_OPEN_HTTP_PROXY, false);
+        boolean isOpenProxy = (boolean) SPUtils.get(context, Keys.KEY_SP_OPEN_HTTP_PROXY, false);
         String proxyHost = (String) SPUtils.get(context, Keys.KEY_SP_PROXY_IP_ADDRESS, "");
         int port = (int) SPUtils.get(context, Keys.KEY_SP_PROXY_PORT, 0);
-        if (isOpenPxoxy && RegexUtils.isIP(proxyHost) && port < Constants.PROXY_MAX_PORT && port > 0) {
+        if (isOpenProxy && !ignoreProxy && RegexUtils.isIP(proxyHost) && port < Constants.PROXY_MAX_PORT && port > 0) {
             Logger.t(TAG).d("代理设置： current91PornAddress:" + proxyHost + "  端口：" + port);
             builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, port)));
         }
@@ -111,18 +105,22 @@ public class ApiManager {
         builder.connectTimeout(5, TimeUnit.SECONDS);
 
         //动态切换baseUrl 配置
-        OkHttpClient okHttpClient = RetrofitUrlManager.getInstance().with(builder)
-                .build();
+        OkHttpClient okHttpClient;
+        if (!ignoreProxy) {
+            okHttpClient = RetrofitUrlManager.getInstance().with(builder)
+                    .build();
+        } else {
+            okHttpClient = builder.build();
+        }
 
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
-                .baseUrl(AddressHelper.getInstance().getVideo91PornAddress())
+                .baseUrl(baseUrl)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build();
 
-        mNoLimit91PornServiceApi = retrofit.create(NoLimit91PornServiceApi.class);
-        Logger.t(TAG).d("end init NoLimit91PornServiceApi...");
+        return retrofit.create(NoLimit91PornServiceApi.class);
     }
 
     private void initGitHubRetrofitService() {
@@ -139,7 +137,7 @@ public class ApiManager {
         Logger.t(TAG).d("end init GitHubServiceApi...");
     }
 
-    public void initForum91RetrofitService() {
+    public Forum91PronServiceApi initForum91RetrofitService(String baseUrl) {
         Logger.t(TAG).d("begin init Forum91PronServiceApi...");
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.addInterceptor(new CommonHeaderInterceptor());
@@ -153,12 +151,11 @@ public class ApiManager {
         builder.addInterceptor(logging);
         Retrofit retrofit = new Retrofit.Builder()
                 .client(builder.build())
-                .baseUrl(AddressHelper.getInstance().getForum91PornAddress())
+                .baseUrl(baseUrl)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build();
-        mForum91PronServiceApi = retrofit.create(Forum91PronServiceApi.class);
-        Logger.t(TAG).d("end init Forum91PronServiceApi...");
+        return retrofit.create(Forum91PronServiceApi.class);
     }
 
     private void initMeiZiTuRetrofitService() {
@@ -183,7 +180,7 @@ public class ApiManager {
         Logger.t(TAG).d("end init MeiZiTuServiceApi...");
     }
 
-    public void initPigAvRetrofitService() {
+    public PigAvServiceApi initPigAvRetrofitService(String baseUrl) {
         Logger.t(TAG).d("begin init PigAvRetrofitService...");
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.addInterceptor(new CommonHeaderInterceptor());
@@ -197,12 +194,11 @@ public class ApiManager {
         builder.addInterceptor(logging);
         Retrofit retrofit = new Retrofit.Builder()
                 .client(builder.build())
-                .baseUrl(AddressHelper.getInstance().getPigAvAddress())
+                .baseUrl(baseUrl)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build();
-        Logger.t(TAG).d("end init PigAvRetrofitService...");
-        mPigAvServiceApi = retrofit.create(PigAvServiceApi.class);
+        return retrofit.create(PigAvServiceApi.class);
     }
 
     private void init99MmRetrofitService() {
@@ -227,10 +223,11 @@ public class ApiManager {
         mMm99ServiceApi = retrofit.create(Mm99ServiceApi.class);
     }
 
-    public NoLimit91PornServiceApi getNoLimit91PornService(Context context) {
+    public NoLimit91PornServiceApi getNoLimit91PornService() {
         if (mNoLimit91PornServiceApi == null) {
             synchronized (NoLimit91PornServiceApi.class) {
-                init91PornRetrofitService(context);
+                mNoLimit91PornServiceApi = init91PornRetrofitService(AddressHelper.getInstance().getVideo91PornAddress(), false);
+                Logger.t(TAG).d("end init NoLimit91PornServiceApi...");
             }
         }
         return mNoLimit91PornServiceApi;
@@ -249,7 +246,8 @@ public class ApiManager {
 
         if (mForum91PronServiceApi == null) {
             synchronized (Forum91PronServiceApi.class) {
-                initForum91RetrofitService();
+                mForum91PronServiceApi = initForum91RetrofitService(AddressHelper.getInstance().getForum91PornAddress());
+                Logger.t(TAG).d("end init Forum91PronServiceApi...");
             }
         }
         return mForum91PronServiceApi;
@@ -268,15 +266,16 @@ public class ApiManager {
     public PigAvServiceApi getPigAvServiceApi() {
         if (mPigAvServiceApi == null) {
             synchronized (PigAvServiceApi.class) {
-                initPigAvRetrofitService();
+                mPigAvServiceApi = initPigAvRetrofitService(AddressHelper.getInstance().getPigAvAddress());
+                Logger.t(TAG).d("end init PigAvRetrofitService...");
             }
         }
         return mPigAvServiceApi;
     }
 
     public Mm99ServiceApi getMm99ServiceApi() {
-        if (mMm99ServiceApi==null){
-            synchronized (Mm99ServiceApi.class){
+        if (mMm99ServiceApi == null) {
+            synchronized (Mm99ServiceApi.class) {
                 init99MmRetrofitService();
             }
         }

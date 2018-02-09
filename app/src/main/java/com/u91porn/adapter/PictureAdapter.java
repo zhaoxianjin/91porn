@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.bumptech.glide.load.DataSource;
@@ -22,8 +23,6 @@ import com.github.chrisbanes.photoview.PhotoView;
 import com.orhanobut.logger.Logger;
 import com.u91porn.R;
 import com.u91porn.utils.GlideApp;
-import com.u91porn.utils.GlideImageLoader;
-import com.u91porn.widget.ProblematicFrameLayout;
 
 import java.util.List;
 
@@ -111,7 +110,7 @@ public class PictureAdapter extends PagerAdapter {
 
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-        ProblematicFrameLayout view = (ProblematicFrameLayout) object;
+        FrameLayout view = (FrameLayout) object;
         for (int i = 0; i < view.getChildCount(); i++) {
             View childView = view.getChildAt(i);
             if (childView instanceof PhotoView) {

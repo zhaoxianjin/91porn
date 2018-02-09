@@ -29,12 +29,12 @@ public class Browse91Presenter extends MvpBasePresenter<Browse91View> implements
     }
 
     @Override
-    public void loadContent(Long tid) {
+    public void loadContent(Long tid, final boolean isNightModel) {
         forum91PronServiceApi.forumItemContent(tid)
                 .map(new Function<String, Content91Porn>() {
                     @Override
                     public Content91Porn apply(String s) throws Exception {
-                        return ParseForum91Porn.parseContent(s).getData();
+                        return ParseForum91Porn.parseContent(s, isNightModel).getData();
                     }
                 })
                 .compose(RxSchedulersHelper.<Content91Porn>ioMainThread())

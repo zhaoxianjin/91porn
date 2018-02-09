@@ -19,20 +19,18 @@ import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.util.QMUIKeyboardHelper;
 import com.sdsmdg.tastytoast.TastyToast;
 import com.u91porn.R;
-import com.u91porn.data.ApiManager;
 import com.u91porn.data.NoLimit91PornServiceApi;
+import com.u91porn.data.model.User;
 import com.u91porn.ui.MvpActivity;
 import com.u91porn.ui.main.MainActivity;
 import com.u91porn.utils.AddressHelper;
-import com.u91porn.utils.AppManager;
 import com.u91porn.utils.DialogUtils;
 import com.u91porn.utils.GlideApp;
 import com.u91porn.utils.HeaderUtils;
-import com.u91porn.utils.constants.Keys;
 import com.u91porn.utils.SPUtils;
 import com.u91porn.utils.UserHelper;
+import com.u91porn.utils.constants.Keys;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -93,8 +91,8 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
         });
         alertDialog = DialogUtils.initLodingDialog(this, "注册中，请稍后...");
 
-        ApiManager.getInstance().cleanCookies();
-        List<Cookie> cookieList = ApiManager.getInstance().getSharedPrefsCookiePersistor().loadAll();
+        apiManager.cleanCookies();
+        List<Cookie> cookieList = apiManager.getSharedPrefsCookiePersistor().loadAll();
         for (Cookie cookie : cookieList) {
             Logger.t(TAG).d(cookie.toString());
         }
@@ -104,16 +102,15 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
      * 跳转主界面
      */
     private void startMain() {
-        List<Class<?>> classList = new ArrayList<>();
-        classList.add(MainActivity.class);
-        classList.add(UserLoginActivity.class);
-        AppManager.getAppManager().finishActivity(classList);
         Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivityWithAnimotion(intent);
         finish();
     }
 
     private void register(String username, String email, String passwordOne, String passwordTwo, String captcha) {
+        startMain();
         if (TextUtils.isEmpty(username)) {
             showMessage("用户名不能为空", TastyToast.INFO);
             return;
@@ -143,18 +140,19 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
 //        String fingerprint = "2192328486";
         String fingerprint = UserHelper.randomFingerprint();
         String vip = "";
-        String actionSignup = "Sign Up";
+        String actionSignUp = "Sign Up";
         String submitX = "45";
         String submitY = "13";
         String ipAddress = AddressHelper.getRandomIPAddress();
         QMUIKeyboardHelper.hideKeyboard(getCurrentFocus());
-        presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignup, submitX, submitY, ipAddress, HeaderUtils.getUserHeader("signup"));
+        presenter.register(next, username, passwordOne, passwordTwo, email, captcha, fingerprint, vip, actionSignUp, submitX, submitY, ipAddress, HeaderUtils.getUserHeader("signup"));
     }
 
     @NonNull
     @Override
     public UserPresenter createPresenter() {
-        NoLimit91PornServiceApi noLimit91PornServiceApi = ApiManager.getInstance().getNoLimit91PornService(context);
+        getActivityComponent().inject(this);
+        NoLimit91PornServiceApi noLimit91PornServiceApi = apiManager.getNoLimit91PornService();
         return new UserPresenter(noLimit91PornServiceApi, provider);
     }
 
@@ -169,8 +167,8 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     }
 
     @Override
-    public void loginSuccess() {
-
+    public void loginSuccess(User user) {
+        user.copyProperties(this.user);
     }
 
     @Override
@@ -179,7 +177,8 @@ public class UserRegisterActivity extends MvpActivity<UserView, UserPresenter> i
     }
 
     @Override
-    public void registerSuccess() {
+    public void registerSuccess(User user) {
+        user.copyProperties(this.user);
         saveUserInfoPrf(username, password);
         startMain();
         showMessage("注册成功", TastyToast.SUCCESS);

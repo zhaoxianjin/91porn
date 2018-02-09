@@ -42,7 +42,7 @@ public class ApiException extends Exception {
     public static final int PARSE_ERROR = 1001;
     private String message;
 
-    public ApiException(Throwable throwable, int code) {
+    private ApiException(Throwable throwable, int code) {
         super(throwable);
         this.code = code;
         this.message = throwable.getMessage();
@@ -118,8 +118,12 @@ public class ApiException extends Exception {
             ex.message = e.getMessage();
             return ex;
         } else if (e instanceof DaoException) {
-            ex = new ApiException(e, Error.GREENDAO_ERROR);
+            ex = new ApiException(e, Error.GREEN_DAO_ERROR);
             ex.message = "数据库错误";
+            return ex;
+        } else if (e instanceof MessageException) {
+            ex = new ApiException(e, Error.COMMON_MESSAGE_ERROR);
+            ex.message = e.getMessage();
             return ex;
         } else {
             ex = new ApiException(e, Error.UNKNOWN);
@@ -194,6 +198,8 @@ public class ApiException extends Exception {
          */
         private static final int FAVORITE_VIDEO_ERROR = PARSE_VIDEO_URL_ERROR + 1;
 
-        private static final int GREENDAO_ERROR = FAVORITE_VIDEO_ERROR + 1;
+        private static final int GREEN_DAO_ERROR = FAVORITE_VIDEO_ERROR + 1;
+
+        private static final int COMMON_MESSAGE_ERROR = GREEN_DAO_ERROR + 1;
     }
 }
