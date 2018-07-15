@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">@color/qmui_config_color_gray_1</color>
+    <color name="colorPrimaryDark">#00796B</color>
+    <color name="colorAccent">#00BCD4</color>
+    <color name="black">#000000</color>
+    <color name="lightBlack">#272822</color>
+    <color name="white">@color/qmui_config_color_gray_1</color>
+    <color name="red">#FF0000</color>
+    <color name="yeloo">#ffba00</color>
+    <color name="LightGray">#aFFFFFFF</color>
+
+    <color name="dark_green">#70ba0f</color>
+    <color name="green">#5ACC87</color>
+    <color name="lightred">#FE5442</color>
+
+    <color name="forum_91_porn_essence">@color/green</color>
+
+    <!-- common start-->
+    <color name="common_background">@color/qmui_config_color_gray_3</color>
+    <color name="common_always_white_text_color">@color/qmui_config_color_gray_7</color>
+    <color name="common_primary_white_text_color">@color/qmui_config_color_gray_7</color>
+    <color name="common_black_white_text_color">@color/qmui_config_color_gray_7</color>
+    <!-- common end-->
+
+    <!-- 91 item start-->
+    <color name="item_background">@color/qmui_config_color_gray_2</color>
+    <color name="item_91pron_title_text_color">@color/qmui_config_color_gray_7</color>
+    <color name="item_91pron_info_text_color">@color/qmui_config_color_gray_5</color>
+    <!-- 91 item end-->
+
+    <!-- setting start-->
+    <color name="setting_bg">@color/qmui_config_color_gray_3</color>
+    <color name="setting_list_bg_normal">@color/qmui_config_color_gray_2</color>
+    <color name="setting_list_bg_pressed">@color/qmui_config_color_gray_3</color>
+    <color name="setting_list_title_text_color">@color/qmui_config_color_gray_7</color>
+    <color name="setting_list_detail_text_color">@color/qmui_config_color_gray_5</color>
+    <color name="setting_list_separator_color">@color/qmui_config_color_gray_4</color>
+    <!-- setting end-->
+    <color name="bottom_navigation_bar_active">@color/green</color>
+    <color name="bottom_navigation_bar_background">@color/qmui_config_color_gray_1</color>
+    <color name="floating_action_button_tine_bg_color">@color/qmui_config_color_gray_7</color>
+    <color name="mine_header_text_color">@color/qmui_config_color_gray_7</color>
+    <color name="play_head_video_info_text_color">@color/qmui_config_color_gray_7</color>
+    <color name="item_91porn_comment_message_text_color">@color/qmui_config_color_gray_7</color>
+    <color name="item_91porn_comment_info_text_color">@color/qmui_config_color_gray_6</color>
+    <color name="sort_category_drag_color">@color/colorPrimary</color>
+</resources>

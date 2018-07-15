@@ -1,0 +1,14 @@
+{
+  "noticeMessage": "
+  
+  注：当前版本v1.1.3需正确设置地址,地址示例：https://www.baidu.com/\n
+  
+  目前版本v1.1.3已知问题：\n
+  1. 未设置91porn地址或设置不正确情况下，无法使用登录注册收藏Http代理等功能，且会导致程序崩溃，\n
+  2. 底部导航栏切换可能会混乱或者导致程序崩溃
+  ",
+  "noticeTime": "2018年2月5日",
+   "noticeTitle": "公告",
+   "noticeer": "Adimn",
+   "versionCode": 3
+ }

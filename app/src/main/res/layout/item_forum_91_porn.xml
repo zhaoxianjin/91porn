@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/item_background"
+    android:orientation="vertical"
+    android:padding="2dp">
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/tv_item_forum_91_porn_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minLines="2"
+        android:textColor="@color/item_91pron_title_text_color"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_item_forum_91_porn_reply_view"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:textSize="14sp"
+            android:textColor="@color/item_91pron_info_text_color"
+            android:paddingLeft="2dp"
+            android:gravity="bottom"
+            />
+
+        <TextView
+            android:id="@+id/tv_item_forum_91_porn_author_publish_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/item_91pron_info_text_color"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tv_item_forum_91_porn_last_post_author_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/item_91pron_info_text_color"
+            android:textSize="14sp"
+            android:paddingRight="2dp"
+            android:gravity="end" />
+    </LinearLayout>
+</LinearLayout>

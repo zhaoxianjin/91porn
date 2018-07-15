@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="@color/common_background"
+    android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:src="@drawable/ic_cloud_off" />
 
     <TextView
-        android:id="@+id/errorView"
+        android:id="@+id/tv_error_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:drawablePadding="16dp"
-        android:drawableTop="@drawable/ic_cloud_off"
         android:gravity="center"
         android:padding="16dp"
         android:text="请确认当前地址可访问，点击重试！"
-        android:textColor="#656565"
-        android:textSize="20sp" />
+        android:textColor="@color/common_black_white_text_color"
+        android:textSize="16sp" />
 
-</FrameLayout>
+</LinearLayout>

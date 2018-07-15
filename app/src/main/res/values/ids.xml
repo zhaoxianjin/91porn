@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="setting_item_forbidden_auto_release_memory" type="id" />
+    <item name="setting_item_player_engine_choice" type="id" />
+    <item name="setting_item_91_porn_address" type="id" />
+    <item name="setting_item_91_porn_forum_address" type="id" />
+    <item name="setting_item_t66y_forum_address" type="id" />
+</resources>

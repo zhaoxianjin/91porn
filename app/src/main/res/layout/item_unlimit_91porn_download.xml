@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="90dp"
+    android:orientation="vertical"
+    app:cardBackgroundColor="@color/item_background"
+    app:cardCornerRadius="0dp"
+    app:cardPreventCornerOverlap="true"
+    app:cardUseCompatPadding="true"
+    app:contentPadding="1dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="90dp">
+
+        <FrameLayout
+            android:id="@+id/fl_img"
+            android:layout_width="90dp"
+            android:layout_height="90dp">
+
+            <ImageView
+                android:id="@+id/iv_91porn_item_img"
+                android:layout_width="120dp"
+                android:layout_height="90dp"
+                android:scaleType="fitXY" />
+
+            <ImageView
+                android:id="@+id/iv_download_control"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/start_download" />
+        </FrameLayout>
+
+        <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/tv_91porn_item_title"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_toRightOf="@+id/fl_img"
+            android:paddingLeft="5dp"
+            android:textColor="@color/item_91pron_title_text_color"
+            android:textStyle="bold"
+            app:autoSizeMaxTextSize="16sp"
+            app:autoSizeMinTextSize="12sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform"
+            />
+        <android.support.v4.widget.Space
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_toRightOf="@+id/fl_img"
+            android:layout_below="@+id/tv_91porn_item_title"
+            android:layout_above="@+id/progressBar_layout"
+            />
+        <RelativeLayout
+            android:id="@+id/progressBar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="43dp"
+            android:layout_alignBottom="@+id/fl_img"
+            android:layout_toRightOf="@+id/fl_img">
+
+            <TextView
+                android:id="@+id/tv_download_filesize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/common_black_white_text_color"
+                android:paddingLeft="5dp"
+                android:text="34/45MB" />
+
+            <ProgressBar
+                android:id="@+id/progressBar_download"
+                style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tv_download_filesize"
+                android:layout_toLeftOf="@+id/tv_download_speed"
+                android:paddingLeft="5dp"
+                android:progress="48" />
+
+            <TextView
+                android:id="@+id/tv_download_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/common_black_white_text_color"
+                android:layout_alignBottom="@+id/progressBar_download"
+                android:layout_toLeftOf="@+id/tv_download_progress"
+                android:gravity="center"
+                android:paddingLeft="5dp"
+                android:text="0KB/s" />
+
+            <TextView
+                android:id="@+id/tv_download_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/common_black_white_text_color"
+                android:layout_alignBottom="@+id/progressBar_download"
+                android:layout_alignParentRight="true"
+                android:gravity="center"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:text="5%" />
+        </RelativeLayout>
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

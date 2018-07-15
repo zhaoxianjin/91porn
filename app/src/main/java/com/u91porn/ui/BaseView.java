@@ -12,15 +12,12 @@ import io.rx_cache2.Reply;
  */
 
 public interface BaseView extends MvpView {
-    String getErrorMessage(Throwable e, boolean pullToRefresh);
-
-    void showError(Throwable e, boolean pullToRefresh);
 
     void showLoading(boolean pullToRefresh);
 
     void showContent();
 
-    void showMessage(String msg);
+    void showMessage(String msg,int type);
 
-    LifecycleTransformer<Reply<String>> bindView();
+    void showError(String message);
 }

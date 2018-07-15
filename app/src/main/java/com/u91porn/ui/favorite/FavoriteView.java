@@ -14,7 +14,15 @@ import java.util.List;
 public interface FavoriteView extends BaseView {
     void setFavoriteData(List<UnLimit91PornItem> unLimit91PornItemList);
 
-    void deleteFavoriteSucc(int position);
+    void loadMoreDataComplete();
 
-    void noLoadMoreData();
+    void loadMoreFailed();
+
+    void noMoreData();
+
+    void setMoreData(List<UnLimit91PornItem> unLimit91PornItemList);
+
+    void deleteFavoriteSucc(String message);
+    void deleteFavoriteError(String message);
+    void showDeleteDialog();
 }

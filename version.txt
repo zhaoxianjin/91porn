@@ -1,0 +1,11 @@
+{
+"apkDownloadUrl": "https://bitbucket.org/techGay/91porn/downloads/app-beta-v1.1.4.apk",
+"updateMessage": "此版本修复优化为主，预计年前最后一版\n
+                  1. 修复缩放图片问题（之前搞错了，并未修复成功）\n
+                  2. 修复底部导航栏切换概率混乱及崩溃问题\n
+                  3. 地址设置增加测试和提示\n
+                  4. 其他细小bug以及优化改进
+",
+"versionCode": 15,
+"versionName": "1.1.4"
+}

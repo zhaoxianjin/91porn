@@ -1,17 +1,15 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-apply from: "config.gradle"
 buildscript {
-    ext.objectboxVersion = '1.2.1'
     repositories {
         google()
         jcenter()
-        maven { url "http://objectbox.net/beta-repo/" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath "io.objectbox:objectbox-gradle-plugin:$objectboxVersion"
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.2.2' // add plugin
+        classpath 'com.bugsnag:bugsnag-android-gradle-plugin:3.+'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -23,7 +21,6 @@ allprojects {
         mavenCentral() // add repository
         maven { url "https://jitpack.io" }
         google()
-        maven { url "http://objectbox.net/beta-repo/" }
     }
 }
 
@@ -49,6 +46,6 @@ ext {
     runnerVersion = '0.5'
     rulesVersion = '0.5'
     espressoVersion = '2.2.2'
-
-    butterKnifeVersion = '8.5.1'
+    exoPlayerVersion = "2.6.0"
+    butterKnifeVersion = '8.8.1'
 }

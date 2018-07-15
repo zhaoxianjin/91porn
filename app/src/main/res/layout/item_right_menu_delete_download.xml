@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.aitsuki.swipe.SwipeItemLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipe_layout"
+    android:layout_width="match_parent"
+    android:layout_height="90dp">
+
+    <TextView
+        android:id="@+id/right_menu_delete"
+        android:layout_width="80dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:background="@color/colorAccent"
+        android:drawableTop="@drawable/delete"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/delete"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:textColor="@color/white" />
+
+    <include layout="@layout/item_unlimit_91porn_download" />
+
+</com.aitsuki.swipe.SwipeItemLayout>

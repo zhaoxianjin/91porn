@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/setting_list_separator_color"/>
+    <item
+        android:bottom="@dimen/qmui_list_divider_height"
+        android:drawable="@color/setting_list_bg_normal"
+        android:top="@dimen/qmui_list_divider_height"/>
+</layer-list>

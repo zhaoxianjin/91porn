@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/item_background"
+    android:padding="2dp"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/tv_item_video_comment_title_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:textColor="@color/item_91porn_comment_info_text_color"
+        android:textSize="13sp"
+        android:text="| 广州   级别:1  积分:0   注册:1小时前   视频:0   粉丝:0   关注:0"
+        />
+
+    <TextView
+        android:id="@+id/tv_item_video_comment_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:paddingLeft="3dp"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="@color/item_91porn_comment_message_text_color"
+        android:text="在广州也能遇到这样的就好了 "
+        />
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/tv_item_video_comment_replytime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:textColor="@color/item_91porn_comment_info_text_color"
+        android:gravity="right"
+        android:textSize="12sp"
+        android:text="(44分钟前)"
+        />
+</LinearLayout>

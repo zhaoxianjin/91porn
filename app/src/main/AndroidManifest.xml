@@ -6,12 +6,14 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <!--允许读取手机状态 用于创建BmobInstallation-->
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <!-- 允许读取手机状态 用于创建BmobInstallation -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!--获取wifi网络状态的信息 -->
+    <!-- 获取wifi网络状态的信息 -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!--保持CPU 运转，屏幕和键盘灯有可能是关闭的,用于文件上传和下载 -->
+    <!-- 保持CPU 运转，屏幕和键盘灯有可能是关闭的,用于文件上传和下载 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -21,8 +23,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.main.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".ui.splash.SplashActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppFullScreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,20 +34,105 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.play.PlayVideoActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:name=".ui.main.MainActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.download.DownloadActivity" />
-        <activity android:name=".ui.favorite.FavoriteActivity" />
+        <activity
+            android:name=".ui.download.DownloadActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/my_download"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.favorite.FavoriteActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/my_collect"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.user.UserLoginActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_user_login"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.user.UserRegisterActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_user_register"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.upload.UploadVideoActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.history.HistoryActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/history_views"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.about.AboutActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/about_me"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.porn91video.play.ExoMediaPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ui.porn91video.play.JiaoZiVideoPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ui.porn91video.search.SearchActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.porn91video.author.AuthorActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_author_video"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.setting.SettingActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/title_setting"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.proxy.ProxySettingActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/activity_proxy_setting"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.porn91forum.browse91porn.Browse91PornActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/forum_content"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.images.viewimage.PictureViewerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/photo"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.pigav.playpigav.PlayPigAvActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|keyboard|layoutDirection"
+            android:label="@string/pig_av"
+            android:screenOrientation="portrait"
+            />
+
+        <service android:name=".service.UpdateDownloadService" />
+        <service android:name=".service.DownloadVideoService" />
+
         <provider
-            android:authorities="com.u91porn.fileprovider"
             android:name="android.support.v4.content.FileProvider"
-            android:grantUriPermissions="true"
-            android:exported="false">
+            android:authorities="com.u91porn.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths"/>
+                android:resource="@xml/filepaths" />
         </provider>
+
+        <meta-data
+            android:name="com.bugsnag.android.API_KEY"
+            android:value="" />
     </application>
 
 </manifest>

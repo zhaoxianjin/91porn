@@ -1,0 +1,26 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="?actionBarSize"
+    android:background="@color/white"
+    tools:context="com.u91porn.ui.mine.MineFragment">
+
+    <include layout="@layout/layout_mine_header" />
+
+    <com.u91porn.widget.ObservableScrollView
+        android:id="@+id/ov_setting_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:layout_marginTop="@dimen/nav_header_height"
+        android:background="@color/setting_bg">
+
+        <com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView
+            android:id="@+id/mine_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </com.u91porn.widget.ObservableScrollView>
+</RelativeLayout>

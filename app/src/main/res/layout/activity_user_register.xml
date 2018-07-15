@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/common_background"
+    tools:context="com.u91porn.ui.user.UserLoginActivity">
+
+    <include layout="@layout/layout_toolbar" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingLeft="50dp"
+        android:paddingRight="50dp">
+
+        <EditText
+            android:id="@+id/et_account"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="用户名"
+            android:theme="@style/MyEditText"
+            android:singleLine="true"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/et_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="邮箱"
+            android:theme="@style/MyEditText"
+            android:singleLine="true"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/et_password_one"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="密码"
+            android:theme="@style/MyEditText"
+            android:singleLine="true"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/et_password_two"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="密码确认"
+            android:theme="@style/MyEditText"
+            android:singleLine="true"
+            android:inputType="textPassword" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/et_captcha"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1000"
+                android:singleLine="true"
+                android:theme="@style/MyEditText"
+                android:maxLength="6"
+                android:hint="验证码" />
+
+            <ImageView
+                android:id="@+id/wb_captcha"
+                android:layout_width="110dp"
+                android:layout_height="match_parent"
+                />
+        </LinearLayout>
+
+
+        <Button
+            android:id="@+id/bt_user_signup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_selector"
+            android:textColor="@color/common_always_white_text_color"
+            android:textSize="20sp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:text="注     册" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/common_black_white_text_color"
+            android:text="Tips:新帐号注册成功后，前几次登录或打开可能会导致程序异常退出（解析错误，新帐号数据结构不一样），这个不打算去做兼容了，请多登录打开程序几次后即可,验证码是非必须的,加载不出随便填" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:text="注意：切勿频繁重复注册，否则可能所有帐号均被删除，且封禁IP" />
+    </LinearLayout>
+
+</LinearLayout>

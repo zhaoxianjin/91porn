@@ -9,9 +9,10 @@ import com.u91porn.data.model.UnLimit91PornItem;
  */
 
 public interface IFavorite extends IBaseFavorite {
-    void loadFavoriteData(int skip, int pageSize);
 
-    void deleteFavorite(int position, UnLimit91PornItem unLimit91PornItem);
+    void loadRemoteFavoriteData(boolean pullToRefresh,String referer);
+
+    void deleteFavorite(String rvid);
 
     void exportData(boolean onlyUrl);
 }

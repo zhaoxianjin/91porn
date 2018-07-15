@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/common_background"
+    tools:context="com.u91porn.ui.porn91video.play.BasePlayVideo">
+
+    <FrameLayout
+        android:id="@+id/videoplayer_container"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:background="@color/black"
+        android:visibility="invisible" />
+
+    <android.support.design.widget.CoordinatorLayout
+        android:id="@+id/coordinator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/videoplayer_container">
+
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/app_bar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/userinfo_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="5dp"
+                app:layout_scrollFlags="scroll|enterAlways">
+
+                <TextView
+                    android:id="@+id/tv_play_video_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="middle"
+                    android:lines="2"
+                    android:text="---"
+                    android:textColor="@color/play_head_video_info_text_color"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_play_video_author_"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:paddingBottom="5dp"
+                        android:paddingTop="5dp"
+                        android:text="作者："
+                        android:textColor="@color/play_head_video_info_text_color" />
+
+                    <TextView
+                        android:id="@+id/tv_play_video_author"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:paddingBottom="5dp"
+                        android:paddingTop="5dp"
+                        android:text="---"
+                        android:textColor="@color/yeloo" />
+                </LinearLayout>
+
+                <android.support.v7.widget.AppCompatTextView
+                    android:id="@+id/tv_play_video_add_date"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lines="1"
+                    android:text="添加时间: 20XX-XX-XX  ***精品视频加分+0000"
+                    android:textColor="@color/play_head_video_info_text_color"
+                    app:autoSizeMaxTextSize="20sp"
+                    app:autoSizeMinTextSize="10sp"
+                    app:autoSizeStepGranularity="1sp"
+                    app:autoSizeTextType="uniform" />
+
+                <android.support.v7.widget.AppCompatTextView
+                    android:id="@+id/tv_play_video_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lines="1"
+                    android:text="注册:xxx天前  级别:1  积分:00000  视频:00   粉丝:00000  关注:0"
+                    android:textColor="@color/play_head_video_info_text_color"
+                    app:autoSizeMaxTextSize="20sp"
+                    app:autoSizeMinTextSize="10sp"
+                    app:autoSizeStepGranularity="1sp"
+                    app:autoSizeTextType="uniform" />
+            </LinearLayout>
+        </android.support.design.widget.AppBarLayout>
+
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/comment_swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="?android:attr/actionBarSize"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView_video_comment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+
+        <FrameLayout
+            android:id="@+id/fl_load_holder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
+        <com.github.rubensousa.floatingtoolbar.FloatingToolbar
+            android:id="@+id/floatingToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_gravity="bottom|end"
+            android:background="@color/common_always_white_text_color"
+            app:floatingItemBackground="@drawable/button_selector_play"
+            app:floatingMenu="@menu/play_video" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="@dimen/fab_margin"
+            android:tint="@color/colorPrimary"
+            app:backgroundTint="@color/floating_action_button_tine_bg_color"
+            app:layout_behavior="@string/scale_down_show_behavior"
+            app:srcCompat="@drawable/ic_add_black_24dp" />
+
+        <LinearLayout
+            android:id="@+id/et_comment_input_layout"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_gravity="end|bottom"
+            android:background="@drawable/background"
+            android:orientation="horizontal"
+            app:layout_behavior="@string/bottom_behavior">
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/et_video_comment"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:theme="@style/MyEditText"
+                android:hint="@string/comment_video_hint_tip" />
+
+            <ImageView
+                android:id="@+id/iv_video_comment_send"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:padding="5dp"
+                android:tint="@color/colorPrimary"
+                app:srcCompat="@drawable/ic_send_black_24dp" />
+        </LinearLayout>
+    </android.support.design.widget.CoordinatorLayout>
+</RelativeLayout>

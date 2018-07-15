@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--点击背景-->
+    <item android:state_pressed="true">
+        <shape>
+            <!--色值-->
+            <solid android:color="@color/light_gray" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape>
+            <!--色值-->
+            <solid android:color="@color/light_gray" />
+        </shape>
+    </item>
+    
+    <!--默认背景-->
+    <item>
+        <shape>
+            <solid android:color="@color/white"/>
+        </shape>
+    </item>
+</selector>
